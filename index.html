@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ES6 Playground</title>
+</head>
+
+<body>
+	<div class="main">
+		<ul>
+			
+		</ul>
+	</div>
+
+	<script src="jquery-2.1.1.js"></script>
+	<!--<script data-main="main" src="require.js"></script>-->
+	<script src="require.js"></script>
+	<script>
+		function someNastyGlobalFunction () {
+			return 'I hate globals';
+		}
+	</script>
+	<script>
+		require.config({
+			paths: {
+				jquery: 'jquery-2.1.1'
+			}
+		});
+		require(['main'], function () {
+			console.log('included main; ' + someNastyGlobalFunction());
+		});
+	</script>
+</body>
+</html>
