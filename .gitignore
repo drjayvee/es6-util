@@ -1,1 +1,7 @@
 node_modules
+js/*.js.map
+js/attr.js
+js/attr2json.js
+js/main.js
+ts/*.js
+ts/*.js.map

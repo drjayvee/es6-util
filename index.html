@@ -11,9 +11,9 @@
 		</ul>
 	</div>
 
-	<script src="jquery-2.1.1.js"></script>
+	<script src="js/lib/jquery-2.1.1.js"></script>
 	<!--<script data-main="main" src="require.js"></script>-->
-	<script src="require.js"></script>
+	<script src="js/lib/require.js"></script>
 	<script>
 		function someNastyGlobalFunction () {
 			return 'I hate globals';
@@ -21,8 +21,9 @@
 	</script>
 	<script>
 		require.config({
+			baseUrl: 'js',
 			paths: {
-				jquery: 'jquery-2.1.1'
+				jquery: 'lib/jquery-2.1.1'
 			}
 		});
 		require(['main'], function () {
