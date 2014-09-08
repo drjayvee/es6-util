@@ -1,3 +1,5 @@
+"use strict";
+
 function jQuery () {}
 
 jQuery.type = function( obj ) {
@@ -98,35 +100,23 @@ jQuery.extend = function () {
 };
 
 function buildClass (base, extensions, protoProps, constProps) {
-	"use strict";
-	
 	// build constructor
 	function F () {
-		var args = arguments,
-			self = this;
-		
-		base.apply(this, args);					// top-down (super -> base) recursion
-		
-		if (typeof this.init === 'function' && this._initCalled !== true) {
-			this.init.apply(this, args);
-			this._initCalled = true;
-		}
-		
-		if (extensions) {
-			extensions.forEach(function (ext) {
-				ext.apply(self, args);
-				ext.prototype.init.apply(self, args);
-			});
-		}
+		base.apply(this, arguments);			// top-down (super -> base) recursion
+		// TODO: do we need to recurse at all?
 	}
+	
+	F.superclass = base;
 	
 	// set prototype
 	F.prototype = Object.create(base.prototype);
 	F.prototype.constructor = F;
 	
-	// merge extension prototypes 
+	// register extensions and merge their prototypes
+	F.__ext = [];
 	if (extensions) {
 		extensions.forEach(function (ext) {
+			F.__ext.push(ext);
 			jQuery.extend(F.prototype, ext.prototype);
 		});
 	}
@@ -142,17 +132,43 @@ function buildClass (base, extensions, protoProps, constProps) {
 	return F;
 }
 
+function Root () {
+	var args = arguments,
+		self = this;
+	
+	console.log('Root()');
+	
+	// walk inheritance chain, call each (super) class extensions' init functions
+	(function initExtensionsFor(constructor) {
+		if (constructor === Root) {
+			return;
+		}
+		initExtensionsFor(constructor.superclass);		// super -> base
+		
+		constructor.__ext.forEach(function (ext) {
+			ext.apply(self, args);		// TODO: meh, should we even call Extensions constructors?
+			ext.prototype.init.apply(self, args);
+		});
+		if (constructor.prototype.hasOwnProperty('init')) {
+			constructor.prototype.init.apply(self, args);
+		}
+		
+	}(this.constructor));
+}
+
 /*global console*/
 (function () {
 	"use strict";
 	
-	var Awesome, ai, Mid;
+	var Awesome, ai, Base, Mid;
 	
 	// Base
-	function Base (config) {
-		console.log('Base constructor');
+	Base = buildClass(Root);
+	
+	Base.prototype.init = function (config) {
 		this.baseVar = config.baseVar;
-	}
+		console.log('Base.init');
+	};
 	
 	Base.prototype.baseFunc = function () {
 		return 'Base: ' + this.baseVar;
@@ -162,7 +178,6 @@ function buildClass (base, extensions, protoProps, constProps) {
 	Mid = buildClass(Base);
 
 	Mid.prototype.init = function (config) {
-		"use strict";
 		console.log('Mid.init');
 		this.midVar = config.midVar;
 	};
@@ -185,7 +200,6 @@ function buildClass (base, extensions, protoProps, constProps) {
 	// Awesome
 	Awesome = buildClass(Mid, [Ext], {
 		init: function (config) {
-			this.constructor.prototype.init(config);
 			console.log('Awesome.init');
 			this.awsVar = config.awsVar;
 		},
