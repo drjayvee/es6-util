@@ -99,11 +99,46 @@ jQuery.extend = function () {
 	return target;
 };
 
-function buildClass (base, extensions, protoProps, constProps) {
+/**
+ * Build a constructor function
+ * 
+ * The constructor itself will only call its parent. This recursion will
+ * stop with Root(). Extension constructors are not called.
+ * 
+ * Each class' and extension's init() function is called. The order is
+ * bottom-up (e.g. sub -> super), and extensions before the classes they
+ * were set up on.
+ * 
+ * Init functions (and the constructors) are called with the arguments used
+ * for the built class.
+ * 
+ * Example:
+ *   B = buildClass(Root);
+ *   
+ *   E = function () {}		// will never be called
+ *   E.prototype.init = function () {}
+ *   
+ *   F = buildClass(B, [E], {
+ *     init: function () {}
+ *   });
+ *   
+ *   new F();
+ *   
+ * Call order:
+ *   F() -> B() -> Root()	// Root() in turn will call
+ *   B.init(), E.init(), F.init()
+ *   F's prototype will have E's merged
+ * 
+ * @param {Function} base				Must be Root or subclass of Root
+ * @param {[Function]} [extensions]		List of extension constructors
+ * @param {Object} [protoProps]			Properties to merge onto the built class' prototype (e.g. Func.prototype.prop)
+ * @param {Object} [staticProps]		Properties to merge onto the built class (e.g. Func.prop)
+ * @returns {Function}
+ */
+function buildClass (base, extensions, protoProps, staticProps) {
 	// build constructor
 	function F () {
 		base.apply(this, arguments);			// top-down (super -> base) recursion
-		// TODO: do we need to recurse at all?
 	}
 	
 	F.superclass = base;
@@ -125,8 +160,8 @@ function buildClass (base, extensions, protoProps, constProps) {
 	if (protoProps) {
 		jQuery.extend(F.prototype, protoProps);
 	}
-	if (constProps) {
-		jQuery.extend(F, constProps);
+	if (staticProps) {
+		jQuery.extend(F, staticProps);
 	}
 	
 	return F;
@@ -146,7 +181,7 @@ function Root () {
 		initExtensionsFor(constructor.superclass);		// super -> base
 		
 		constructor.__ext.forEach(function (ext) {
-			ext.apply(self, args);		// TODO: meh, should we even call Extensions constructors?
+//			ext.apply(self, args);		// TODO: meh, should we even call Extensions constructors?
 			ext.prototype.init.apply(self, args);
 		});
 		if (constructor.prototype.hasOwnProperty('init')) {
@@ -160,7 +195,7 @@ function Root () {
 (function () {
 	"use strict";
 	
-	var Awesome, ai, Base, Mid;
+	var Awesome, my, Base, MESAp, Mid;
 	
 	// Base
 	Base = buildClass(Root);
@@ -184,21 +219,22 @@ function Root () {
 	Mid.prototype.midFunc = function () {
 		return 'Mid: ' + this.midVar;
 	};
+	Mid.midStatic = 'Mid static';
 	
-	// Ext
-	function Ext (config) {
-		console.log('Ext constructor');
-		this.extVar = config.extVar;
-	}
-	Ext.prototype.extFunc = function () {
-		return 'Ext: ' + this.extVar;
+	// Ext1
+	function Ext1 () {}
+
+	Ext1.prototype.init = function (config) {
+		this.ext1Var = config.ext1Var;
+		console.log('Ext1.init');
 	};
-	Ext.prototype.init = function (config) {
-		console.log('Ext.init');
+	Ext1.prototype.ext1Func = function () {
+		return 'Ext1: ' + this.ext1Var;
 	};
+	Ext1.ext1Static = 'Ext1 static';
 	
 	// Awesome
-	Awesome = buildClass(Mid, [Ext], {
+	Awesome = buildClass(Mid, [Ext1], {
 		init: function (config) {
 			console.log('Awesome.init');
 			this.awsVar = config.awsVar;
@@ -207,24 +243,50 @@ function Root () {
 			return 'Awesome: ' + this.awsVar;
 		}
 	});
-	
+
+	// Ext2
+	function Ext2 () {}
+
+	Ext2.prototype.init = function (config) {
+		this.ext2Var = config.ext2Var;
+		console.log('Ext2.init');
+	};
+	Ext2.prototype.ext2Func = function () {
+		return 'Ext2: ' + this.ext2Var;
+	};
+	Ext2.ext2Static = 'Ext2 static';
+
+	// MESAp
+	MESAp = buildClass(Awesome, [Ext2], {
+		init: function (config) {
+			console.log('MESAp.init');
+			this.mesapVar = config.mesapVar;
+		},
+		mesapFunc: function () {
+			return 'MESA+: ' + this.mesapVar;
+		}
+	}, {
+		mesapStatic: 'MESA+ static'
+	});
 	
 	
 	// test
-	ai = new Awesome({
+	my = new MESAp({
 		baseVar:	'base',
 		midVar:		'mid',
-		extVar:		'ext',
-		awsVar:		'pwn'
+		ext1Var:	'ext1',
+		awsVar:		'aws',
+		ext2Var:	'ext2',
+		mesapVar:	'mesa+'
 	});
 	
 	console.log(
-		ai.baseFunc(), ai.midFunc(), ai.extFunc(), ai.awsFunc()
+		my.baseFunc(), my.midFunc(), my.ext1Func(), my.awsFunc(), my.ext2Func(), my.mesapFunc()
 	);
 	console.log(
-		'these should all be true:', ai instanceof Awesome, ai instanceof Mid, ai instanceof Base
+		'these should all be true:', my instanceof MESAp, my instanceof Awesome, my instanceof Mid, my instanceof Base
 	);
 	console.log(
-		'and what about Ext?', ai instanceof Ext
+		'and what about Ext1?', my instanceof Ext2, my instanceof Ext1
 	);
 }());
