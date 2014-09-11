@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Event test</title>
+</head>
+
+<body>
+	<script src="js/lib/jquery-2.1.1.js"></script>
+	<script src="js/lib/require.js"></script>
+	<script>
+		require.config({
+			paths: {
+				jquery:			'js/lib/jquery-2.1.1'
+			}
+		});
+		require(['event-test']);
+	</script>
+</body>
+</html>
