@@ -2,11 +2,15 @@
 require(['js/event', 'js/oop'], function (event, oop) {
 	"use strict";
 	
-	var Party = oop.buildClass(oop.Root, [event.EventTarget], {
+	var o, p, Party;
+	
+	Party = oop.buildClass(oop.Root, [event.EventTarget], {
 		init: function () {
-			this.booze = 1;
-			this.on('party', this._onParty.bind(this));
-			this.on('boozegone', this._onBoozeGone.bind(this));
+			this.booze = 2;
+			
+			this.on('party', this._onParty);
+			this.after('party', this._afterParty);
+			this.on('boozegone', this._onBoozeGone);
 		},
 
 		/**
@@ -14,18 +18,20 @@ require(['js/event', 'js/oop'], function (event, oop) {
 		 * @private
 		 */
 		_onParty: function (e) {
-			if (this.booze) {
-				console.log('party!');
-			} else{
+			console.log('Party: let\'s party!');
+			if (!this.booze) {
 				e.preventDefault();
 				this.fire('boozegone');
 			}
-			
+		},
+		
+		_afterParty: function () {
 			this.booze -= 1;
+			console.log('Party: clean up');
 		},
 		
 		_onBoozeGone: function () {
-			console.log('party\'s over people');
+			console.log('Party: booze is gone, no party tonight people');
 		},
 		
 		throwParty: function () {
@@ -34,5 +40,34 @@ require(['js/event', 'js/oop'], function (event, oop) {
 		}
 	});
 	
-	new Party().throwParty().throwParty();
+	p = new Party();
+	
+	p.once('party', function () {
+		console.log('Neighbour hears a party, will tolerates once');
+	});
+	p.onceAfter('party', function () {
+		console.log('Neighbour can finally go to bed');
+	});
+	
+	// 1st party
+	p.throwParty();
+	console.log('-- That was one heck of a party! --');
+	
+	p.on('party', function (e) {
+		console.log('Neighbour was about to call the cops, but party was cut short: ', e.defaultPrevented);
+	});
+	
+	// 2nd party
+	p.throwParty();
+	console.log('-- That was one heck of a party, again! --');
+
+	// 2rd party
+	o = {name: 'Pete'};
+	function dance () {
+		console.log(this.name + ' starts to dance (should NEVER happen!!!!)');
+	}
+	p.on('party', dance, o).detach();
+//	p._detach('party', dance);
+	
+	p.throwParty();
 });
