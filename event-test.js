@@ -54,20 +54,21 @@ require(['js/event', 'js/oop'], function (event, oop) {
 	console.log('-- That was one heck of a party! --');
 	
 	p.on('party', function (e) {
-		console.log('Neighbour was about to call the cops, but party was cut short: ', e.defaultPrevented);
+		console.log('Neighbour will call cops ', !e.defaultPrevented);
 	});
 	
 	// 2nd party
 	p.throwParty();
 	console.log('-- That was one heck of a party, again! --');
 
-	// 2rd party
+	// 3rd party
 	o = {name: 'Pete'};
 	function dance () {
 		console.log(this.name + ' starts to dance (should NEVER happen!!!!)');
 	}
-	p.on('party', dance, o).detach();
-//	p._detach('party', dance);
+	p.on('party', dance, o);
+	p.on('party', dance, o);
+	p.detach('party', dance, o);
 	
 	p.throwParty();
 });
