@@ -11,7 +11,7 @@ define(['jquery'], function (jQuery) {
 		initExtensionsFor(constructor.superclass, context, args);		// super -> base
 		
 		constructor.__ext.forEach(function (ext) {
-			ext.apply(context, args);		// TODO: meh, should we even call Extensions constructors?
+			ext.apply(context, args);
 			if (ext.prototype.hasOwnProperty('init')) {
 				ext.prototype.init.apply(context, args);
 			}
