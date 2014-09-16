@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>EventTarget test suite</title>
+	<link rel="stylesheet" href="qunit-1.15.0.css">
+</head>
+
+<body>
+	<div id="qunit"></div>
+	<div id="qunit-fixture"></div>
+ 
+	<script src="../js/lib/jquery-2.1.1.js"></script>
+	<script src="qunit-1.15.0.js"></script>
+	<script src="../js/lib/require.js"></script>
+	<script>
+		require.config({
+			baseUrl: '../',
+			paths: {
+				jquery:			'js/lib/jquery-2.1.1'
+			}
+		});
+		require(['test/event-test']);
+	</script>
+</body>
+</html>

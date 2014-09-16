@@ -69,11 +69,34 @@ define(function () {
 	// region EventTarget
 	function EventTarget () {
 		this._eventDispatch = new DispatchFacade();
+		this._eventDefinitions = {};
 		this._eventSubs = {};
 	}
 	
+	EventTarget.defaultConfig = {
+		preventable:	true,
+		preventedFn:	null,
+		defaultFn:		null
+	};
+	
 	EventTarget.prototype = {
 		constructor: EventTarget,
+		
+		publish: function (type, config) {
+			var cfg;
+			
+			if (this._eventDefinitions[type]) {
+				throw new Error('Event "' + type + '" has already been published');
+			}
+			
+			// merge config with default config
+			cfg = {};
+			Object.keys(EventTarget.defaultConfig).forEach(function (key) {
+				cfg[key] = config.hasOwnProperty(key) ? config[key] : EventTarget.defaultConfig[key];
+			});
+			
+			this._eventDefinitions[type] = cfg;
+		},
 		
 		/**
 		 * 
@@ -108,7 +131,7 @@ define(function () {
 		},
 
 		/**
-		 * Remove all subscriptions for this type, callback, context
+		 * Remove all subscriptions for this type (on and after), callback, context
 		 * If no context is supplied, remove for each context
 		 * 
 		 * @param	{String} type
@@ -116,12 +139,19 @@ define(function () {
 		 * @param	{Object} [context]		if not specified, use this
 		 */
 		detach: function (type, callback, context) {
-			var sub = this._findSub(type, callback, context || this);
+			var subs;
 			
-			if (sub) {
+			context = context || this;
+			
+			// merge on and after subs
+			subs = this._findSubs(type, callback, context).concat(
+				this._findSubs('AFTER:' + type, callback, context)
+			);
+			
+			subs.forEach(function (sub) {
 				sub.detach();
 				this._deleteSub(sub);
-			}
+			}, this);
 		},
 		
 		_on: function (type, callback, context, once) {
@@ -130,9 +160,9 @@ define(function () {
 			context = context || this;
 			
 			// prevent duplicate subs
-			sub = this._findSub(type, callback, context);
-			if (sub) {
-				return sub;
+			sub = this._findSubs(type, callback, context);
+			if (sub.length === 1) {
+				return sub[0];
 			}
 			
 			// create new sub
@@ -154,22 +184,23 @@ define(function () {
 			return sub;
 		},
 		
-		_findSub: function (type, callback, context) {
+		_findSubs: function (type, callback, context) {
 			var i,
+				found = [],
 				sub,
 				subs = this._eventSubs[type];
 			
 			if (!this._eventSubs[type]) {
-				return null;
+				return found;
 			}
 			
 			for (i = 0; i < subs.length; i += 1) {
 				sub = subs[i];
 				if (sub.callback === callback && sub.context === context) {
-					return sub;
+					found.push(sub);
 				}
 			}
-			return null;
+			return found;
 		},
 		
 		_deleteSub: function (sub) {
@@ -184,14 +215,19 @@ define(function () {
 		 * @param	{String} type
 		 */
 		fire: function (type) {
-			var cancelled;
+			var cancelled,
+				def = this._eventDefinitions[type] || EventTarget.defaultConfig;
 			
-			cancelled = !this._eventDispatch.dispatch(type, true);
+			cancelled = !this._eventDispatch.dispatch(type, def.preventable);
 			
 			if (!cancelled) {
-				// TODO: if (this._eventDefs[type] { this._eventDefs[type].defaultFn() }
+				if (def.defaultFn) {
+					def.defaultFn();
+				}
 				
 				this._eventDispatch.dispatch('AFTER:' + type, false);
+			} else if (def.preventedFn) {
+				def.preventedFn();
 			}
 		}
 	};
