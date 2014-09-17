@@ -5,7 +5,8 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 	var Attribute = attr.Attribute;
 	
 	QUnit.test('basic add, set / get use', function (assert) {
-		var at = new Attribute();
+		var ATI,
+			at = new Attribute();
 		
 		at.addAttribute('k');
 		
@@ -28,14 +29,20 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 		assert.equal(at.set('k', true), at);
 		
 		// try with static definition
-		at = new (oop.buildClass(oop.Root, [Attribute], {}, {
+		ATI = oop.buildClass(oop.Root, [Attribute], {}, {
 			ATTRS: {
 				k: {
 					value: 1337
 				}
 			}
-		}))();
+		});
 		
+		at = new ATI();
+		assert.equal(at.get('k'), 1337);
+		at.set('k', 1336);
+		assert.equal(at.get('k'), 1336);
+		
+		at = new ATI();
 		assert.equal(at.get('k'), 1337);
 	});
 	
@@ -100,6 +107,47 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 		assert.ok(setterCalled);
 		assert.equal(at.get('k'), 1337);
 		assert.ok(getterCalled);
+	});
+	
+	QUnit.test('initialize attributes via constructor', function (assert) {
+		var at, AT;
+		
+		AT = oop.buildClass(oop.Root, [Attribute], {}, {
+			ATTRS: {
+				k1: {
+					value: 1337,
+					validator: function (value) {
+						var numVal = +value;
+						return value === numVal;
+					}
+				},
+				k2: {
+					value: 'elite'
+				}
+			}
+		});
+		
+		// empty config
+		at = new AT({});
+		
+		assert.equal(at.get('k1'), 1337);
+		assert.equal(at.get('k2'), 'elite');
+		
+		// supply config
+		at = new AT({
+			k1: 13.37,
+			k2: 'sweet'
+		});
+		
+		assert.equal(at.get('k1'), 13.37);
+		assert.equal(at.get('k2'), 'sweet');
+		
+		// supply invalid initial value
+		at = new AT({
+			k1: 'bad'
+		});
+		
+		assert.equal(at.get('k1'), 1337);
 	});
 	
 	/*
