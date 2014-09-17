@@ -19,7 +19,7 @@ define(function () {
 		 * Config can have value, validator, getters, setter
 		 * 
 		 * @param {String} name
-		 * @param {Object} config
+		 * @param {Object} [config]
 		 */
 		addAttribute: function (name, config) {
 			var cfg = {};

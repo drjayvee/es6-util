@@ -1,5 +1,5 @@
 /*global console, define, require, QUnit*/
-require(['js/event', 'js/oop'], function (event, oop) {
+require(['js/event', 'js/oop'], function (event) {
 	"use strict";
 	
 	var ET = event.EventTarget;
@@ -104,7 +104,7 @@ require(['js/event', 'js/oop'], function (event, oop) {
 			o = 0,
 			oa = 0;
 		
-		et.once('ev', function (e) {
+		et.once('ev', function () {
 			o += 1;
 		});
 		et.onceAfter('ev', function () {
