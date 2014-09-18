@@ -235,6 +235,43 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 		
 		assert.deepEqual(afterChangeEvent.prevVal, 1337);
 		assert.deepEqual(afterChangeEvent.newVal, 1338);
+		
+		// on listener can change new value before validation
+		ao.addAttribute('t', {
+			value: 1337,
+			setter: function (value) {
+				return +value;
+			},
+			validator: function (value) {
+				return value === +value;
+			}
+		});
+		
+		ao.on('tChange', function (e) {
+			if (valid) {
+				e.newVal = +e.newVal + 1;
+			} else {
+				e.newVal = 'oh noes!';
+			}
+		});
+		ao.after('tChange', function (e) {
+			afterChangeEvent = e;
+		});
+		
+		valid = true;
+		afterChangeEvent = null;
+		ao.set('t', 8007);
+		
+		assert.equal(afterChangeEvent.newVal, 8008);
+		assert.equal(ao.get('t'), 8008);
+		
+		// try again with on cb setting invalid value
+		valid = false;
+		afterChangeEvent = null;
+		ao.set('t', '1336');
+		
+		assert.equal(afterChangeEvent, null);
+		assert.equal(ao.get('t'), 8008);
 	});
 	
 	/*

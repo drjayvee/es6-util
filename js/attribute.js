@@ -135,11 +135,18 @@ define(['js/oop', 'js/event'], function (oop, event) {
 					newVal:		value,
 					attrName:	name
 				},
+				e,
 				success;
 			
-			success = this._eventDispatch.dispatch(name + 'Change', true, data);
+			e = this._eventDispatch.createEvent(
+				name + 'Change', true, data
+			);
+			
+			success = this._eventDispatch.dispatch(e);
 			
 			if (success) {
+				value = e.newVal;		// allow on() listeners to change the new value
+				
 				success = Attribute.prototype._set.call(this, name, value);
 				
 				if (success) {		// attribute value was changed

@@ -20,14 +20,31 @@ define(function () {
 
 		/**
 		 * 
-		 * @param {String} type
-		 * @param {Boolean} cancelable
+		 * @param {String|Event} typeOrEvent
+		 * @param {Boolean} [preventable=true]
 		 * @param {Object} [data]
 		 * @returns {boolean}
 		 */
-		dispatch: function (type, cancelable, data) {
+		dispatch: function (typeOrEvent, preventable, data) {
+			var e = typeOrEvent;
+			
+			if (typeof typeOrEvent === 'string') {
+				e = this.createEvent(typeOrEvent, preventable, data);
+			}
+			
+			return this._eventNode.dispatchEvent(e);
+		},
+
+		/**
+		 * 
+		 * @param {string} type
+		 * @param {boolean} [preventable=true]
+		 * @param {Object} [data]
+		 * @returns {Event}
+		 */
+		createEvent: function (type, preventable, data) {
 			var e = document.createEvent('Event');
-			e.initEvent(type, false, cancelable);
+			e.initEvent(type, false, preventable !== false);
 
 			if (data) {
 				Object.keys(data).forEach(function ( key ) {
@@ -38,7 +55,7 @@ define(function () {
 				});
 			}
 			
-			return this._eventNode.dispatchEvent(e);
+			return e;
 		}
 	};
 	// endregion
