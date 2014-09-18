@@ -1,7 +1,10 @@
 /*global define, Event*/
-define(function () {
+define(['js/oop', 'js/event'], function (oop, event) {
 	"use strict";
 	
+	var AttributeObservable;
+	
+	// region Attribute
 	function Attribute (config) {
 		this._attributes = {};
 		
@@ -74,10 +77,6 @@ define(function () {
 				current = this.get(name),	// will throw Error if attr doesn't exist, which if fine!
 				okToSet = true;
 			
-			if (current === value) {
-				return this;
-			}
-			
 			// call validator / setter
 			if (attrConfig.validator) {
 				okToSet = attrConfig.validator(value, name, this) !== false;
@@ -121,8 +120,26 @@ define(function () {
 			return value;
 		}
 	};
+	// endregion
+	
+	// region AttributeObserver
+	AttributeObservable = oop.buildClass(oop.Root, [event.EventTarget, Attribute], {
+		set: function (name, value) {
+			var success;
+			
+			success = this.fire(name + 'Change');
+			
+			if (success) {
+				Attribute.prototype.set.call(this, name, value);
+			}
+			
+			return this;
+		}
+	});
+	// endregion
 	
 	return {
-		Attribute: Attribute
+		Attribute: Attribute,
+		AttributeObservable: AttributeObservable
 	};
 });

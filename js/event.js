@@ -212,15 +212,16 @@ define(function () {
 		
 		/**
 		 * 
-		 * @param	{String} type
+		 * @param {String} type
+		 * @return {boolean}	true if event was not cancelled
 		 */
 		fire: function (type) {
-			var cancelled,
+			var success,
 				def = this._eventDefinitions[type] || EventTarget.defaultConfig;
 			
-			cancelled = !this._eventDispatch.dispatch(type, def.preventable);
+			success = this._eventDispatch.dispatch(type, def.preventable);
 			
-			if (!cancelled) {
+			if (success) {
 				if (def.defaultFn) {
 					def.defaultFn();
 				}
@@ -229,6 +230,8 @@ define(function () {
 			} else if (def.preventedFn) {
 				def.preventedFn();
 			}
+			
+			return success;
 		}
 	};
 	// endregion

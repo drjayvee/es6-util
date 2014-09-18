@@ -2,7 +2,8 @@
 require(['js/attribute', 'js/oop'], function (attr, oop) {
 	"use strict";
 	
-	var Attribute = attr.Attribute;
+	var Attribute = attr.Attribute,
+		AttributeObservable = attr.AttributeObservable;
 	
 	QUnit.test('basic add, set / get use', function (assert) {
 		var ATI,
@@ -150,9 +151,44 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 		assert.equal(at.get('k1'), 1337);
 	});
 	
+	QUnit.test('attribute change events', function (assert) {
+		var ao = new AttributeObservable(),
+			cancelChange = false,
+			onChangeEvent = null,
+			afterChangeEvent = null;
+		
+		ao.addAttribute('k');
+		
+		ao.on('kChange', function (e) {
+			onChangeEvent = e;
+			if (cancelChange) {
+				e.preventDefault();
+			}
+		});
+		ao.after('kChange', function (e) {
+			afterChangeEvent = e;
+		});
+		
+		ao.set('k', 'sweet');
+		assert.equal(ao.get('k'), 'sweet');
+		
+		assert.ok(onChangeEvent);
+		assert.ok(afterChangeEvent);
+		
+		// cancel change
+		onChangeEvent = afterChangeEvent = null;
+		cancelChange = true;
+		
+		ao.set('k', 'sweeter');
+		
+		assert.ok(onChangeEvent);
+		assert.equal(afterChangeEvent, null);
+		assert.equal(ao.get('k'), 'sweet');
+	});
+	
 	/*
 	QUnit.test('', function (assert) {
-		var at = new AT();
+		var at = new Attribute();
 		
 		
 	});
