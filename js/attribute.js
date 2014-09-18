@@ -73,6 +73,11 @@ define(['js/oop', 'js/event'], function (oop, event) {
 		 * @returns {Attribute}
 		 */
 		set: function (name, value) {
+			this._set(name, value);
+			return this;
+		},
+		
+		_set: function (name, value) {
 			var attrConfig = this._attributes[name],
 				current = this.get(name),	// will throw Error if attr doesn't exist, which if fine!
 				okToSet = true;
@@ -97,7 +102,7 @@ define(['js/oop', 'js/event'], function (oop, event) {
 			if (okToSet) {
 				this._attributes[name].value = value;
 			}
-			return this;
+			return okToSet;
 		},
 
 		/**
@@ -124,20 +129,26 @@ define(['js/oop', 'js/event'], function (oop, event) {
 	
 	// region AttributeObserver
 	AttributeObservable = oop.buildClass(oop.Root, [event.EventTarget, Attribute], {
-		set: function (name, value) {
-			var success;
+		_set: function (name, value) {
+			var data = {
+					prevVal:	this.get(name),
+					newVal:		value,
+					attrName:	name
+				},
+				success;
 			
-			success = this.fire(name + 'Change', {
-				prevVal:	this.get(name),
-				newVal:		value,
-				attrName:	name
-			});
+			success = this._eventDispatch.dispatch(name + 'Change', true, data);
 			
 			if (success) {
-				Attribute.prototype.set.call(this, name, value);
+				success = Attribute.prototype._set.call(this, name, value);
+				
+				if (success) {		// attribute value was changed
+					data.newVal = this.get(name);		// update newVal (post-setter)
+					success = this._eventDispatch.dispatch('AFTER:' + name + 'Change', false, data);
+				}
 			}
 			
-			return this;
+			return success;
 		}
 	});
 	// endregion

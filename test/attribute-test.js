@@ -155,9 +155,15 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 		var ao = new AttributeObservable(),
 			cancelChange = false,
 			onChangeEvent = null,
-			afterChangeEvent = null;
+			afterChangeEvent = null,
+			valid = true;
 		
-		ao.addAttribute('k');
+		// set up listeners
+		ao.addAttribute('k', {
+			validator: function () {
+				return valid;
+			}
+		});
 		
 		ao.on('kChange', function (e) {
 			onChangeEvent = e;
@@ -189,6 +195,46 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 		assert.ok(onChangeEvent);
 		assert.equal(afterChangeEvent, null);
 		assert.equal(ao.get('k'), 'sweet');
+		
+		// after is only fired if new value is valid
+		afterChangeEvent = null;
+		cancelChange = false;
+		valid = false;
+		
+		ao.set('k', 'sweeter');
+		assert.equal(ao.get('k'), 'sweet');
+		assert.equal(afterChangeEvent, null);
+		
+		// after is only fired if a change occured
+		afterChangeEvent = null;
+		valid = true;
+		
+		ao.set('k', 'sweet');
+		assert.equal(afterChangeEvent, null);
+		
+		// on's callback gets pre-setter value, after's gets post-setter
+		onChangeEvent = afterChangeEvent = null;
+		ao.addAttribute('s', {
+			value: 1337,
+			setter: function (value) {
+				return +value;
+			}
+		});
+		
+		ao.on('sChange', function (e) {
+			onChangeEvent = e;
+		});
+		ao.after('sChange', function (e) {
+			afterChangeEvent = e;
+		});
+		
+		ao.set('s', '1338');
+		
+		assert.deepEqual(onChangeEvent.prevVal, 1337);
+		assert.deepEqual(onChangeEvent.newVal, '1338');
+		
+		assert.deepEqual(afterChangeEvent.prevVal, 1337);
+		assert.deepEqual(afterChangeEvent.newVal, 1338);
 	});
 	
 	/*
