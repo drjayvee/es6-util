@@ -169,11 +169,16 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 			afterChangeEvent = e;
 		});
 		
+		// (initial) set attr
 		ao.set('k', 'sweet');
-		assert.equal(ao.get('k'), 'sweet');
 		
-		assert.ok(onChangeEvent);
+		assert.equal(onChangeEvent.prevVal, undefined);
+		assert.equal(onChangeEvent.newVal, 'sweet');
+		assert.equal(onChangeEvent.attrName, 'k');
+		
 		assert.ok(afterChangeEvent);
+		
+		assert.equal(ao.get('k'), 'sweet');
 		
 		// cancel change
 		onChangeEvent = afterChangeEvent = null;

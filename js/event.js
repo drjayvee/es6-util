@@ -17,10 +17,26 @@ define(function () {
 		detach: function (type, fn) {
 			this._eventNode.removeEventListener(type, fn, false);
 		},
-		
-		dispatch: function (type, cancelable) {
+
+		/**
+		 * 
+		 * @param {String} type
+		 * @param {Boolean} cancelable
+		 * @param {Object} [data]
+		 * @returns {boolean}
+		 */
+		dispatch: function (type, cancelable, data) {
 			var e = document.createEvent('Event');
 			e.initEvent(type, false, cancelable);
+
+			if (data) {
+				Object.keys(data).forEach(function ( key ) {
+					if (e[key]) {		// don't overwrite "native" event properties
+						return;
+					}
+					e[key] = data[key];
+				});
+			}
 			
 			return this._eventNode.dispatchEvent(e);
 		}
@@ -213,22 +229,23 @@ define(function () {
 		/**
 		 * 
 		 * @param {String} type
+		 * @param {Object} [data]
 		 * @return {boolean}	true if event was not cancelled
 		 */
-		fire: function (type) {
+		fire: function (type, data) {
 			var success,
 				def = this._eventDefinitions[type] || EventTarget.defaultConfig;
 			
-			success = this._eventDispatch.dispatch(type, def.preventable);
+			success = this._eventDispatch.dispatch(type, def.preventable, data);
 			
 			if (success) {
 				if (def.defaultFn) {
-					def.defaultFn();
+					def.defaultFn(data);
 				}
 				
-				this._eventDispatch.dispatch('AFTER:' + type, false);
+				this._eventDispatch.dispatch('AFTER:' + type, false, data);
 			} else if (def.preventedFn) {
-				def.preventedFn();
+				def.preventedFn(data);
 			}
 			
 			return success;

@@ -24,6 +24,61 @@ require(['js/event', 'js/oop'], function (event) {
 		assert.equal(i, 2);
 	});
 	
+	QUnit.test('Can add custom properties to events', function (assert) {
+		var et = new ET(),
+			eventArgs = {
+				on:				null,
+				after:			null,
+				defaultFn:		null,
+				preventedFn:	null
+			},
+			peventDefault = false;
+		
+		et.publish('ev', {
+			defaultFn: function (e) {
+				eventArgs.defaultFn = e;
+			},
+			preventedFn: function (e) {
+				eventArgs.preventedFn = e;
+			}
+		});
+		
+		et.on('ev', function (e) {
+			eventArgs.on = e;
+			
+			if (peventDefault) {
+				e.preventDefault();
+			}
+		});
+		et.after('ev', function (e) {
+			eventArgs.after = e;
+		});
+		
+		// fire event with custom data
+		et.fire('ev', {custom: true});
+		
+		assert.ok(eventArgs.on.custom);
+		assert.ok(eventArgs.defaultFn.custom);
+		assert.ok(eventArgs.after.custom);
+		assert.equal(eventArgs.preventedFn, null);		// event was not prevent
+		
+		// fire event, prevent Default
+		eventArgs = {
+			on:				null,
+			after:			null,
+			defaultFn:		null,
+			preventedFn:	null
+		};
+		
+		peventDefault = true;
+		et.fire('ev', {custom: true});
+		
+		assert.ok(eventArgs.on.custom);
+		assert.equal(eventArgs.defaultFn, null);
+		assert.equal(eventArgs.after, null);
+		assert.ok(eventArgs.preventedFn);
+	});
+	
 	QUnit.test('can detach handlers', function (assert) {
 		var et = new ET(),
 			context = {i: 0},

@@ -127,7 +127,11 @@ define(['js/oop', 'js/event'], function (oop, event) {
 		set: function (name, value) {
 			var success;
 			
-			success = this.fire(name + 'Change');
+			success = this.fire(name + 'Change', {
+				prevVal:	this.get(name),
+				newVal:		value,
+				attrName:	name
+			});
 			
 			if (success) {
 				Attribute.prototype.set.call(this, name, value);
