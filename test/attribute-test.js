@@ -274,6 +274,96 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 		assert.equal(ao.get('t'), 8008);
 	});
 	
+	QUnit.test('class chain attributes', function (assert) {
+		var C1,
+			C2,
+			C3,
+			i;
+		
+		// case 1: base class has Attribute extension
+		C1 = oop.buildClass(oop.Root, [Attribute], {}, {
+			ATTRS: {
+				c1: {value: 'c1'}
+			}
+		});
+		
+		C2 = oop.buildClass(C1, [], {}, {
+			ATTRS: {
+				c2: {value: 'c2'}
+			}
+		});
+		
+		i = new C2();
+		assert.equal(i.get('c1'), 'c1');
+		assert.equal(i.get('c2'), 'c2');
+		
+		// case 2: child class has Attribute extension
+		C1 = oop.buildClass(oop.Root, [], {}, {
+			ATTRS: {
+				c1: {value: 'c1'}
+			}
+		});
+		
+		C2 = oop.buildClass(C1, [Attribute], {}, {
+			ATTRS: {
+				c2: {value: 'c2'}
+			}
+		});
+		
+		i = new C2();
+		assert.equal(i.get('c1'), 'c1');
+		assert.equal(i.get('c2'), 'c2');
+		
+		// case 3: ATTRs everywhere
+		function E1 () {}
+		E1.ATTRS = {
+			e1: {value: 'e1'}
+		};
+		
+		function E2 () {}
+		E2.ATTRS = {
+			e2: {value: 'e2'}
+		};
+		
+		C1 = oop.buildClass(oop.Root, [Attribute, E1], {}, {
+			ATTRS: {
+				c1: {value: 'c1'}
+			}
+		});
+		
+		C2 = oop.buildClass(C1, [E2], {}, {
+			ATTRS: {
+				c2: {value: 'c2'}
+			}
+		});
+		
+		C3 = oop.buildClass(C2, [], {}, {
+			ATTRS: {
+				c3: {value: 'c3'}
+			}
+		});
+		
+		i = new C3();
+		assert.equal(i.get('c1'), 'c1');
+		assert.equal(i.get('c2'), 'c2');
+		assert.equal(i.get('c3'), 'c3');
+		assert.equal(i.get('e1'), 'e1');
+		assert.equal(i.get('e2'), 'e2');
+		
+		i = new C3({
+			c1: '1',
+			c2: '2',
+			c3: '3',
+			e1: '4',
+			e2: '5'
+		});
+		assert.equal(i.get('c1'), '1');
+		assert.equal(i.get('c2'), '2');
+		assert.equal(i.get('c3'), '3');
+		assert.equal(i.get('e1'), '4');
+		assert.equal(i.get('e2'), '5');
+	});
+	
 	/*
 	QUnit.test('', function (assert) {
 		var at = new Attribute();
