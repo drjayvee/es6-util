@@ -53,17 +53,41 @@ define(['js/oop', 'js/event'], function (oop, event) {
 		},
 		
 		_initAttributes: function (values) {
-			if (!this.constructor.hasOwnProperty('ATTRS')) {
-				return;
-			}
+			var attrConfigs = this._mergeAttrConfigs(this.constructor);
 			
-			Object.keys(this.constructor.ATTRS).forEach(function (name) {
-				this.addAttribute(name, this.constructor.ATTRS[name]);
+			Object.keys(attrConfigs).forEach(function (name) {
+				this.addAttribute(name, attrConfigs[name]);
 				
 				if (values && values.hasOwnProperty(name)) {
 					this.set(name, values[name]);
 				}
 			}, this);
+		},
+		
+		_mergeAttrConfigs: function (constructor) {
+			var attrs = {};
+			
+			if (constructor.superclass) {
+				attrs = this._mergeAttrConfigs(constructor.superclass);
+			}
+			if (constructor.ATTRS) {
+				// Object.merge(attrs, constructor.ATTRS)
+				Object.keys(constructor.ATTRS).forEach(function (attr) {
+					attrs[attr] = constructor.ATTRS[attr];
+				});
+			}
+			if (constructor.__ext) {
+				constructor.__ext.forEach(function (ext) {
+					// Object.merge(attrs, this._mergeAttrConfigs(ext))
+					var extAttrs = this._mergeAttrConfigs(ext);
+					
+					Object.keys(extAttrs).forEach(function (attr) {
+						attrs[attr] = extAttrs[attr];
+					});
+				}, this);
+			}
+			
+			return attrs;
 		},
 
 		/**
