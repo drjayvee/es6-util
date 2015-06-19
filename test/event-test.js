@@ -1,5 +1,5 @@
 /*global console, define, require, QUnit*/
-require(['js/event', 'js/oop'], function (event) {
+require(['js/event'], function (event) {
 	"use strict";
 	
 	var ET = event.EventTarget;
