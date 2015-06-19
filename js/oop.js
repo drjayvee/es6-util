@@ -10,15 +10,17 @@ define(['jquery'], function (jQuery) {
 		}
 		initExtensionsFor(constructor.superclass, context, args);		// super -> base
 		
+		// call Class constructor
+		if (constructor.prototype.hasOwnProperty('init')) {
+			constructor.prototype.init.apply(context, args);
+		}
+		// call Extension constructor, init
 		constructor.__ext.forEach(function (ext) {
 			ext.apply(context, args);
 			if (ext.prototype.hasOwnProperty('init')) {
 				ext.prototype.init.apply(context, args);
 			}
 		});
-		if (constructor.prototype.hasOwnProperty('init')) {
-			constructor.prototype.init.apply(context, args);
-		}
 	}
 	
 	Root = function () {
