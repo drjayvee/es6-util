@@ -1,4 +1,4 @@
-/*global define, Event*/
+/*global define*/
 define(['js/oop', 'js/event'], function (oop, event) {
 	"use strict";
 	
