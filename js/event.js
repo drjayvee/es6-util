@@ -114,7 +114,13 @@ define(function () {
 	
 	EventTarget.prototype = {
 		constructor: EventTarget,
-		
+
+		/**
+		 * Define a new event
+		 * 
+		 * @param	{String} type
+		 * @param	{Object} config
+		 */
 		publish: function (type, config) {
 			var cfg;
 			
@@ -165,7 +171,6 @@ define(function () {
 
 		/**
 		 * Remove all subscriptions for this type (on and after), callback, context
-		 * If no context is supplied, remove for each context
 		 * 
 		 * @param	{String} type
 		 * @param	{Function} callback
@@ -186,7 +191,15 @@ define(function () {
 				this._deleteSub(sub);
 			}, this);
 		},
-		
+
+		/**
+		 * @param	{String} type
+		 * @param	{Function} callback
+		 * @param	{Object} [context=this]
+		 * @param	{Boolean} [once=false]
+		 * @returns {Subscription}
+		 * @private
+		 */
 		_on: function (type, callback, context, once) {
 			var sub;
 			
@@ -216,14 +229,21 @@ define(function () {
 			
 			return sub;
 		},
-		
+
+		/**
+		 * @param	{String} type
+		 * @param	{Function} callback
+		 * @param	{Object} [context=this]
+		 * @returns {Subscription[]}
+		 * @private
+		 */
 		_findSubs: function (type, callback, context) {
 			var i,
 				found = [],
 				sub,
 				subs = this._eventSubs[type];
 			
-			if (!this._eventSubs[type]) {
+			if (!subs) {
 				return found;
 			}
 			
@@ -235,7 +255,11 @@ define(function () {
 			}
 			return found;
 		},
-		
+
+		/**
+		 * @param	{Subscription} sub
+		 * @private
+		 */
 		_deleteSub: function (sub) {
 			this._eventSubs[sub.type].splice(
 				this._eventSubs[sub.type].indexOf(sub),
