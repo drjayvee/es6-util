@@ -38,19 +38,19 @@ define(['jquery'], function (jQuery) {
 	 * Build a constructor function
 	 * 
 	 * The constructor itself will only call its parent. This recursion will
-	 * stop with Root(). Extension constructors are not called.
+	 * stop with Root(). Extension constructors are called.
 	 * 
 	 * Each class' and extension's init() function is called. The order is
-	 * bottom-up (e.g. sub -> super), and extensions before the classes they
+	 * bottom-up (e.g. sub -> super), and extensions after the classes they
 	 * were set up on.
 	 * 
-	 * Init functions (and the constructors) are called with the arguments used
-	 * for the built class.
+	 * Init functions (and the extension constructors) are called with the
+	 * arguments used for the built class.
 	 * 
 	 * Example:
 	 *   B = buildClass(Root);
 	 *   
-	 *   E = function () {}		// will never be called
+	 *   E = function () {}
 	 *   E.prototype.init = function () {}
 	 *   
 	 *   F = buildClass(B, [E], {
@@ -61,8 +61,8 @@ define(['jquery'], function (jQuery) {
 	 *   
 	 * Call order:
 	 *   F() -> B() -> Root()	// Root() in turn will call
-	 *   B.init(), E.init(), F.init()
-	 *   F's prototype will have E's merged
+	 *   B.init(), F.init(), E(), E.init()
+	 *   F's prototype will have E's mixed in
 	 * 
 	 * @param {Function} base				Must be Root or subclass of Root
 	 * @param {[Function]} [extensions]		List of extension constructors
@@ -73,7 +73,7 @@ define(['jquery'], function (jQuery) {
 	function buildClass (base, extensions, protoProps, staticProps) {
 		// assert base's prototype chain includes Root
 		if (!Root.descendsFromRoot(base)) {
-			throw 'base class "' + base.name + '" does not descend from Root';
+			throw 'base class does not descend from Root';
 		}
 		
 		// build constructor
