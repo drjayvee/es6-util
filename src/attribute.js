@@ -1,11 +1,9 @@
-/*global define*/
-define(['js/oop', 'js/event'], function (oop, event) {
-	"use strict";
-	
-	var AttributeObservable;
-	
+/*jshint esnext:true*/
+import * as oop from 'js/oop';
+import * as event from 'js/event';
+
 	// region Attribute
-	function Attribute (config) {
+	export function Attribute (config) {
 		this._attributes = {};
 		
 		this._initAttributes(config);
@@ -152,7 +150,7 @@ define(['js/oop', 'js/event'], function (oop, event) {
 	// endregion
 	
 	// region AttributeObserver
-	AttributeObservable = oop.buildClass(oop.Root, [event.EventTarget, Attribute], {
+	export var AttributeObservable = oop.buildClass(oop.Root, [event.EventTarget, Attribute], {
 		_set: function (name, value) {
 			var data = {
 					prevVal:	this.get(name),
@@ -183,9 +181,3 @@ define(['js/oop', 'js/event'], function (oop, event) {
 		}
 	});
 	// endregion
-	
-	return {
-		Attribute: Attribute,
-		AttributeObservable: AttributeObservable
-	};
-});

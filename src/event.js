@@ -1,6 +1,4 @@
-/*global define*/
-define(function () {
-	"use strict";
+/*jshint esnext:true*/
 	
 	// region DispatchFacade
 	function DispatchFacade () {
@@ -100,7 +98,7 @@ define(function () {
 	// endregion
 	
 	// region EventTarget
-	function EventTarget () {
+	export function EventTarget () {
 		this._eventDispatch = new DispatchFacade();
 		this._eventDefinitions = {};
 		this._eventSubs = {};
@@ -293,8 +291,3 @@ define(function () {
 		}
 	};
 	// endregion
-	
-	return {
-		EventTarget: EventTarget
-	};
-});

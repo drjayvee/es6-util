@@ -1,9 +1,7 @@
-/*global define*/
-define(['jquery'], function (jQuery) {
-	"use strict";
-	
-	var Root;
-	
+/*jshint esnext:true*/
+
+import jQuery from 'node_modules/jquery/dist/jquery';
+
 	function initExtensionsFor (constructor, context, args) {
 		if (constructor === Root) {
 			return;
@@ -23,10 +21,10 @@ define(['jquery'], function (jQuery) {
 		});
 	}
 	
-	Root = function () {
+	export function Root () {
 		// walk inheritance chain, call each (super) class extensions' init functions
 		initExtensionsFor(this.constructor, this, arguments);
-	};
+	}
 	
 	Root.descendsFromRoot = function (constructor) {
 		return constructor === Root || (
@@ -70,7 +68,7 @@ define(['jquery'], function (jQuery) {
 	 * @param {Object} [staticProps]		Properties to merge onto the built class (e.g. Func.prop)
 	 * @returns {Function}
 	 */
-	function buildClass (base, extensions, protoProps, staticProps) {
+	export function buildClass (base, extensions, protoProps, staticProps) {
 		// assert base's prototype chain includes Root
 		if (!Root.descendsFromRoot(base)) {
 			throw 'base class does not descend from Root';
@@ -111,9 +109,3 @@ define(['jquery'], function (jQuery) {
 		
 		return F;
 	}
-	
-	return {
-		Root: Root,
-		buildClass: buildClass
-	};
-});
