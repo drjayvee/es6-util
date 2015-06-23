@@ -9,14 +9,13 @@
 	<div id="qunit"></div>
 	<div id="qunit-fixture"></div>
  
-	<script src="../js/lib/jquery-2.1.1.js"></script>
 	<script src="../node_modules/qunitjs/qunit/qunit.js"></script>
 	<script src="../js/lib/require.js"></script>
 	<script>
 		require.config({
 			baseUrl: '../',
 			paths: {
-				jquery:			'js/lib/jquery-2.1.1'
+				jquery:			'node_modules/jquery/dist/jquery.min'
 			}
 		});
 		require(['test/event-test']);
