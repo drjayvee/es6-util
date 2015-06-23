@@ -1,4 +1,4 @@
-/*global console, define, require, QUnit*/
+/*global require, QUnit*/
 require(['js/oop'], function (oop) {
 	"use strict";
 	

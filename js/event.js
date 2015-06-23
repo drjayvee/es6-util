@@ -1,4 +1,4 @@
-/*global define, Event*/
+/*global define*/
 define(function () {
 	"use strict";
 	
