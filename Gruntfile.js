@@ -22,8 +22,12 @@ module.exports = function(grunt) {
 					'js/event.js':		'src/event.js'
 				}
 			}
+		},
+		
+		clean: {
+			babel: 'js'
 		}
 	});
 	
-	grunt.registerTask('default', ['babel']);
+	grunt.registerTask('default', ['clean:babel', 'babel']);
 };
