@@ -19,7 +19,7 @@ module.exports = function(grunt) {
 				files: {
 					'js/oop.js':		'src/oop.js',
 					'js/attribute.js':	'src/attribute.js',
-					'js/event.js':		'src/event.js'
+					'js/eventTarget.js':'src/eventTarget.js'
 				}
 			}
 		},

@@ -1,8 +1,6 @@
 /*global require, QUnit*/
-require(['js/event'], function (event) {
+require(['js/eventTarget'], function (ET) {
 	"use strict";
-	
-	var ET = event.EventTarget;
 	
 	QUnit.test('on() callbacks are called after fire()', function (assert) {
 		var et = new ET(),

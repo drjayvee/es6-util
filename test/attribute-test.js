@@ -2,7 +2,7 @@
 require(['js/attribute', 'js/oop'], function (attr, oop) {
 	"use strict";
 	
-	var Attribute = attr.Attribute,
+	var Attribute = attr.default,
 		AttributeObservable = attr.AttributeObservable;
 	
 	QUnit.test('basic add, set / get use', function (assert) {

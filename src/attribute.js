@@ -1,10 +1,10 @@
 /*jshint esnext:true*/
 
-import * as oop from 'js/oop';
-import * as event from 'js/event';
+import {buildClass, Root} from 'js/oop';
+import EventTarget from 'js/eventTarget';
 
 // region Attribute
-export function Attribute (config) {
+function Attribute (config) {
 	this._attributes = {};
 	
 	this._initAttributes(config);
@@ -150,8 +150,7 @@ Attribute.prototype = {
 };
 // endregion
 
-// region AttributeObserver
-export var AttributeObservable = oop.buildClass(oop.Root, [event.EventTarget, Attribute], {
+var AttributeObservable = buildClass(Root, [EventTarget, Attribute], {
 	_set: function (name, value) {
 		var data = {
 				prevVal:	this.get(name),
@@ -181,4 +180,6 @@ export var AttributeObservable = oop.buildClass(oop.Root, [event.EventTarget, At
 		return success;
 	}
 });
-// endregion
+
+export default Attribute;
+export {AttributeObservable};

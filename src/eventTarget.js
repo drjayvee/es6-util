@@ -98,7 +98,7 @@ Subscription.prototype = {
 // endregion
 
 // region EventTarget
-export function EventTarget () {
+function EventTarget () {
 	this._eventDispatch = new DispatchFacade();
 	this._eventDefinitions = {};
 	this._eventSubs = {};
@@ -291,3 +291,5 @@ EventTarget.prototype = {
 	}
 };
 // endregion
+
+export default EventTarget;

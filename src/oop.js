@@ -21,7 +21,7 @@ function initExtensionsFor (constructor, context, args) {
 	});
 }
 
-export function Root () {
+function Root () {
 	// walk inheritance chain, call each (super) class extensions' init functions
 	initExtensionsFor(this.constructor, this, arguments);
 }
@@ -68,7 +68,7 @@ Root.descendsFromRoot = function (constructor) {
  * @param {Object} [staticProps]		Properties to merge onto the built class (e.g. Func.prop)
  * @returns {Function}
  */
-export function buildClass (base, extensions, protoProps, staticProps) {
+function buildClass (base, extensions, protoProps, staticProps) {
 	// assert base's prototype chain includes Root
 	if (!Root.descendsFromRoot(base)) {
 		throw 'base class does not descend from Root';
@@ -109,3 +109,5 @@ export function buildClass (base, extensions, protoProps, staticProps) {
 	
 	return F;
 }
+
+export {Root, buildClass};
