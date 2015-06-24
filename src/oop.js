@@ -1,7 +1,5 @@
 /*jshint esnext:true*/
 
-import jQuery from 'node_modules/jquery/dist/jquery';
-
 function initExtensionsFor (constructor, context, args) {
 	if (constructor === Root) {
 		return;
@@ -13,7 +11,7 @@ function initExtensionsFor (constructor, context, args) {
 		constructor.prototype.init.apply(context, args);
 	}
 	// call Extension constructor, init
-	constructor.__ext.forEach(function (ext) {
+	constructor.__ext.forEach(ext => {
 		ext.apply(context, args);
 		if (ext.prototype.hasOwnProperty('init')) {
 			ext.prototype.init.apply(context, args);
@@ -88,11 +86,10 @@ function buildClass (base, extensions, protoProps, staticProps) {
 	// register extensions and merge their prototypes
 	F.__ext = [];
 	if (extensions) {
-		extensions.forEach(function (ext) {
-			var originalConstructor = F.prototype.constructor;
-			
+		let originalConstructor = F.prototype.constructor;
+		extensions.forEach(ext => {
 			F.__ext.push(ext);
-			jQuery.extend(F.prototype, ext.prototype);
+			Object.assign(F.prototype, ext.prototype);
 			if (originalConstructor) {
 				F.prototype.constructor = originalConstructor;
 			}
@@ -101,10 +98,10 @@ function buildClass (base, extensions, protoProps, staticProps) {
 	
 	// add properties
 	if (protoProps) {
-		jQuery.extend(F.prototype, protoProps);
+		Object.assign(F.prototype, protoProps);
 	}
 	if (staticProps) {
-		jQuery.extend(F, staticProps);
+		Object.assign(F, staticProps);
 	}
 	
 	return F;
