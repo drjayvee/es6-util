@@ -128,7 +128,7 @@ require(['js/oop'], function (oop) {
 		bi = new Base(1337);
 		
 		assert.equal(1337, initArgs.base);
-		assert.equal(1337, initArgs.extC);
+		assert.equal(undefined, initArgs.extC);	// extension constructor should not be called
 		assert.equal(1337, initArgs.ext);
 		
 		assert.equal('Base', bi.baseFunc());
@@ -183,12 +183,9 @@ require(['js/oop'], function (oop) {
 		// check order in which constructors, init() were called
 		assert.deepEqual(instantiationArgs, [
 			'Base.init',
-			'Ext1',
 			'Ext1.init',
 			'Sub.init',
-			'Ext2',
 			'Ext2.init',
-			'Ext3',
 			'Ext3.init'
 		]);
 	});

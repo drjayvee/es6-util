@@ -1,6 +1,8 @@
 /*global require, QUnit*/
-require(['js/eventTarget'], function (ET) {
+require(['js/oop', 'js/eventTarget'], function (oop, EventTarget) {
 	"use strict";
+	
+	var ET = oop.buildClass(oop.Root, [EventTarget]);
 	
 	QUnit.module('eventTarget');
 	

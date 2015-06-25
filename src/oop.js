@@ -1,27 +1,27 @@
 /*jshint esnext:true*/
 
-function initExtensionsFor (constructor, context, args) {
+function initMixinsFor (constructor, context, args) {
 	if (constructor === Root) {
 		return;
 	}
-	initExtensionsFor(constructor.superclass, context, args);		// super -> base
+	initMixinsFor(constructor.superclass, context, args);		// super -> base
 	
-	// call Class constructor
+	// call class init
 	if (constructor.prototype.hasOwnProperty('init')) {
 		constructor.prototype.init.apply(context, args);
 	}
-	// call Extension constructor, init
-	constructor.__ext.forEach(ext => {
-		ext.apply(context, args);
-		if (ext.prototype.hasOwnProperty('init')) {
-			ext.prototype.init.apply(context, args);
+	
+	// call mixin's init
+	constructor.__mixins.forEach(mix => {
+		if (mix.prototype.hasOwnProperty('init')) {
+			mix.prototype.init.apply(context, args);
 		}
 	});
 }
 
 function Root () {
 	// walk inheritance chain, call each (super) class extensions' init functions
-	initExtensionsFor(this.constructor, this, arguments);
+	initMixinsFor(this.constructor, this, arguments);
 }
 
 Root.descendsFromRoot = function (constructor) {
@@ -34,7 +34,7 @@ Root.descendsFromRoot = function (constructor) {
  * Build a constructor function
  * 
  * The constructor itself will only call its parent. This recursion will
- * stop with Root(). Extension constructors are called.
+ * stop with Root(). Extension constructors are _not_ called.
  * 
  * Each class' and extension's init() function is called. The order is
  * bottom-up (e.g. sub -> super), and extensions after the classes they
@@ -57,16 +57,16 @@ Root.descendsFromRoot = function (constructor) {
  *   
  * Call order:
  *   F() -> B() -> Root()	// Root() in turn will call
- *   B.init(), F.init(), E(), E.init()
+ *   B.init(), F.init(), E.init()
  *   F's prototype will have E's mixed in
  * 
  * @param {Function} base				Must be Root or subclass of Root
- * @param {[Function]} [extensions]		List of extension constructors
+ * @param {Function[]} [mixins]			List of extension constructors
  * @param {Object} [protoProps]			Properties to merge onto the built class' prototype (e.g. Func.prototype.prop)
  * @param {Object} [staticProps]		Properties to merge onto the built class (e.g. Func.prop)
  * @returns {Function}
  */
-function buildClass (base, extensions, protoProps, staticProps) {
+function buildClass (base, mixins, protoProps, staticProps) {
 	// assert base's prototype chain includes Root
 	if (!Root.descendsFromRoot(base)) {
 		throw 'base class does not descend from Root';
@@ -84,12 +84,12 @@ function buildClass (base, extensions, protoProps, staticProps) {
 	F.prototype.constructor = F;
 	
 	// register extensions and merge their prototypes
-	F.__ext = [];
-	if (extensions) {
+	F.__mix = [];
+	if (mixins) {
 		let originalConstructor = F.prototype.constructor;
-		extensions.forEach(ext => {
-			F.__ext.push(ext);
-			Object.assign(F.prototype, ext.prototype);
+		mixins.forEach(mix => {
+			F.__mix.push(mix);
+			Object.assign(F.prototype, mix.prototype);
 			if (originalConstructor) {
 				F.prototype.constructor = originalConstructor;
 			}

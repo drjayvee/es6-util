@@ -4,11 +4,7 @@ import {buildClass, Root} from 'js/oop';
 import EventTarget from 'js/eventTarget';
 
 // region Attribute
-function Attribute (config) {
-	this._attributes = {};
-	
-	this._initAttributes(config);
-}
+function Attribute () {}
 
 Attribute.INVALID = {};
 
@@ -16,6 +12,12 @@ Attribute.CONFIG_KEYS = ['value', 'validator', 'getter', 'setter'];
 
 Attribute.prototype = {
 	constructor: Attribute,
+	
+	init: function (config) {
+		this._attributes = {};
+	
+		this._initAttributes(config);
+	},
 
 	/**
 	 * Config can have value, validator, getters, setter
@@ -66,7 +68,7 @@ Attribute.prototype = {
 	 * @param	{Function} constructor
 	 * @param	{Function} [constructor.superclass]
 	 * @param	{Object} [constructor.ATTRS]
-	 * @param	{Function[]} [constructor.__ext]
+	 * @param	{Function[]} [constructor.__mix]
 	 * @returns {Object}
 	 * @private
 	 */
@@ -83,10 +85,10 @@ Attribute.prototype = {
 			Object.assign(attrs, constructor.ATTRS);
 		}
 		
-		// add extension ATTRs
-		if (constructor.__ext) {
-			constructor.__ext.forEach(ext => {
-				Object.assign(attrs, this._mergeAttrConfigs(ext));
+		// add mixin ATTRs
+		if (constructor.__mixins) {
+			constructor.__mixins.forEach(mix => {
+				Object.assign(attrs, this._mergeAttrConfigs(mix));
 			});
 		}
 		
@@ -182,5 +184,4 @@ var AttributeObservable = buildClass(Root, [EventTarget, Attribute], {
 	}
 });
 
-export default Attribute;
-export {AttributeObservable};
+export {Attribute, AttributeObservable};

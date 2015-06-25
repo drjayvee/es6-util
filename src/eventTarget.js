@@ -93,11 +93,7 @@ class Subscription {
 // endregion
 
 // region EventTarget
-function EventTarget () {
-	this._eventDispatch = new DispatchFacade();
-	this._eventDefinitions = {};
-	this._eventSubs = {};
-}
+function EventTarget () {}
 
 EventTarget.AFTER = 'AFTER:';
 
@@ -109,6 +105,12 @@ EventTarget.defaultConfig = {
 
 EventTarget.prototype = {
 	constructor: EventTarget,
+	
+	init: function (config) {
+		this._eventDispatch = new DispatchFacade();
+		this._eventDefinitions = {};
+		this._eventSubs = {};
+	},
 	
 	/**
 	 * Define a new event

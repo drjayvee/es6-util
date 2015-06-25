@@ -2,7 +2,7 @@
 require(['js/attribute', 'js/oop'], function (attr, oop) {
 	"use strict";
 	
-	var Attribute = attr.default,
+	var Attribute = oop.buildClass(oop.Root, [attr.Attribute]),
 		AttributeObservable = attr.AttributeObservable;
 	
 	QUnit.module('attribute');
@@ -90,7 +90,7 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 				setterCalled = true;
 				
 				if (!value) {
-					return Attribute.INVALID;
+					return attr.Attribute.INVALID;
 				}
 				ob[name] = value;
 				return JSON.stringify(ob);
