@@ -12,7 +12,7 @@ function Attribute (config) {
 
 Attribute.INVALID = {};
 
-Attribute.configKeys = ['value', 'validator', 'getter', 'setter'];
+Attribute.CONFIG_KEYS = ['value', 'validator', 'getter', 'setter'];
 
 Attribute.prototype = {
 	constructor: Attribute,
@@ -24,15 +24,14 @@ Attribute.prototype = {
 	 * @param {Object} [config]
 	 */
 	addAttribute: function (name, config) {
-		var cfg = {};
-		
 		if (this.hasAttribute(name)) {
-			throw new Error('Attribute "' + name + '" has already been added');
+			throw new Error(`Attribute "${name}" has already been added`);
 		}
 		
 		// sanitize config
+		let cfg = {};
 		if (config && Object.keys(config).length) {
-			Attribute.configKeys.forEach(function (key) {
+			Attribute.CONFIG_KEYS.forEach(key => {
 				if (config.hasOwnProperty(key)) {
 					cfg[key] = config[key];				// this clones the config, which is important, because we don't want to set the reference
 				}
@@ -52,38 +51,43 @@ Attribute.prototype = {
 	},
 	
 	_initAttributes: function (values) {
-		var attrConfigs = this._mergeAttrConfigs(this.constructor);
+		let attrConfigs = this._mergeAttrConfigs(this.constructor);
 		
-		Object.keys(attrConfigs).forEach(function (name) {
+		Object.keys(attrConfigs).forEach(name => {
 			this.addAttribute(name, attrConfigs[name]);
 			
 			if (values && values.hasOwnProperty(name)) {
 				this.set(name, values[name]);
 			}
-		}, this);
+		});
 	},
-	
+
+	/**
+	 * @param	{Function} constructor
+	 * @param	{Function} [constructor.superclass]
+	 * @param	{Object} [constructor.ATTRS]
+	 * @param	{Function[]} [constructor.__ext]
+	 * @returns {Object}
+	 * @private
+	 */
 	_mergeAttrConfigs: function (constructor) {
-		var attrs = {};
+		let attrs = {};
 		
+		// add super class chain ATTRs first (top down recursion)
 		if (constructor.superclass) {
 			attrs = this._mergeAttrConfigs(constructor.superclass);
 		}
+		
+		// add this class's ATTRs
 		if (constructor.ATTRS) {
-			// Object.merge(attrs, constructor.ATTRS)
-			Object.keys(constructor.ATTRS).forEach(function (attr) {
-				attrs[attr] = constructor.ATTRS[attr];
-			});
+			Object.assign(attrs, constructor.ATTRS);
 		}
+		
+		// add extension ATTRs
 		if (constructor.__ext) {
-			constructor.__ext.forEach(function (ext) {
-				// Object.merge(attrs, this._mergeAttrConfigs(ext))
-				var extAttrs = this._mergeAttrConfigs(ext);
-				
-				Object.keys(extAttrs).forEach(function (attr) {
-					attrs[attr] = extAttrs[attr];
-				});
-			}, this);
+			constructor.__ext.forEach(ext => {
+				Object.assign(attrs, this._mergeAttrConfigs(ext));
+			});
 		}
 		
 		return attrs;
@@ -101,7 +105,7 @@ Attribute.prototype = {
 	},
 	
 	_set: function (name, value) {
-		var attrConfig = this._attributes[name],
+		let attrConfig = this._attributes[name],
 			current = this.get(name),	// will throw Error if attr doesn't exist, which if fine!
 			okToSet = true;
 		
@@ -134,14 +138,13 @@ Attribute.prototype = {
 	 * @returns {*}
 	 */
 	get: function (name) {
-		var attrConfig = this._attributes[name],
-			value;
-		
 		if (!this.hasAttribute(name)) {
-			throw new Error('Attribute "' + name + '" has not been added');
+			throw new Error(`Attribute "${name}" has not been added`);
 		}
 		
-		value = this._attributes[name].value;
+		let attrConfig = this._attributes[name],
+			value = this._attributes[name].value;
+		
 		if (attrConfig.getter) {
 			value = attrConfig.getter(value, name);
 		}
@@ -152,19 +155,17 @@ Attribute.prototype = {
 
 var AttributeObservable = buildClass(Root, [EventTarget, Attribute], {
 	_set: function (name, value) {
-		var data = {
+		let data = {
 				prevVal:	this.get(name),
 				newVal:		value,
 				attrName:	name
-			},
-			e,
-			success;
+			};
 		
-		e = this._eventDispatch.createEvent(
+		let e = this._eventDispatch.createEvent(
 			name + 'Change', true, data
 		);
 		
-		success = this._eventDispatch.dispatch(e);
+		let success = this._eventDispatch.dispatch(e);
 		
 		if (success) {
 			value = e.newVal;		// allow on() listeners to change the new value
