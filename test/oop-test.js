@@ -2,6 +2,8 @@
 require(['js/oop'], function (oop) {
 	"use strict";
 	
+	QUnit.module('oop');
+	
 	QUnit.test('create a basic class using oop.build()', function (assert) {
 		var Base,
 			bi,

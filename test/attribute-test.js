@@ -5,6 +5,8 @@ require(['js/attribute', 'js/oop'], function (attr, oop) {
 	var Attribute = attr.default,
 		AttributeObservable = attr.AttributeObservable;
 	
+	QUnit.module('attribute');
+	
 	QUnit.test('basic add, set / get use', function (assert) {
 		var ATI,
 			at = new Attribute();

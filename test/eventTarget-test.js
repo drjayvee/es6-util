@@ -2,6 +2,8 @@
 require(['js/eventTarget'], function (ET) {
 	"use strict";
 	
+	QUnit.module('eventTarget');
+	
 	QUnit.test('on() callbacks are called after fire()', function (assert) {
 		var et = new ET(),
 			i = 0;
