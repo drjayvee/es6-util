@@ -12,19 +12,19 @@ module.exports = function(grunt) {
 			},
 			dist: {
 				files: {
-					'js/oop.js':		'src/oop.js',
-					'js/attribute.js':	'src/attribute.js',
-					'js/eventTarget.js':'src/eventTarget.js',
+					'js/oop.js':		'src/js/oop.js',
+					'js/attribute.js':	'src/js/attribute.js',
+					'js/eventTarget.js':'src/js/eventTarget.js',
 					
-					'test/oop-test.js': 		'test/oop-test.es6.js',
-					'test/eventTarget-test.js':	'test/eventTarget-test.es6.js',
-					'test/attribute-test.js':	'test/attribute-test.es6.js'
+					'test/oop-test.js': 		'src/test/oop-test.js',
+					'test/eventTarget-test.js':	'src/test/eventTarget-test.js',
+					'test/attribute-test.js':	'src/test/attribute-test.js'
 				}
 			}
 		},
 		
 		clean: {
-			babel: 'js'
+			babel: ['js/*', 'test/*.js*']
 		}
 	});
 	
