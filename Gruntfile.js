@@ -8,19 +8,15 @@ module.exports = function(grunt) {
 		babel: {
 			options: {
 				modules: 'amd',
-				sourceMap: true,
-				resolveModuleSource: function (source, file) {
-					if (source === 'node_modules/jquery/dist/jquery') {
-						source = 'jquery';
-					}
-					return source;
-				}
+				sourceMap: true
 			},
 			dist: {
 				files: {
 					'js/oop.js':		'src/oop.js',
 					'js/attribute.js':	'src/attribute.js',
-					'js/eventTarget.js':'src/eventTarget.js'
+					'js/eventTarget.js':'src/eventTarget.js',
+					
+					'test/oop-test.js': 'test/oop-test.es6.js'
 				}
 			}
 		},
