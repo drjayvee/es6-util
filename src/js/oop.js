@@ -5,8 +5,6 @@
  * @param	{Function[],Object[]} mixins
  */
 function mix (Target, ...mixins) {
-	let originalConstructor = Target.prototype.constructor;
-	
 	Target.__mixins = mixins;
 	
 	mixins.forEach(mix => {
@@ -15,15 +13,11 @@ function mix (Target, ...mixins) {
 		}
 		
 		Object.keys(mix).forEach(prop => {
-			if (!Target.prototype.hasOwnProperty(prop)) {
+			if (!Target.prototype.hasOwnProperty(prop) && prop !== 'constructor') {
 				Target.prototype[prop] = mix[prop];
 			}
 		});
 	});
-	
-	if (originalConstructor) {
-		Target.prototype.constructor = originalConstructor;
-	}
 }
 
 export {mix};
