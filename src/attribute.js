@@ -1,6 +1,6 @@
 /*jshint esnext:true*/
 
-import {buildClass, Root} from 'js/oop';
+import {mix} from 'js/oop';
 import EventTarget from 'js/eventTarget';
 
 // region Attribute
@@ -76,8 +76,9 @@ Attribute.prototype = {
 		let attrs = {};
 		
 		// add super class chain ATTRs first (top down recursion)
-		if (constructor.superclass) {
-			attrs = this._mergeAttrConfigs(constructor.superclass);
+		let superClass = Object.getPrototypeOf(constructor);
+		if (superClass !== Function.prototype) {	// constructor is base constructor
+			attrs = this._mergeAttrConfigs(superClass);
 		}
 		
 		// add this class's ATTRs
@@ -86,7 +87,7 @@ Attribute.prototype = {
 		}
 		
 		// add mixin ATTRs
-		if (constructor.__mixins) {
+		if (constructor.hasOwnProperty('__mixins')) {
 			constructor.__mixins.forEach(mix => {
 				Object.assign(attrs, this._mergeAttrConfigs(mix));
 			});
@@ -99,7 +100,7 @@ Attribute.prototype = {
 	 * 
 	 * @param {String} name
 	 * @param {*} value
-	 * @returns {Attribute}
+	 * @returns {SimpleAttribute}
 	 */
 	set: function (name, value) {
 		this._set(name, value);
@@ -155,8 +156,14 @@ Attribute.prototype = {
 };
 // endregion
 
-var AttributeObservable = buildClass(Root, [EventTarget, Attribute], {
-	_set: function (name, value) {
+// region AttributeObservable
+class AttributeObservable {
+	constructor (config) {
+		EventTarget.prototype.init.call(this, config);
+		Attribute.prototype.init.call(this, config);
+	}
+	
+	_set (name, value) {
 		let data = {
 				prevVal:	this.get(name),
 				newVal:		value,
@@ -182,6 +189,9 @@ var AttributeObservable = buildClass(Root, [EventTarget, Attribute], {
 		
 		return success;
 	}
-});
+}
+
+mix(AttributeObservable, EventTarget, Attribute);
+// endregion
 
 export {Attribute, AttributeObservable};

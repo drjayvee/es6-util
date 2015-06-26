@@ -16,7 +16,9 @@ module.exports = function(grunt) {
 					'js/attribute.js':	'src/attribute.js',
 					'js/eventTarget.js':'src/eventTarget.js',
 					
-					'test/oop-test.js': 'test/oop-test.es6.js'
+					'test/oop-test.js': 		'test/oop-test.es6.js',
+					'test/eventTarget-test.js':	'test/eventTarget-test.es6.js',
+					'test/attribute-test.js':	'test/attribute-test.es6.js'
 				}
 			}
 		},

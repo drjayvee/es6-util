@@ -1,2 +1,5 @@
 node_modules
 js/*
+test/*.js
+!test/*.es6.js
+test/*.map
