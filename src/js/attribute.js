@@ -10,6 +10,30 @@ Attribute.INVALID = {};
 
 Attribute.CONFIG_KEYS = ['value', 'validator', 'getter', 'setter'];
 
+Attribute._mergeAttrConfigs = function (constructor) {
+	let attrs = {};
+	
+	// add super class chain ATTRs first (top down recursion)
+	let superClass = Object.getPrototypeOf(constructor);
+	if (superClass !== Function.prototype) {	// constructor is base constructor
+		attrs = Attribute._mergeAttrConfigs(superClass);
+	}
+	
+	// add this class's ATTRs
+	if (constructor.ATTRS) {
+		Object.assign(attrs, constructor.ATTRS);
+	}
+	
+	// add mixin ATTRs
+	if (constructor.hasOwnProperty('__mixins')) {
+		constructor.__mixins.forEach(mix => {
+			Object.assign(attrs, Attribute._mergeAttrConfigs(mix));
+		});
+	}
+	
+	return attrs;
+};
+
 Attribute.prototype = {
 	constructor: Attribute,
 	
@@ -53,7 +77,7 @@ Attribute.prototype = {
 	},
 	
 	_initAttributes: function (values) {
-		let attrConfigs = this._mergeAttrConfigs(this.constructor);
+		let attrConfigs = Attribute._mergeAttrConfigs(this.constructor);
 		
 		Object.keys(attrConfigs).forEach(name => {
 			this.addAttribute(name, attrConfigs[name]);
@@ -62,38 +86,6 @@ Attribute.prototype = {
 				this.set(name, values[name]);
 			}
 		});
-	},
-
-	/**
-	 * @param	{Function} constructor
-	 * @param	{Function} [constructor.superclass]
-	 * @param	{Object} [constructor.ATTRS]
-	 * @param	{Function[]} [constructor.__mix]
-	 * @returns {Object}
-	 * @private
-	 */
-	_mergeAttrConfigs: function (constructor) {
-		let attrs = {};
-		
-		// add super class chain ATTRs first (top down recursion)
-		let superClass = Object.getPrototypeOf(constructor);
-		if (superClass !== Function.prototype) {	// constructor is base constructor
-			attrs = this._mergeAttrConfigs(superClass);
-		}
-		
-		// add this class's ATTRs
-		if (constructor.ATTRS) {
-			Object.assign(attrs, constructor.ATTRS);
-		}
-		
-		// add mixin ATTRs
-		if (constructor.hasOwnProperty('__mixins')) {
-			constructor.__mixins.forEach(mix => {
-				Object.assign(attrs, this._mergeAttrConfigs(mix));
-			});
-		}
-		
-		return attrs;
 	},
 
 	/**
