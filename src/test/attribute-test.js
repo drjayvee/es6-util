@@ -162,7 +162,14 @@ QUnit.test('initialize attributes via constructor', function (assert) {
 });
 
 QUnit.test('attribute change events', function (assert) {
-	let ao = new AttributeObservable(),
+	class AOC {
+		constructor (config) {
+			AttributeObservable.prototype.init.call(this, config);
+		}
+	}
+	mix(AOC, AttributeObservable);
+	
+	let ao = new AOC(),
 		cancelChange = false,
 		onChangeEvent = null,
 		afterChangeEvent = null,
@@ -378,11 +385,15 @@ QUnit.test('AttributeObservable chain attributes', function (assert) {
 		e2: {value: 'e2'}
 	};
 	
-	class C1 extends AttributeObservable {}
+	class C1 {
+		constructor (config) {
+			AttributeObservable.prototype.init.call(this, config);
+		}
+	}
 	C1.ATTRS = {
 		c1: {value: 'c1'}
 	};
-	mix(C1, E1);
+	mix(C1, AttributeObservable, E1);
 	
 	class C2 extends C1 {}
 	C2.ATTRS = {

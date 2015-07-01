@@ -152,11 +152,15 @@ Attribute.prototype = {
 // endregion
 
 // region AttributeObservable
-class AttributeObservable {
-	constructor (config) {
+function AttributeObservable () {}
+
+AttributeObservable.prototype = {
+	constructor: AttributeObservable,
+	
+	init (config) {
 		EventTarget.prototype.init.call(this, config);
 		Attribute.prototype.init.call(this, config);
-	}
+	},
 	
 	_set (name, value) {
 		let data = {
@@ -184,7 +188,7 @@ class AttributeObservable {
 		
 		return success;
 	}
-}
+};
 
 mix(AttributeObservable, EventTarget, Attribute);
 // endregion
