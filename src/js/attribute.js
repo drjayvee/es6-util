@@ -10,25 +10,34 @@ Attribute.INVALID = {};
 
 Attribute.CONFIG_KEYS = ['value', 'validator', 'getter', 'setter'];
 
+/**
+ * @param	{Function} constructor
+ * @returns {Map}
+ * @private
+ */
 Attribute._mergeAttrConfigs = function (constructor) {
-	let attrs = {};
+	let attrs;
 	
 	// add super class chain ATTRs first (top down recursion)
 	let superClass = Object.getPrototypeOf(constructor);
 	if (superClass !== Function.prototype) {	// constructor is base constructor
 		attrs = Attribute._mergeAttrConfigs(superClass);
+	} else {
+		attrs = new Map();
 	}
 	
 	// add this class's ATTRs
 	if (constructor.ATTRS) {
-		Object.assign(attrs, constructor.ATTRS);
+		for (let attr of Object.keys(constructor.ATTRS)) {
+			attrs.set(attr, constructor.ATTRS[attr]);
+		}
 	}
 	
 	// add mixin ATTRs
 	if (constructor.hasOwnProperty('__mixins')) {
-		constructor.__mixins.forEach(mix => {
-			Object.assign(attrs, Attribute._mergeAttrConfigs(mix));
-		});
+		for (let mixin of constructor.__mixins) {
+			attrs = new Map([...attrs, ...Attribute._mergeAttrConfigs(mixin)]);// see https://leanpub.com/exploring-es6/read#leanpub-auto-map
+		}
 	}
 	
 	return attrs;
@@ -42,7 +51,7 @@ Attribute.prototype = {
 	 * @param {Object} values
 	 */
 	init: function (values = {}) {
-		this._attributes = {};
+		this._attributes = new Map();
 	
 		this._initAttributes(values);
 	},
@@ -62,12 +71,12 @@ Attribute.prototype = {
 			throw new Error(`Attribute "${name}" has already been added`);
 		}
 		
-		this._attributes[name] = {
+		this._attributes.set(name, {
 			value,
 			validator,
 			getter,
 			setter
-		};
+		});
 	},
 
 	/**
@@ -76,19 +85,19 @@ Attribute.prototype = {
 	 * @returns {boolean}
 	 */
 	hasAttribute: function (name) {
-		return this._attributes.hasOwnProperty(name);
+		return this._attributes.has(name);
 	},
 	
 	_initAttributes: function (values = {}) {
 		let attrConfigs = Attribute._mergeAttrConfigs(this.constructor);
 		
-		Object.keys(attrConfigs).forEach(name => {
-			this.addAttribute(name, attrConfigs[name]);
+		for (let [name, config] of attrConfigs) {
+			this.addAttribute(name, config);
 			
 			if (values.hasOwnProperty(name)) {
 				this.set(name, values[name]);
 			}
-		});
+		}
 	},
 
 	/**
@@ -103,7 +112,7 @@ Attribute.prototype = {
 	},
 	
 	_set: function (name, value) {
-		let attrConfig = this._attributes[name],
+		let attrConfig = this._attributes.get(name),
 			current = this.get(name),	// will throw Error if attr doesn't exist, which if fine!
 			okToSet = true;
 		
@@ -125,7 +134,7 @@ Attribute.prototype = {
 		}
 		
 		if (okToSet) {
-			this._attributes[name].value = value;
+			this._attributes.get(name).value = value;
 		}
 		return okToSet;
 	},
@@ -140,8 +149,8 @@ Attribute.prototype = {
 			throw new Error(`Attribute "${name}" has not been added`);
 		}
 		
-		let attrConfig = this._attributes[name],
-			value = this._attributes[name].value;
+		let attrConfig = this._attributes.get(name),
+			value = attrConfig.value;
 		
 		if (attrConfig.getter) {
 			value = attrConfig.getter(value, name);

@@ -7,17 +7,17 @@
 function mix (Target, ...mixins) {
 	Target.__mixins = mixins;
 	
-	mixins.forEach(mix => {
-		if (mix instanceof Function) {
-			mix = mix.prototype;
+	for (let mixin of mixins) {
+		if (mixin instanceof Function) {
+			mixin = mixin.prototype;
 		}
 		
-		Object.keys(mix).forEach(prop => {
+		for (let prop of Object.keys(mixin)) {
 			if (!Target.prototype.hasOwnProperty(prop) && prop !== 'constructor') {
-				Target.prototype[prop] = mix[prop];
+				Target.prototype[prop] = mixin[prop];
 			}
-		});
-	});
+		}
+	}
 }
 
 export {mix};

@@ -108,30 +108,36 @@ EventTarget.prototype = {
 	
 	init: function (config) {
 		this._eventDispatch = new DispatchFacade();
-		this._eventDefinitions = {};
-		this._eventSubs = {};
+		this._eventDefinitions = new Map();
+		this._eventSubs = new Map();
 	},
 	
 	/**
 	 * Define a new event
 	 * 
 	 * @param	{String} type
-	 * @param	{Object} config
+	 * @param	{Object} [config]
+	 * @param	{Boolean} [config.preventable=true]
+	 * @param	{Function} [config.preventedFn=null]
+	 * @param	{Function} [config.defaultFn=null]
 	 */
-	publish: function (type, config) {
-		if (this._eventDefinitions[type]) {
-			throw new Error('Event "' + type + '" has already been published');
+	publish: function (
+		type,
+		{
+			preventable = EventTarget.defaultConfig.preventable,
+			preventedFn = EventTarget.defaultConfig.preventedFn,
+			defaultFn = EventTarget.defaultConfig.defaultFn
+		} = {}
+	) {
+		if (this._eventDefinitions.has(type)) {
+			throw new Error(`Event "${type}" has already been published`);
 		}
 		
-		// merge config with default config
-		let cfg = Object.assign({}, EventTarget.defaultConfig);
-		Object.keys(cfg).forEach(key => {
-			if (config.hasOwnProperty(key)) {
-				cfg[key] = config[key];
-			}
+		this._eventDefinitions.set(type, {
+			preventable,
+			preventedFn,
+			defaultFn
 		});
-		
-		this._eventDefinitions[type] = cfg;
 	},
 	
 	/**
@@ -216,10 +222,10 @@ EventTarget.prototype = {
 		
 		sub.attach();
 		
-		if (!this._eventSubs[type]) {
-			this._eventSubs[type] = [];
+		if (!this._eventSubs.has(type)) {
+			this._eventSubs.set(type, []);
 		}
-		this._eventSubs[type].push(sub);
+		this._eventSubs.get(type).push(sub);
 		
 		return sub;
 	},
@@ -234,18 +240,13 @@ EventTarget.prototype = {
 	_findSubs: function (type, callback, context) {
 		let found = [];
 		
-		let subs = this._eventSubs[type];
-		if (!subs) {
+		if (!this._eventSubs.has(type)) {
 			return found;
 		}
 		
-		for (let i = 0; i < subs.length; i += 1) {
-			let sub = subs[i];
-			if (sub.callback === callback && sub.context === context) {
-				found.push(sub);
-			}
-		}
-		return found;
+		return this._eventSubs.get(type).filter(sub => {
+			return sub.callback === callback && sub.context === context;
+		});
 	},
 
 	/**
@@ -253,8 +254,10 @@ EventTarget.prototype = {
 	 * @private
 	 */
 	_deleteSub: function (sub) {
-		this._eventSubs[sub.type].splice(
-			this._eventSubs[sub.type].indexOf(sub),
+		let subs = this._eventSubs.get(sub.type);
+		
+		subs.splice(
+			subs.indexOf(sub),
 			1
 		);
 	},
@@ -266,7 +269,7 @@ EventTarget.prototype = {
 	 * @return {boolean}	true if event was not cancelled
 	 */
 	fire: function (type, data) {
-		let def = this._eventDefinitions[type] || EventTarget.defaultConfig;
+		let def = this._eventDefinitions.get(type) || EventTarget.defaultConfig;
 		
 		let success = this._eventDispatch.dispatch(type, def.preventable, data);
 		
