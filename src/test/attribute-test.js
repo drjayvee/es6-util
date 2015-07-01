@@ -23,7 +23,7 @@ QUnit.test('basic add, set / get use', function (assert) {
 	at.addAttribute('k');
 	
 	// test hasAttribute()
-	assert.equal(at.hasAttribute('nope'), false);
+	assert.notOk(at.hasAttribute('nope'));
 	assert.ok(at.hasAttribute('k'));
 	
 	// test get / set
@@ -55,6 +55,10 @@ QUnit.test('basic add, set / get use', function (assert) {
 	
 	at = new this.SimpleAttribute();
 	assert.equal(at.get('k'), 1337);
+	
+	// check whether value configured through addAttribute is set
+	at.addAttribute('l', {value: 'w'});
+	assert.equal(at.get('l'), 'w');
 });
 
 QUnit.test('test validator', function (assert) {

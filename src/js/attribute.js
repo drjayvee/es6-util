@@ -36,35 +36,38 @@ Attribute._mergeAttrConfigs = function (constructor) {
 
 Attribute.prototype = {
 	constructor: Attribute,
-	
-	init: function (config) {
+
+	/**
+	 * 
+	 * @param {Object} values
+	 */
+	init: function (values = {}) {
 		this._attributes = {};
 	
-		this._initAttributes(config);
+		this._initAttributes(values);
 	},
 
 	/**
 	 * Config can have value, validator, getters, setter
 	 * 
 	 * @param {String} name
-	 * @param {Object} [config]
+	 * @param {Object} config
+	 * @param {*} config.value
+	 * @param {Function} config.validator
+	 * @param {Function} config.getter
+	 * @param {Function} config.setter
 	 */
-	addAttribute: function (name, config) {
+	addAttribute: function (name, {value, validator, getter, setter} = {}) {
 		if (this.hasAttribute(name)) {
 			throw new Error(`Attribute "${name}" has already been added`);
 		}
 		
-		// sanitize config
-		let cfg = {};
-		if (config && Object.keys(config).length) {
-			Attribute.CONFIG_KEYS.forEach(key => {
-				if (config.hasOwnProperty(key)) {
-					cfg[key] = config[key];				// this clones the config, which is important, because we don't want to set the reference
-				}
-			});
-		}
-		
-		this._attributes[name] = cfg;
+		this._attributes[name] = {
+			value,
+			validator,
+			getter,
+			setter
+		};
 	},
 
 	/**
@@ -76,13 +79,13 @@ Attribute.prototype = {
 		return this._attributes.hasOwnProperty(name);
 	},
 	
-	_initAttributes: function (values) {
+	_initAttributes: function (values = {}) {
 		let attrConfigs = Attribute._mergeAttrConfigs(this.constructor);
 		
 		Object.keys(attrConfigs).forEach(name => {
 			this.addAttribute(name, attrConfigs[name]);
 			
-			if (values && values.hasOwnProperty(name)) {
+			if (values.hasOwnProperty(name)) {
 				this.set(name, values[name]);
 			}
 		});
