@@ -33,6 +33,17 @@ QUnit.test('on() callbacks are called after fire()', function (assert) {
 	assert.equal(i, 2);
 });
 
+QUnit.test('preventDefault does not cause other listeners to be ignored', function (assert) {
+	let et = new ET(),
+		prevented = false;
+	
+	et.on('ev', e => {e.preventDefault();});
+	et.on('ev', e => {prevented = e.defaultPrevented;});
+	
+	et.fire('ev');
+	assert.ok(prevented);
+});
+
 QUnit.test('Can add custom properties to events', function (assert) {
 	let et = new ET(),
 		eventArgs = {
