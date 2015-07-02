@@ -18,14 +18,15 @@ class DispatchFacade {
 	 * 
 	 * @param {String|Event} typeOrEvent
 	 * @param {Boolean} [preventable=true]
+	 * @param {Boolean} [bubbles=true]
 	 * @param {Object} [data]
-	 * @returns {boolean}
+	 * @returns {Array} [defaultPrevented, propagationStopped]
 	 */
-	dispatch (typeOrEvent, preventable, data) {
+	dispatch (typeOrEvent, preventable = true, bubbles = true, data = null) {
 		let e = typeOrEvent;
 		
 		if (typeof typeOrEvent === 'string') {
-			e = this.createEvent(typeOrEvent, preventable, data);
+			e = this.createEvent(typeOrEvent, preventable, bubbles, data);
 		}
 		
 		return this._eventNode.dispatchEvent(e);
@@ -33,19 +34,20 @@ class DispatchFacade {
 
 	/**
 	 * 
-	 * @param {string} type
-	 * @param {boolean} [preventable=true]
+	 * @param {String} type
+	 * @param {Boolean} [preventable=true]
+	 * @param {Boolean} [bubbles=true]
 	 * @param {Object} [data]
 	 * @returns {Event}
 	 */
-	createEvent (type, preventable, data) {
+	createEvent (type, preventable = true, bubbles = true, data = null) {
 		let e = document.createEvent('Event');
 		
-		e.initEvent(type, false, preventable !== false);
+		e.initEvent(type, bubbles, preventable);
 
 		if (data) {
 			Object.keys(data).forEach(key => {
-				if (e[key]) {		// don't overwrite "native" event properties
+				if (e[key] && key !== 'target') {		// don't overwrite "native" event properties other than 'target'
 					return;
 				}
 				e[key] = data[key];
@@ -99,6 +101,7 @@ EventTarget.AFTER = 'AFTER:';
 
 EventTarget.defaultConfig = {
 	preventable:	true,
+	bubbles:		true,
 	preventedFn:	null,
 	defaultFn:		null
 };
@@ -110,6 +113,7 @@ EventTarget.prototype = {
 		this._eventDispatch = new DispatchFacade();
 		this._eventDefinitions = new Map();
 		this._eventSubs = new Map();
+		this._bubbleTargets = [];
 	},
 	
 	/**
@@ -118,6 +122,7 @@ EventTarget.prototype = {
 	 * @param	{String} type
 	 * @param	{Object} [config]
 	 * @param	{Boolean} [config.preventable=true]
+	 * @param	{Boolean} [config.bubbles=true]
 	 * @param	{Function} [config.preventedFn=null]
 	 * @param	{Function} [config.defaultFn=null]
 	 */
@@ -125,8 +130,9 @@ EventTarget.prototype = {
 		type,
 		{
 			preventable = EventTarget.defaultConfig.preventable,
+			bubbles		= EventTarget.defaultConfig.bubbles,
 			preventedFn = EventTarget.defaultConfig.preventedFn,
-			defaultFn = EventTarget.defaultConfig.defaultFn
+			defaultFn	= EventTarget.defaultConfig.defaultFn
 		} = {}
 	) {
 		if (this._eventDefinitions.has(type)) {
@@ -138,6 +144,18 @@ EventTarget.prototype = {
 			preventedFn,
 			defaultFn
 		});
+	},
+
+	/**
+	 * @param	{EventTarget} target
+	 * @return	{EventTarget} this
+	 * @chainable
+	 */
+	addBubbleTarget: function (target) {
+		if (this._bubbleTargets.indexOf(target) !== false) {
+			this._bubbleTargets.push(target);
+		}
+		return this;
 	},
 	
 	/**
@@ -268,19 +286,39 @@ EventTarget.prototype = {
 	 * @param {Object} [data]
 	 * @return {boolean}	true if event was not cancelled
 	 */
-	fire: function (type, data) {
+	fire: function (type, data = {}) {
 		let def = this._eventDefinitions.get(type) || EventTarget.defaultConfig;
 		
-		let success = this._eventDispatch.dispatch(type, def.preventable, data);
+		data.firstTarget = this;
+		
+		// dispatch 'on' event on self, bubble targets
+		let success = this._fire(type, def.preventable, def.bubbles, data);
 		
 		if (success) {
 			if (def.defaultFn) {
 				def.defaultFn(data);
 			}
 			
-			this._eventDispatch.dispatch(EventTarget.AFTER + type, false, data);
+			// dispatch 'after' event on self, bubble targets
+			this._fire(EventTarget.AFTER + type, false, def.bubbles, data);
 		} else if (def.preventedFn) {
 			def.preventedFn(data);
+		}
+		
+		return success;
+	},
+	
+	_fire: function (type, preventable, bubbles, data = null) {
+		// dispatch event locally
+		let success = this._eventDispatch.dispatch(type, preventable, bubbles, data);
+		
+		// let bubble targets dispatch (even if event was prevented locally!)
+		if (bubbles) {
+			for (let target of this._bubbleTargets) {
+				if (!target._fire(type, preventable, bubbles, data)) {	// this will chain bubbling
+					success = false;
+				}
+			}
 		}
 		
 		return success;

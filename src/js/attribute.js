@@ -179,7 +179,7 @@ AttributeObservable.prototype = {
 			};
 		
 		let e = this._eventDispatch.createEvent(
-			name + 'Change', true, data
+			name + 'Change', true, true, data
 		);
 		
 		let success = this._eventDispatch.dispatch(e);
@@ -191,7 +191,7 @@ AttributeObservable.prototype = {
 			
 			if (success) {		// attribute value was changed
 				data.newVal = this.get(name);		// update newVal (post-setter)
-				success = this._eventDispatch.dispatch('AFTER:' + name + 'Change', false, data);
+				success = this._eventDispatch.dispatch('AFTER:' + name + 'Change', false, true, data);
 			}
 		}
 		

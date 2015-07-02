@@ -261,3 +261,52 @@ QUnit.test('publish sets event defaults', function (assert) {
 	et.fire('defFn');
 	assert.deepEqual(v, ['on', 'def', 'after', 'on', 'prev']);
 });
+
+QUnit.test('can add bubble targets', function (assert) {
+	var et1 = new ET(),
+		et2 = new ET(),
+		et3 = new ET(),
+		et4 = new ET(),
+		et1Called = false,
+		et2Called = false,
+		et3Called = false,
+		et4Called = false,
+		firstTargetCorrect = true;
+	
+	et1.addBubbleTarget(et2);
+	et2.addBubbleTarget(et3);
+	et2.addBubbleTarget(et4);
+	
+	et1.on('ev', (e) => {
+		et1Called = true;
+		if (e.firstTarget !== et1) {
+			firstTargetCorrect = false;
+		}
+	});
+	et2.on('ev', (e) => {
+		et2Called = true;
+		if (e.firstTarget !== et1) {
+			firstTargetCorrect = false;
+		}
+	});
+	et3.on('ev', (e) => {
+		et3Called = true;
+		if (e.firstTarget !== et1) {
+			firstTargetCorrect = false;
+		}
+	});
+	et4.on('ev', (e) => {
+		et4Called = true;
+		if (e.firstTarget !== et1) {
+			firstTargetCorrect = false;
+		}
+	});
+	
+	et1.fire('ev');
+	assert.ok(et1Called);
+	assert.ok(et2Called);
+	assert.ok(et3Called);
+	assert.ok(et4Called);
+	
+	assert.ok(firstTargetCorrect);
+});
