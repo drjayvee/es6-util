@@ -30,6 +30,7 @@ class Dispatch {
 	}
 
 	/**
+	 * 
 	 * @param	{CustomEvent} event
 	 * @returns {boolean} wether the event completed (i.e. was not cancelled)
 	 */
@@ -69,6 +70,7 @@ class Dispatch {
 	}
 	
 	/**
+	 * 
 	 * @param	{String} type
 	 * @param	{Function} callback
 	 * @param	{Object} context
@@ -94,6 +96,7 @@ class Dispatch {
 	}
 
 	/**
+	 * 
 	 * @param	{String} type
 	 * @param	{Function} callback
 	 * @param	{Object} context
@@ -111,6 +114,7 @@ class Dispatch {
 	}
 	
 	/**
+	 * 
 	 * @param	{String} type
 	 * @param	{Function} [callback]
 	 * @param	{Object} [context]
@@ -134,6 +138,7 @@ class Dispatch {
 	}
 
 	/**
+	 * 
 	 * @param	{Subscription} sub
 	 * @private
 	 */
@@ -225,6 +230,7 @@ EventTarget.prototype = {
 	},
 
 	/**
+	 * 
 	 * @param	{EventTarget} target
 	 * @return	{EventTarget} this
 	 * @chainable
@@ -326,6 +332,7 @@ EventTarget.prototype = {
 	},
 
 	/**
+	 * 
 	 * @param	{CustomEvent} event
 	 * @returns {CustomEvent}
 	 * @private

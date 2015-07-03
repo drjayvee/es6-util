@@ -196,7 +196,7 @@ AttributeObservable.prototype = {
 					EventTarget.AFTER + name + 'Change', false, true, data
 				);
 				
-				success = this._eventDispatch.dispatch(afterEvent);
+				this._eventDispatch.dispatch(afterEvent);
 			}
 		}
 		
