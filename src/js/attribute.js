@@ -178,20 +178,25 @@ AttributeObservable.prototype = {
 				attrName:	name
 			};
 		
-		let e = this._eventDispatch.createEvent(
+		let onEvent = this._eventDispatch.createEvent(
 			name + 'Change', true, true, data
 		);
 		
-		let success = this._eventDispatch.dispatch(e);
+		let success = this._eventDispatch.dispatch(onEvent);
 		
 		if (success) {
-			value = e.newVal;		// allow on() listeners to change the new value
+			value = onEvent.newVal;		// allow on() listeners to change the new value
 			
 			success = Attribute.prototype._set.call(this, name, value);
 			
 			if (success) {		// attribute value was changed
 				data.newVal = this.get(name);		// update newVal (post-setter)
-				success = this._eventDispatch.dispatch('AFTER:' + name + 'Change', false, true, data);
+				
+				let afterEvent = this._eventDispatch.createEvent(
+					EventTarget.AFTER + name + 'Change', false, true, data
+				);
+				
+				success = this._eventDispatch.dispatch(afterEvent);
 			}
 		}
 		

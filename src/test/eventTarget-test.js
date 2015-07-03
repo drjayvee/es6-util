@@ -99,7 +99,7 @@ QUnit.test('Can add custom properties to events', function (assert) {
 	assert.ok(eventArgs.preventedFn);
 });
 
-QUnit.test('can detach handlers', function (assert) {
+QUnit.test('can unsubscribe handlers', function (assert) {
 	let et = new ET(),
 		context = {i: 0},
 		cb = function () {
@@ -108,8 +108,8 @@ QUnit.test('can detach handlers', function (assert) {
 	
 	et.i = 0;
 	
-	// use on's returned Subscription.detach()
-	et.on('ev', cb).detach();
+	// use on's returned Subscription.unsubscribe()
+	et.on('ev', cb).unsubscribe();
 	
 	et.fire('ev');
 	assert.equal(et.i, 0);
@@ -271,7 +271,7 @@ QUnit.test('can add bubble targets', function (assert) {
 		et2Called = false,
 		et3Called = false,
 		et4Called = false,
-		firstTargetCorrect = true;
+		originalTargetCorrect = true;
 	
 	et1.addBubbleTarget(et2);
 	et2.addBubbleTarget(et3);
@@ -279,26 +279,26 @@ QUnit.test('can add bubble targets', function (assert) {
 	
 	et1.on('ev', (e) => {
 		et1Called = true;
-		if (e.firstTarget !== et1) {
-			firstTargetCorrect = false;
+		if (e.originalTarget !== et1) {
+			originalTargetCorrect = false;
 		}
 	});
 	et2.on('ev', (e) => {
 		et2Called = true;
-		if (e.firstTarget !== et1) {
-			firstTargetCorrect = false;
+		if (e.originalTarget !== et1) {
+			originalTargetCorrect = false;
 		}
 	});
 	et3.on('ev', (e) => {
 		et3Called = true;
-		if (e.firstTarget !== et1) {
-			firstTargetCorrect = false;
+		if (e.originalTarget !== et1) {
+			originalTargetCorrect = false;
 		}
 	});
 	et4.on('ev', (e) => {
 		et4Called = true;
-		if (e.firstTarget !== et1) {
-			firstTargetCorrect = false;
+		if (e.originalTarget !== et1) {
+			originalTargetCorrect = false;
 		}
 	});
 	
@@ -308,5 +308,5 @@ QUnit.test('can add bubble targets', function (assert) {
 	assert.ok(et3Called);
 	assert.ok(et4Called);
 	
-	assert.ok(firstTargetCorrect);
+	assert.ok(originalTargetCorrect);
 });
