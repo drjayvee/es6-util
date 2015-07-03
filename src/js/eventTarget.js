@@ -2,18 +2,18 @@
 
 // region CustomEvent
 class CustomEvent {
-	constructor (type, preventable = true, bubbles = true) {
+	constructor (type, cancelable = true, bubbles = true) {
 		this.type = type;
-		this.preventable = preventable;
+		this.cancelable = cancelable;
 		this.bubbles = bubbles;
 		
-		this.defaultPrevented = false;
+		this.cancelled = false;
 		this.bubblingStopped = false;
 	}
 	
-	preventDefault () {
-		if (this.preventable) {
-			this.defaultPrevented = true;
+	cancel () {
+		if (this.cancelable) {
+			this.cancelled = true;
 		}
 	}
 	
@@ -42,19 +42,19 @@ class Dispatch {
 			}
 		}
 		
-		return !event.defaultPrevented;
+		return !event.cancelled;
 	}
 
 	/**
 	 * 
 	 * @param {String} type
+	 * @param {Boolean} [cancelable=true]
 	 * @param {Boolean} [bubbles=true]
-	 * @param {Boolean} [preventable=true]
 	 * @param {Object} [data]
 	 * @returns {CustomEvent}
 	 */
-	createEvent (type, preventable = true, bubbles = true, data = null) {
-		let e = new CustomEvent(type, preventable, bubbles);
+	createEvent (type, cancelable = true, bubbles = true, data = null) {
+		let e = new CustomEvent(type, cancelable, bubbles);
 		
 		if (data) {
 			Object.keys(data).forEach(key => {
@@ -145,7 +145,6 @@ class Dispatch {
 			1
 		);
 	}
-	
 }
 // endregion
 
@@ -179,9 +178,9 @@ function EventTarget () {}
 EventTarget.AFTER = 'AFTER:';
 
 EventTarget.defaultConfig = {
-	preventable:	true,
+	cancelable:		true,
 	bubbles:		true,
-	preventedFn:	null,
+	cancelledFn:	null,
 	defaultFn:		null
 };
 
@@ -199,17 +198,17 @@ EventTarget.prototype = {
 	 * 
 	 * @param	{String} type
 	 * @param	{Object} [config]
-	 * @param	{Boolean} [config.preventable=true]
+	 * @param	{Boolean} [config.cancelable=true]
 	 * @param	{Boolean} [config.bubbles=true]
-	 * @param	{Function} [config.preventedFn=null]
+	 * @param	{Function} [config.canceledFn=null]
 	 * @param	{Function} [config.defaultFn=null]
 	 */
 	publish: function (
 		type,
 		{
-			preventable = EventTarget.defaultConfig.preventable,
+			cancelable	= EventTarget.defaultConfig.cancelable,
 			bubbles		= EventTarget.defaultConfig.bubbles,
-			preventedFn = EventTarget.defaultConfig.preventedFn,
+			cancelledFn	= EventTarget.defaultConfig.cancelledFn,
 			defaultFn	= EventTarget.defaultConfig.defaultFn
 		} = {}
 	) {
@@ -218,8 +217,9 @@ EventTarget.prototype = {
 		}
 		
 		this._eventDefinitions.set(type, {
-			preventable,
-			preventedFn,
+			cancelable,
+			bubbles,
+			cancelledFn,
 			defaultFn
 		});
 	},
@@ -230,7 +230,7 @@ EventTarget.prototype = {
 	 * @chainable
 	 */
 	addBubbleTarget: function (target) {
-		if (this._bubbleTargets.indexOf(target) !== false) {
+		if (this._bubbleTargets.indexOf(target) === -1) {
 			this._bubbleTargets.push(target);
 		}
 		return this;
@@ -280,6 +280,7 @@ EventTarget.prototype = {
 	},
 
 	/**
+	 * 
 	 * @param	{String} type
 	 * @param	{Function} callback
 	 * @param	{Object} [context=this]
@@ -302,25 +303,26 @@ EventTarget.prototype = {
 		
 		data.originalTarget = this;
 		
-		// dispatch 'on' event on self, bubble targets
-		let event = this._fireEvent(
-			this._eventDispatch.createEvent(type, def.preventable, def.bubbles, data)
-		);
+		// fire 'on' event
+		let onEvent = this._eventDispatch.createEvent(type, def.cancelable, def.bubbles, data);
+		this._fireEvent(onEvent);
 		
-		if (!event.defaultPrevented) {
+		// call defaultFn, dispatch 'after' event OR call preventedFn
+		if (!onEvent.cancelled) {
+			// call defaultFn
 			if (def.defaultFn) {
 				def.defaultFn(data);
 			}
 			
-			// dispatch 'after' event on self, bubble targets
+			// fire 'after' event
 			this._fireEvent(
 				this._eventDispatch.createEvent(EventTarget.AFTER + type, false, def.bubbles, data)
 			);
-		} else if (def.preventedFn) {
-			def.preventedFn(data);
+		} else if (def.cancelledFn) {
+			def.cancelledFn(data);
 		}
 		
-		return !event.defaultPrevented;
+		return !onEvent.cancelled;
 	},
 
 	/**

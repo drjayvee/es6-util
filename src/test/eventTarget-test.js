@@ -33,15 +33,15 @@ QUnit.test('on() callbacks are called after fire()', function (assert) {
 	assert.equal(i, 2);
 });
 
-QUnit.test('preventDefault does not cause other listeners to be ignored', function (assert) {
+QUnit.test('cancel does not cause other listeners to be ignored', function (assert) {
 	let et = new ET(),
-		prevented = false;
+		cancelled = false;
 	
-	et.on('ev', e => {e.preventDefault();});
-	et.on('ev', e => {prevented = e.defaultPrevented;});
+	et.on('ev', e => {e.cancel();});
+	et.on('ev', e => {cancelled = e.cancelled;});
 	
 	et.fire('ev');
-	assert.ok(prevented);
+	assert.ok(cancelled);
 });
 
 QUnit.test('Can add custom properties to events', function (assert) {
@@ -50,24 +50,24 @@ QUnit.test('Can add custom properties to events', function (assert) {
 			on:				null,
 			after:			null,
 			defaultFn:		null,
-			preventedFn:	null
+			cancelledFn:	null
 		},
-		peventDefault = false;
+		cancel = false;
 	
 	et.publish('ev', {
 		defaultFn: function (e) {
 			eventArgs.defaultFn = e;
 		},
-		preventedFn: function (e) {
-			eventArgs.preventedFn = e;
+		cancelledFn: function (e) {
+			eventArgs.cancelledFn = e;
 		}
 	});
 	
 	et.on('ev', function (e) {
 		eventArgs.on = e;
 		
-		if (peventDefault) {
-			e.preventDefault();
+		if (cancel) {
+			e.cancel();
 		}
 	});
 	et.after('ev', function (e) {
@@ -80,23 +80,23 @@ QUnit.test('Can add custom properties to events', function (assert) {
 	assert.ok(eventArgs.on.custom);
 	assert.ok(eventArgs.defaultFn.custom);
 	assert.ok(eventArgs.after.custom);
-	assert.equal(eventArgs.preventedFn, null);		// event was not prevent
+	assert.equal(eventArgs.cancelledFn, null);		// event was not prevent
 	
 	// fire event, prevent Default
 	eventArgs = {
 		on:				null,
 		after:			null,
 		defaultFn:		null,
-		preventedFn:	null
+		cancelledFn:	null
 	};
 	
-	peventDefault = true;
+	cancel = true;
 	et.fire('ev', {custom: true});
 	
 	assert.ok(eventArgs.on.custom);
 	assert.equal(eventArgs.defaultFn, null);
 	assert.equal(eventArgs.after, null);
-	assert.ok(eventArgs.preventedFn);
+	assert.ok(eventArgs.cancelledFn);
 });
 
 QUnit.test('can unsubscribe handlers', function (assert) {
@@ -148,7 +148,7 @@ QUnit.test('can unsubscribe handlers', function (assert) {
 	assert.equal(context.i, 2);
 });
 
-QUnit.test('after() callbacks are called after (), but only if default is not prevented', function (assert) {
+QUnit.test('after() callbacks are called after (), but only if default is not cancelled', function (assert) {
 	let et = new ET(),
 		onRan = false,
 		i = 0;
@@ -157,7 +157,7 @@ QUnit.test('after() callbacks are called after (), but only if default is not pr
 		onRan = true;
 		
 		if (i) {
-			e.preventDefault();
+			e.cancel();
 		}
 	});
 	et.after('ev', function () {
@@ -176,23 +176,42 @@ QUnit.test('after() callbacks are called after (), but only if default is not pr
 
 QUnit.test('once() and onceAfter() callbacks are only called once', function (assert) {
 	let et = new ET(),
-		o = 0,
-		oa = 0;
+		on = 0,
+		after = 0,
+		once = 0,
+		onceAfter = 0;
 	
+	et.on('ev', function () {
+		on += 1;
+	});
 	et.once('ev', function () {
-		o += 1;
+		once += 1;
+	});
+	
+	et.after('ev', function () {
+		after += 1;
 	});
 	et.onceAfter('ev', function () {
-		oa += 1;
+		onceAfter += 1;
 	});
 	
+	// fire event once
 	et.fire('ev');
-	assert.equal(o, 1);
-	assert.equal(oa, 1);
 	
+	assert.equal(on, 1);
+	assert.equal(once, 1);
+	
+	assert.equal(after, 1);
+	assert.equal(onceAfter, 1);
+	
+	// fire twice
 	et.fire('ev');
-	assert.equal(o, 1);
-	assert.equal(oa, 1);
+	
+	assert.equal(on, 2);
+	assert.equal(once, 1);
+	
+	assert.equal(after, 2);
+	assert.equal(onceAfter, 1);
 });
 
 QUnit.test('context argument is applied to callback', function (assert) {
@@ -220,34 +239,34 @@ QUnit.test('publish sets event defaults', function (assert) {
 	let et = new ET(),
 		v = null;
 	
-	// check non-preventable
-	et.publish('non-preventable', {
-		preventable: false
+	// check non-cancelable
+	et.publish('non-cancelable', {
+		cancelable: false
 	});
 	
-	et.on('non-preventable', function (e) {
-		e.preventDefault();
+	et.on('non-cancelable', function (e) {
+		e.cancel();
 	});
-	et.after('non-preventable', function (e) {
-		v = e.defaultPrevented;
+	et.after('non-cancelable', function (e) {
+		v = e.cancelled;
 	});
 	
-	et.fire('non-preventable');
+	et.fire('non-cancelable');
 	assert.equal(v, false);
 	
-	// check default / prevented function
+	// check default / cancelled function
 	v = [];
 	et.publish('defFn', {
 		defaultFn: function () {
 			v.push('def');
 		},
-		preventedFn: function () {
+		cancelledFn: function () {
 			v.push('prev');
 		}
 	});
-	et.on('defFn', function (e) {		// will preventDefault second call
+	et.on('defFn', function (e) {		// will cancel second call
 		if (v.length) {
-			e.preventDefault();
+			e.cancel();
 		}
 		v.push('on');
 	});
@@ -309,4 +328,36 @@ QUnit.test('can add bubble targets', function (assert) {
 	assert.ok(et4Called);
 	
 	assert.ok(originalTargetCorrect);
+	
+	// configure an event to not bubble
+	et2Called = false;
+	
+	et1.publish('noBubble', {bubbles: false});
+	et1.fire('noBubble');
+	
+	assert.notOk(et2Called);
+});
+
+QUnit.test('can stop bubbling', function (assert) {
+	var et1 = new ET(),
+		et2 = new ET(),
+		et2Called = false,
+		bubblingStopped = false;
+	
+	et1.addBubbleTarget(et2);
+	
+	et1.on('ev', (e) => {
+		e.stopBubbling();
+	});
+	et1.on('ev', (e) => {
+		bubblingStopped = e.bubblingStopped;
+	});
+	et2.on('ev', () => {
+		et2Called = true;
+	});
+	
+	et1.fire('ev');
+	
+	assert.notOk(et2Called);
+	assert.ok(bubblingStopped);
 });

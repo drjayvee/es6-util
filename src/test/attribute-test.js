@@ -185,7 +185,7 @@ QUnit.test('attribute change events', function (assert) {
 	ao.on('kChange', function (e) {
 		onChangeEvent = e;
 		if (cancelChange) {
-			e.preventDefault();
+			e.cancel();
 		}
 	});
 	ao.after('kChange', function (e) {
