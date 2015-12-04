@@ -8,10 +8,10 @@ QUnit.module('attribute', {
 	beforeEach: function () {
 		class SimpleAttribute {
 			constructor (config) {
-				Attribute.prototype.init.call(this, config);
+				Attribute.init.call(this, config);
 			}
 		}
-		mix(SimpleAttribute, Attribute);
+		mix(SimpleAttribute.prototype, Attribute);
 		
 		this.SimpleAttribute = SimpleAttribute;
 	}
@@ -41,8 +41,8 @@ QUnit.test('basic add, set / get use', function (assert) {
 	// test chainability
 	assert.equal(at.set('k', true), at);
 	
-	// try with static definition
-	this.SimpleAttribute.ATTRS = {
+	// try with definition on prototype
+	this.SimpleAttribute.prototype.ATTRS = {
 		k: {
 			value: 1337
 		}
@@ -125,7 +125,7 @@ QUnit.test('getter / setter', function (assert) {
 });
 
 QUnit.test('initialize attributes via constructor', function (assert) {
-	this.SimpleAttribute.ATTRS = {
+	this.SimpleAttribute.prototype.ATTRS = {
 		k1: {
 			value: 1337,
 			validator: function (value) {
@@ -164,10 +164,10 @@ QUnit.test('initialize attributes via constructor', function (assert) {
 QUnit.test('attribute change events', function (assert) {
 	class AOC {
 		constructor (config) {
-			AttributeObservable.prototype.init.call(this, config);
+			AttributeObservable.init.call(this, config);
 		}
 	}
-	mix(AOC, AttributeObservable);
+	mix(AOC.prototype, AttributeObservable);
 	
 	let ao = new AOC(),
 		cancelChange = false,
@@ -294,12 +294,12 @@ QUnit.test('attribute change events', function (assert) {
 QUnit.test('class chain attributes', function (assert) {
 	// case 1: base class has SimpleAttribute extension
 	class C1 extends this.SimpleAttribute {}
-	C1.ATTRS = {
+	C1.prototype.ATTRS = {
 		c1: {value: 'c1'}
 	};
 	
 	class C2 extends C1 {}
-	C2.ATTRS = {
+	C2.prototype.ATTRS = {
 		c2: {value: 'c2'}
 	};
 	
@@ -326,30 +326,32 @@ QUnit.test('class chain attributes', function (assert) {
 	//assert.equal(i.get('c2'), 'c2');
 	
 	// case 3: ATTRs everywhere
-	function E1 () {}
-	E1.ATTRS = {
-		e1: {value: 'e1'}
+	let E1  = {
+		ATTRS: {
+			e1: {value: 'e1'}
+		}
 	};
 	
-	function E2 () {}
-	E2.ATTRS = {
-		e2: {value: 'e2'}
+	let E2  = {
+		ATTRS: {
+			e2: {value: 'e2'}
+		}
 	};
 	
 	class CE1 extends this.SimpleAttribute {}
-	CE1.ATTRS = {
+	CE1.prototype.ATTRS = {
 		c1: {value: 'c1'}
 	};
-	mix(CE1, Attribute, E1);
+	mix(CE1.prototype, E1);
 	
 	class CE2 extends CE1 {}
-	CE2.ATTRS = {
+	CE2.prototype.ATTRS = {
 		c2: {value: 'c2'}
 	};
-	mix(CE2, E2);
+	mix(CE2.prototype, E2);
 	
 	class CE3 extends CE2 {}
-	CE3.ATTRS =  {
+	CE3.prototype.ATTRS =  {
 		c3: {value: 'c3'}
 	};
 	
@@ -375,34 +377,36 @@ QUnit.test('class chain attributes', function (assert) {
 });
 
 QUnit.test('AttributeObservable chain attributes', function (assert) {
-	function E1 () {}
-	E1.ATTRS = {
-		e1: {value: 'e1'}
+	let E1  = {
+		ATTRS: {
+			e1: {value: 'e1'}
+		}
 	};
 	
-	function E2 () {}
-	E2.ATTRS = {
-		e2: {value: 'e2'}
+	let E2  = {
+		ATTRS: {
+			e2: {value: 'e2'}
+		}
 	};
 	
 	class C1 {
 		constructor (config) {
-			AttributeObservable.prototype.init.call(this, config);
+			AttributeObservable.init.call(this, config);
 		}
 	}
-	C1.ATTRS = {
+	C1.prototype.ATTRS = {
 		c1: {value: 'c1'}
 	};
-	mix(C1, AttributeObservable, E1);
+	mix(C1.prototype, AttributeObservable, E1);
 	
 	class C2 extends C1 {}
-	C2.ATTRS = {
+	C2.prototype.ATTRS = {
 		c2: {value: 'c2'}
 	};
-	mix(C2, E2);
+	mix(C2.prototype, E2);
 	
 	class C3 extends C2 {}
-	C3.ATTRS = {
+	C3.prototype.ATTRS = {
 		c3: {value: 'c3'}
 	};
 	

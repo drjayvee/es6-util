@@ -1,20 +1,16 @@
 /*jshint esnext:true*/
 
 /**
- * @param	{Function} Target class to receive mixins
- * @param	{Function[],Object[]} mixins
+ * @param	{Object} target	object to receive mixins
+ * @param	{Object[]} mixins
  */
-function mix (Target, ...mixins) {
-	Target.__mixins = mixins;
+function mix (target, ...mixins) {
+	target.__mixins = mixins;
 	
 	for (let mixin of mixins) {
-		if (mixin instanceof Function) {
-			mixin = mixin.prototype;
-		}
-		
 		for (let prop of Object.keys(mixin)) {
-			if (!Target.prototype.hasOwnProperty(prop) && prop !== 'constructor') {
-				Target.prototype[prop] = mixin[prop];
+			if (!target.hasOwnProperty(prop) && prop !== 'constructor') {
+				target[prop] = mixin[prop];
 			}
 		}
 	}

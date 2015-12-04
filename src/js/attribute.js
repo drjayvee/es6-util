@@ -1,51 +1,45 @@
 /*jshint esnext:true*/
 
 import {mix} from 'js/oop';
-import EventTarget from 'js/eventTarget';
+import EventTarget, {AFTER} from 'js/eventTarget';
 
 // region Attribute
-function Attribute () {}
-
-Attribute.INVALID = {};
-
-Attribute.CONFIG_KEYS = ['value', 'validator', 'getter', 'setter'];
-
 /**
- * @param	{Function} constructor
+ * @param	{Object} source
  * @returns {Map}
  * @private
  */
-Attribute._mergeAttrConfigs = function (constructor) {
+function mergeAttrConfigs (source) {
 	let attrs;
 	
-	// add super class chain ATTRs first (top down recursion)
-	let superClass = Object.getPrototypeOf(constructor);
-	if (superClass !== Function.prototype) {	// constructor is base constructor
-		attrs = Attribute._mergeAttrConfigs(superClass);
+	// add prototype chain ATTRs first (top down recursion)
+	let proto = Object.getPrototypeOf(source);
+	if (proto !== Object.prototype) {
+		attrs = mergeAttrConfigs(proto);
 	} else {
 		attrs = new Map();
 	}
 	
-	// add this class's ATTRs
-	if (constructor.ATTRS) {
-		for (let attr of Object.keys(constructor.ATTRS)) {
-			attrs.set(attr, constructor.ATTRS[attr]);
+	// add own ATTRs
+	if (source.hasOwnProperty('ATTRS')) {
+		for (let attr of Object.keys(source.ATTRS)) {
+			attrs.set(attr, source.ATTRS[attr]);
 		}
 	}
 	
 	// add mixin ATTRs
-	if (constructor.hasOwnProperty('__mixins')) {
-		for (let mixin of constructor.__mixins) {
-			attrs = new Map([...attrs, ...Attribute._mergeAttrConfigs(mixin)]);// see https://leanpub.com/exploring-es6/read#leanpub-auto-map
+	if (source.hasOwnProperty('__mixins')) {
+		for (let mixin of source.__mixins) {
+			attrs = new Map([...attrs, ...mergeAttrConfigs(mixin)]);// see http://exploringjs.com/es6/ch_maps-sets.html#_combining-maps
 		}
 	}
 	
 	return attrs;
-};
+}
 
-Attribute.prototype = {
-	constructor: Attribute,
-
+var Attribute = {
+	INVALID: {},	// used as a constant
+	
 	/**
 	 * 
 	 * @param {Object} values
@@ -89,7 +83,7 @@ Attribute.prototype = {
 	},
 	
 	_initAttributes: function (values = {}) {
-		let attrConfigs = Attribute._mergeAttrConfigs(this.constructor);
+		let attrConfigs = mergeAttrConfigs(this);
 		
 		for (let [name, config] of attrConfigs) {
 			this.addAttribute(name, config);
@@ -161,14 +155,10 @@ Attribute.prototype = {
 // endregion
 
 // region AttributeObservable
-function AttributeObservable () {}
-
-AttributeObservable.prototype = {
-	constructor: AttributeObservable,
-	
+var AttributeObservable = {
 	init (config) {
-		EventTarget.prototype.init.call(this, config);
-		Attribute.prototype.init.call(this, config);
+		EventTarget.init.call(this, config);
+		Attribute.init.call(this, config);
 	},
 	
 	_set (name, value) {
@@ -187,13 +177,13 @@ AttributeObservable.prototype = {
 		if (success) {
 			value = onEvent.newVal;		// allow on() listeners to change the new value
 			
-			success = Attribute.prototype._set.call(this, name, value);
+			success = Attribute._set.call(this, name, value);
 			
 			if (success) {		// attribute value was changed
 				data.newVal = this.get(name);		// update newVal (post-setter)
 				
 				let afterEvent = this._eventDispatch.createEvent(
-					EventTarget.AFTER + name + 'Change', false, true, data
+					AFTER + name + 'Change', false, true, data
 				);
 				
 				this._eventDispatch.dispatch(afterEvent);

@@ -8,10 +8,10 @@ QUnit.module('eventTarget');
 
 class ET {
 	constructor (...args) {
-		EventTarget.prototype.init.apply(this, args);
+		EventTarget.init.apply(this, args);
 	}
 }
-mix(ET, EventTarget);
+mix(ET.prototype, EventTarget);
 
 QUnit.test('on() callbacks are called after fire()', function (assert) {
 	let et = new ET(),

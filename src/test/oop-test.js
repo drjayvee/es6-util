@@ -36,7 +36,7 @@ QUnit.module('oop', {
 });
 
 QUnit.test('mix an object into a class', function (assert) {
-	mix(this.Base, this.mixO);
+	mix(this.Base.prototype, this.mixO);
 	
 	assert.ok(this.Base.prototype.meth);	// original Base method
 	assert.ok(this.Base.prototype.mixOM);	// mixed-in method from mixO
@@ -53,7 +53,7 @@ QUnit.test('mix an object into a class', function (assert) {
 });
 
 QUnit.test('mix a Function into a class', function (assert) {
-	mix(this.Base, this.MixF);
+	mix(this.Base.prototype, this.MixF.prototype);
 	
 	assert.ok(this.Base.prototype.meth);	// original Base method
 	assert.ok(this.Base.prototype.mixFM);	// mixed-in method from MixF
@@ -71,7 +71,7 @@ QUnit.test('mix a Function into a class', function (assert) {
 });
 
 QUnit.test('a Function and an Object walk into a bar...', function (assert) {
-	mix(this.Base, this.mixO, this.MixF, {
+	mix(this.Base.prototype, this.mixO, this.MixF.prototype, {
 		order (drink) {
 			this.order = drink;
 		}

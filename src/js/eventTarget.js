@@ -104,7 +104,7 @@ class Dispatch {
 	unsubscribe (type, callback, context) {
 		// merge on and after subs
 		let subs = this._findSubs(type, callback, context).concat(
-			this._findSubs(EventTarget.AFTER + type, callback, context)
+			this._findSubs(AFTER + type, callback, context)
 		);
 		
 		subs.forEach(sub => {
@@ -178,19 +178,16 @@ class Subscription {
 // endregion
 
 // region EventTarget
-function EventTarget () {}
+const AFTER = 'AFTER:';
 
-EventTarget.AFTER = 'AFTER:';
-
-EventTarget.defaultConfig = {
+const DEFAULT_CONFIG = {
 	cancelable:		true,
 	bubbles:		true,
 	cancelledFn:	null,
 	defaultFn:		null
 };
 
-EventTarget.prototype = {
-	constructor: EventTarget,
+var EventTarget = {
 	
 	init: function (config) {
 		this._eventDispatch = new Dispatch();
@@ -211,10 +208,10 @@ EventTarget.prototype = {
 	publish: function (
 		type,
 		{
-			cancelable	= EventTarget.defaultConfig.cancelable,
-			bubbles		= EventTarget.defaultConfig.bubbles,
-			cancelledFn	= EventTarget.defaultConfig.cancelledFn,
-			defaultFn	= EventTarget.defaultConfig.defaultFn
+			cancelable	= DEFAULT_CONFIG.cancelable,
+			bubbles		= DEFAULT_CONFIG.bubbles,
+			cancelledFn	= DEFAULT_CONFIG.cancelledFn,
+			defaultFn	= DEFAULT_CONFIG.defaultFn
 		} = {}
 	) {
 		if (this._eventDefinitions.has(type)) {
@@ -264,14 +261,14 @@ EventTarget.prototype = {
 	 * @see on
 	 */
 	after: function (type, callback, context) {
-		return this.on(EventTarget.AFTER + type, callback, context);
+		return this.on(AFTER + type, callback, context);
 	},
 	
 	/**
 	 * @see on
 	 */
 	onceAfter: function (type, callback, context) {
-		return this.once(EventTarget.AFTER + type, callback, context);
+		return this.once(AFTER + type, callback, context);
 	},
 
 	/**
@@ -305,7 +302,7 @@ EventTarget.prototype = {
 	 * @return {boolean}	true if event was not cancelled
 	 */
 	fire: function (type, data = {}) {
-		let def = this._eventDefinitions.get(type) || EventTarget.defaultConfig;
+		let def = this._eventDefinitions.get(type) || DEFAULT_CONFIG;
 		
 		data.originalTarget = this;
 		
@@ -322,7 +319,7 @@ EventTarget.prototype = {
 			
 			// fire 'after' event
 			this._fireEvent(
-				this._eventDispatch.createEvent(EventTarget.AFTER + type, false, def.bubbles, data)
+				this._eventDispatch.createEvent(AFTER + type, false, def.bubbles, data)
 			);
 		} else if (def.cancelledFn) {
 			def.cancelledFn(data);
@@ -354,3 +351,4 @@ EventTarget.prototype = {
 // endregion
 
 export default EventTarget;
+export {AFTER};
