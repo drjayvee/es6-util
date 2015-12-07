@@ -48,6 +48,8 @@ var Attribute = {
 		this._attributes = new Map();
 	
 		this._initAttributes(values);
+		
+		return this;
 	},
 
 	/**
@@ -159,6 +161,8 @@ var AttributeObservable = {
 	init (config) {
 		EventTarget.init.call(this, config);
 		Attribute.init.call(this, config);
+		
+		return this;
 	},
 	
 	_set (name, value) {

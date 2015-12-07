@@ -1,24 +1,17 @@
 /*jshint esnext:true*/
 /*global QUnit*/
 
-import {mix} from 'js/oop';
+import {mix, factoryFactory} from 'js/oop';
 import {Attribute, AttributeObservable} from 'js/attribute';
 
 QUnit.module('attribute', {
 	beforeEach: function () {
-		class SimpleAttribute {
-			constructor (config) {
-				Attribute.init.call(this, config);
-			}
-		}
-		mix(SimpleAttribute.prototype, Attribute);
-		
-		this.SimpleAttribute = SimpleAttribute;
+		this.SimpleAttribute = factoryFactory(Attribute);
 	}
 });
 
 QUnit.test('basic add, set / get use', function (assert) {
-	let at = new this.SimpleAttribute();
+	let at = this.SimpleAttribute.create();
 	
 	at.addAttribute('k');
 	
@@ -42,18 +35,18 @@ QUnit.test('basic add, set / get use', function (assert) {
 	assert.equal(at.set('k', true), at);
 	
 	// try with definition on prototype
-	this.SimpleAttribute.prototype.ATTRS = {
+	this.SimpleAttribute.ATTRS = {
 		k: {
 			value: 1337
 		}
 	};
 	
-	at = new this.SimpleAttribute();
+	at = this.SimpleAttribute.create();
 	assert.equal(at.get('k'), 1337);
 	at.set('k', 1336);
 	assert.equal(at.get('k'), 1336);
 	
-	at = new this.SimpleAttribute();
+	at = this.SimpleAttribute.create();
 	assert.equal(at.get('k'), 1337);
 	
 	// check whether value configured through addAttribute is set
@@ -62,7 +55,7 @@ QUnit.test('basic add, set / get use', function (assert) {
 });
 
 QUnit.test('test validator', function (assert) {
-	let at = new this.SimpleAttribute(),
+	let at = this.SimpleAttribute.create(),
 		validatorCalled = false;
 	
 	at.addAttribute('k', {
@@ -86,7 +79,7 @@ QUnit.test('test validator', function (assert) {
 });
 
 QUnit.test('getter / setter', function (assert) {
-	let at = new this.SimpleAttribute(),
+	let at = this.SimpleAttribute.create(),
 		getterCalled = false,
 		setterCalled = false;
 	
@@ -125,7 +118,7 @@ QUnit.test('getter / setter', function (assert) {
 });
 
 QUnit.test('initialize attributes via constructor', function (assert) {
-	this.SimpleAttribute.prototype.ATTRS = {
+	this.SimpleAttribute.ATTRS = {
 		k1: {
 			value: 1337,
 			validator: function (value) {
@@ -139,13 +132,13 @@ QUnit.test('initialize attributes via constructor', function (assert) {
 	};
 	
 	// empty config
-	let at = new this.SimpleAttribute({});
+	let at = this.SimpleAttribute.create({});
 	
 	assert.equal(at.get('k1'), 1337);
 	assert.equal(at.get('k2'), 'elite');
 	
 	// supply config
-	at = new this.SimpleAttribute({
+	at = this.SimpleAttribute.create({
 		k1: 13.37,
 		k2: 'sweet'
 	});
@@ -154,7 +147,7 @@ QUnit.test('initialize attributes via constructor', function (assert) {
 	assert.equal(at.get('k2'), 'sweet');
 	
 	// supply invalid initial value
-	at = new this.SimpleAttribute({
+	at = this.SimpleAttribute.create({
 		k1: 'bad'
 	});
 	
@@ -162,14 +155,16 @@ QUnit.test('initialize attributes via constructor', function (assert) {
 });
 
 QUnit.test('attribute change events', function (assert) {
-	class AOC {
-		constructor (config) {
-			AttributeObservable.init.call(this, config);
-		}
+	// AttributeObservable object factory
+	function createAO (config) {
+		var ob = Object.create(AttributeObservable);
+		
+		AttributeObservable.init.call(ob, config);
+		
+		return ob;
 	}
-	mix(AOC.prototype, AttributeObservable);
 	
-	let ao = new AOC(),
+	let ao = createAO(),
 		cancelChange = false,
 		onChangeEvent = null,
 		afterChangeEvent = null,
@@ -293,39 +288,22 @@ QUnit.test('attribute change events', function (assert) {
 
 QUnit.test('class chain attributes', function (assert) {
 	// case 1: base class has SimpleAttribute extension
-	class C1 extends this.SimpleAttribute {}
-	C1.prototype.ATTRS = {
+	let C1 = factoryFactory(this.SimpleAttribute);
+	
+	C1.ATTRS = {
 		c1: {value: 'c1'}
 	};
 	
-	class C2 extends C1 {}
-	C2.prototype.ATTRS = {
+	let C2 = factoryFactory(C1);
+	C2.ATTRS = {
 		c2: {value: 'c2'}
 	};
 	
-	let i = new C2();
+	let i = C2.create();
 	assert.equal(i.get('c1'), 'c1');
 	assert.equal(i.get('c2'), 'c2');
 	
-	// case 2: child class has SimpleAttribute extension
-	// TODO: should c1 be ATTR-ed?
-	//C1 = oop.buildClass(oop.Root, [], {}, {
-	//	ATTRS: {
-	//		c1: {value: 'c1'}
-	//	}
-	//});
-	//
-	//C2 = oop.buildClass(C1, [SimpleAttribute], {}, {
-	//	ATTRS: {
-	//		c2: {value: 'c2'}
-	//	}
-	//});
-	//
-	//i = new C2();
-	//assert.equal(i.get('c1'), 'c1');
-	//assert.equal(i.get('c2'), 'c2');
-	
-	// case 3: ATTRs everywhere
+	// case 2: ATTRs everywhere
 	let E1  = {
 		ATTRS: {
 			e1: {value: 'e1'}
@@ -338,31 +316,31 @@ QUnit.test('class chain attributes', function (assert) {
 		}
 	};
 	
-	class CE1 extends this.SimpleAttribute {}
-	CE1.prototype.ATTRS = {
+	let CE1 = factoryFactory(this.SimpleAttribute);
+	CE1.ATTRS = {
 		c1: {value: 'c1'}
 	};
-	mix(CE1.prototype, E1);
+	mix(CE1, E1);
 	
-	class CE2 extends CE1 {}
-	CE2.prototype.ATTRS = {
+	let CE2 = factoryFactory(CE1);
+	CE2.ATTRS = {
 		c2: {value: 'c2'}
 	};
-	mix(CE2.prototype, E2);
+	mix(CE2, E2);
 	
-	class CE3 extends CE2 {}
-	CE3.prototype.ATTRS =  {
+	let CE3 = factoryFactory(CE2);
+	CE3.ATTRS =  {
 		c3: {value: 'c3'}
 	};
 	
-	i = new CE3();
+	i = CE3.create();
 	assert.equal(i.get('c1'), 'c1');
 	assert.equal(i.get('c2'), 'c2');
 	assert.equal(i.get('c3'), 'c3');
 	assert.equal(i.get('e1'), 'e1');
 	assert.equal(i.get('e2'), 'e2');
 	
-	i = new CE3({
+	i = CE3.create({
 		c1: '1',
 		c2: '2',
 		c3: '3',
