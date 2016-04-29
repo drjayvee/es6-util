@@ -3,6 +3,7 @@
 /**
  * @param	{Object} target	object to receive mixins
  * @param	{Object[]} mixins
+ * @return	{Object}
  */
 export function mix (target, ...mixins) {
 	if (!target.__mixins) {
@@ -23,6 +24,8 @@ export function mix (target, ...mixins) {
 			}
 		}
 	}
+	
+	return target;
 }
 
 /**
@@ -42,4 +45,18 @@ export function factoryFactory (prototype = Object.prototype) {
 	};
 	
 	return factory;
+}
+
+export function createFactory (prototype, initializer) {
+	initializer = initializer || prototype.init;
+	
+	return function () {
+		var ob = Object.create(prototype);
+		
+		if (initializer) {
+			initializer.apply(ob, arguments);
+		}
+		
+		return ob;
+	};
 }

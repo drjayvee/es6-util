@@ -15,10 +15,13 @@ module.exports = function(grunt) {
 					'js/oop.js':		'src/js/oop.js',
 					'js/attribute.js':	'src/js/attribute.js',
 					'js/eventTarget.js':'src/js/eventTarget.js',
+					'js/widget.js':		'src/js/widget.js',
+					'js/button.js':		'src/js/button.js',
 					
 					'test/oop-test.js': 		'src/test/oop-test.js',
 					'test/eventTarget-test.js':	'src/test/eventTarget-test.js',
-					'test/attribute-test.js':	'src/test/attribute-test.js'
+					'test/attribute-test.js':	'src/test/attribute-test.js',
+					'test/button-test.js':		'src/test/button-test.js'
 				}
 			}
 		},
