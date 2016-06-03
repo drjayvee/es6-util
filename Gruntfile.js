@@ -18,6 +18,8 @@ module.exports = function(grunt) {
 					'js/widget.js':		'src/js/widget.js',
 					'js/button.js':		'src/js/button.js',
 					
+					'example/widgets.js': 		'src/example/widgets.js',
+					
 					'test/oop-test.js': 		'src/test/oop-test.js',
 					'test/eventTarget-test.js':	'src/test/eventTarget-test.js',
 					'test/attribute-test.js':	'src/test/attribute-test.js',
