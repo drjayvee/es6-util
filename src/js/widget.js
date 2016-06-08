@@ -4,9 +4,7 @@ import {mix} from 'js/oop';
 import {AttributeObservable} from 'js/attribute';
 
 // region WidgetP extends AttributeObservable
-const WidgetPrototype = Object.create(AttributeObservable);
-
-mix(WidgetPrototype, {
+const WidgetPrototype = mix(Object.create(AttributeObservable), {
 
 	ATTRS: {
 		hidden: {

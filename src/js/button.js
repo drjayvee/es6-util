@@ -68,8 +68,6 @@ export const ToggleButton = extendFactory(Button, {
 		this.set('pressed', pressed);
 	}
 }, function () {
-	Button.init.apply(this, arguments);
-	
 	// sync state to DOM
 	this.after('pressedChange', () => {
 		if (!this.get('rendered')) {

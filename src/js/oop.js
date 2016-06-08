@@ -47,13 +47,23 @@ export function factoryFactory (prototype = Object.prototype) {
 	return factory;
 }
 
-export function createFactory (prototype, init = null) {
-	init = init || function () {};	// default to empty function so we can always call factory.init
+function initHierarchy (instance, args, factory) {
+	// recurse to call inits from top to bottom
+	if (factory.super) {
+		initHierarchy(instance, args, factory.super);
+	}
 	
+	// call init for each link in the factory chain
+	if (factory.init) {
+		factory.init.apply(instance, args);
+	}
+}
+
+export function createFactory (prototype, init = null) {
 	var factory = function () {
-		var i = Object.create(prototype);
+		const i = Object.create(prototype);
 		
-		init.apply(i, arguments);
+		initHierarchy(i, arguments, factory);
 		
 		return i;
 	};
@@ -65,10 +75,13 @@ export function createFactory (prototype, init = null) {
 }
 
 export function extendFactory (base, prototype, init = null) {
-	var proto = Object.create(base.prototype);
-	// proto.super = base.prototype;	// bad idea: this.super === this.super.super, even though Object.createPrototypeOf
+	const proto = Object.create(base.prototype);
 	
 	mix(proto, prototype);
 	
-	return createFactory(proto, init || base.init);
+	const factory = createFactory(proto, init);
+	
+	factory.super = base;
+	
+	return factory;
 }

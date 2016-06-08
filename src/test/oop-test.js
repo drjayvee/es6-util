@@ -136,14 +136,12 @@ QUnit.test('createFactory', function (assert) {
 	
 	// region check relations between base and sub factories
 	assert.ok(Object.getPrototypeOf(createSub.prototype) === createBase.prototype);
-	assert.ok(createSub.init === createBase.init);
 	assert.ok(Object.getPrototypeOf(Object.getPrototypeOf(si)) === Object.getPrototypeOf(bi));
 	// endregion
 	
 	// region try two init functions
 	const createIniter = extendFactory(createSub, {}, function () {
 		this.init = true;
-		createSub.init.apply(this, arguments);
 	});
 	
 	const ii = createIniter('init');
