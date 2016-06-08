@@ -47,16 +47,28 @@ export function factoryFactory (prototype = Object.prototype) {
 	return factory;
 }
 
-export function createFactory (prototype, initializer) {
-	initializer = initializer || prototype.init;
+export function createFactory (prototype, init = null) {
+	init = init || function () {};	// default to empty function so we can always call factory.init
 	
-	return function () {
-		var ob = Object.create(prototype);
+	var factory = function () {
+		var i = Object.create(prototype);
 		
-		if (initializer) {
-			initializer.apply(ob, arguments);
-		}
+		init.apply(i, arguments);
 		
-		return ob;
+		return i;
 	};
+	
+	factory.prototype = prototype;
+	factory.init = init;
+	
+	return factory;
+}
+
+export function extendFactory (base, prototype, init = null) {
+	var proto = Object.create(base.prototype);
+	// proto.super = base.prototype;	// bad idea: this.super === this.super.super, even though Object.createPrototypeOf
+	
+	mix(proto, prototype);
+	
+	return createFactory(proto, init || base.init);
 }

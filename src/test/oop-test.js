@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 /*global QUnit*/
 
-import {mix} from 'js/oop';
+import {mix, createFactory, extendFactory} from 'js/oop';
 
 QUnit.module('oop', {
 	beforeEach: function () {
@@ -98,4 +98,56 @@ QUnit.test('a Function and an Object walk into a bar...', function (assert) {
 	
 	bi.order('coffee');
 	assert.equal('coffee', bi.order);
+});
+
+QUnit.test('createFactory', function (assert) {
+	// region base factory
+	const createBase = createFactory({
+		baseM () {
+			return 'baseM ' + Object.keys(this.initArgs).length;
+		},
+		other () {
+			return 'other';
+		}
+	}, function (...args) {
+		this.initArgs = args;
+	});
+	
+	const bi = createBase('base');
+	assert.ok(Object.getPrototypeOf(bi) === createBase.prototype);
+	assert.deepEqual(['base'], bi.initArgs);
+	assert.equal('baseM 1', bi.baseM());
+	assert.equal('other', bi.other());
+	// endregion
+	
+	// region now extend base factory (without init)
+	const createSub = extendFactory(createBase, {
+		baseM () {
+			return 'sub' + createBase.prototype.baseM.apply(this);
+		}
+	});
+	
+	const si = createSub('sup', 'dude');
+	assert.ok(Object.getPrototypeOf(si) === createSub.prototype);
+	assert.deepEqual(['sup', 'dude'], si.initArgs);
+	assert.equal('subbaseM 2', si.baseM());
+	assert.equal('other', si.other());
+	// endregion
+	
+	// region check relations between base and sub factories
+	assert.ok(Object.getPrototypeOf(createSub.prototype) === createBase.prototype);
+	assert.ok(createSub.init === createBase.init);
+	assert.ok(Object.getPrototypeOf(Object.getPrototypeOf(si)) === Object.getPrototypeOf(bi));
+	// endregion
+	
+	// region try two init functions
+	const createIniter = extendFactory(createSub, {}, function () {
+		this.init = true;
+		createSub.init.apply(this, arguments);
+	});
+	
+	const ii = createIniter('init');
+	assert.ok(ii.init);
+	assert.ok(ii.initArgs);
+	// endregion
 });

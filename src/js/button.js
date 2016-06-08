@@ -1,10 +1,10 @@
 /*jshint esnext:true*/
 
-import {mix, createFactory} from 'js/oop';
+import {mix, createFactory, extendFactory} from 'js/oop';
 import WidgetPrototype from 'js/widget';
 
-// region ButtonP extends WidgetP
-export const ButtonPrototype = mix(Object.create(WidgetPrototype), {
+// region Button extends WidgetP
+export const Button = createFactory(mix(Object.create(WidgetPrototype), {
 	ATTRS: {
 		disabled: {
 			value: false,
@@ -18,13 +18,6 @@ export const ButtonPrototype = mix(Object.create(WidgetPrototype), {
 	},
 	
 	NODE_TEMPLATE: '<button type="button"></button>',
-	
-	init () {
-		WidgetPrototype.init.apply(this, arguments);
-		
-		this.after('disabledChange', this._setDisabled.bind(this));
-		this.after('labelChange', this._setLabel.bind(this));
-	},
 	
 	_enhance (srcNode) {
 		this.set('label', srcNode.innerHTML);
@@ -50,35 +43,21 @@ export const ButtonPrototype = mix(Object.create(WidgetPrototype), {
 		
 		this.node.innerHTML = this.get('label');
 	}
+}), function () {
+	WidgetPrototype.init.apply(this, arguments);
+	
+	this.after('disabledChange', this._setDisabled.bind(this));
+	this.after('labelChange', this._setLabel.bind(this));
 });
-
-export const Button = createFactory(ButtonPrototype);
 // endregion
 
-// region ToggleButtonP extends ButtonP
-export const ToggleButtonPrototype = mix(Object.create(ButtonPrototype), {
+// region ToggleButton extends Button
+export const ToggleButton = extendFactory(Button, {
 	ATTRS: {
 		pressed: {
 			value: false,
 			setter: newVal => Boolean(newVal)
 		}
-	},
-	
-	init () {
-		ButtonPrototype.init.apply(this, arguments);
-		
-		// sync state to DOM
-		this.after('pressedChange', () => {
-			if (!this.get('rendered')) {
-				return;
-			}
-			this.node.classList.toggle('pressed', this.get('pressed'));
-		});
-		
-		// sync DOM to state
-		this.after('rendered', () => {
-			this.node.addEventListener('click', this.toggle.bind(this));
-		});
 	},
 	
 	toggle (pressed) {
@@ -88,7 +67,20 @@ export const ToggleButtonPrototype = mix(Object.create(ButtonPrototype), {
 		
 		this.set('pressed', pressed);
 	}
+}, function () {
+	Button.init.apply(this, arguments);
+	
+	// sync state to DOM
+	this.after('pressedChange', () => {
+		if (!this.get('rendered')) {
+			return;
+		}
+		this.node.classList.toggle('pressed', this.get('pressed'));
+	});
+	
+	// sync DOM to state
+	this.after('rendered', () => {
+		this.node.addEventListener('click', this.toggle.bind(this));
+	});
 });
-
-export const ToggleButton = createFactory(ToggleButtonPrototype);
 // endregion
