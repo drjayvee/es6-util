@@ -87,8 +87,10 @@ export function createFactory (prototype, init = null) {
 		return i;
 	};
 	
-	factory.prototype = prototype;
-	factory.init = init;
+	Object.defineProperties(factory, {
+		prototype:		{value: prototype},
+		init:			{value: init}
+	});
 	
 	initMap.set(factory, init ? factory : null);
 	
@@ -102,7 +104,9 @@ export function extendFactory (base, prototype, init = null) {
 	
 	const factory = createFactory(proto, init);
 	
-	factory.super = base;
+	Object.defineProperties(factory, {
+		super:			{value: base}
+	});
 	
 	initMap.set(factory, findFactoryWithNextInit(factory));
 	
