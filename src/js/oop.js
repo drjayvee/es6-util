@@ -28,25 +28,6 @@ export function mix (target, ...mixins) {
 	return target;
 }
 
-/**
- * 
- * @param {Object} prototype
- * @returns {Object}
- */
-export function factoryFactory (prototype = Object.prototype) {
-	let factory = Object.create(prototype);
-	
-	factory.create = function (...args) {
-		let ob = Object.create(factory);
-		
-		prototype.init.apply(ob, args);
-		
-		return ob;
-	};
-	
-	return factory;
-}
-
 const initMap = new Map();	// cache factory => (next) init
 
 function findFactoryWithNextInit (factory) {
@@ -78,6 +59,12 @@ function initHierarchy (instance, args, factory) {
 	factoryWithInit.init.call(instance, ...initArgs);
 }
 
+/**
+ * 
+ * @param {Object} prototype
+ * @param {Function|null} init
+ * @returns {Function}
+ */
 export function createFactory (prototype, init = null) {
 	const factory = function (...args) {
 		const i = Object.create(prototype);
@@ -97,6 +84,13 @@ export function createFactory (prototype, init = null) {
 	return factory;
 }
 
+/**
+ * 
+ * @param {Function} base
+ * @param {Object} prototype
+ * @param {Function|null} init
+ * @returns {Function}
+ */
 export function extendFactory (base, prototype, init = null) {
 	const proto = Object.create(base.prototype);
 	
