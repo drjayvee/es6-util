@@ -1,10 +1,10 @@
 /*jshint esnext:true*/
 
-import {mix} from 'js/oop';
-import {AttributeObservable} from 'js/attribute';
+import {extendFactory} from 'js/oop';
+import {createAttributeObservable} from 'js/attribute';
 
 // region WidgetP extends AttributeObservable
-const WidgetPrototype = mix(Object.create(AttributeObservable), {
+const createWidget = extendFactory(createAttributeObservable, {
 
 	ATTRS: {
 		hidden: {
@@ -18,12 +18,6 @@ const WidgetPrototype = mix(Object.create(AttributeObservable), {
 	},
 	
 	NODE_TEMPLATE: '<div></div>',
-	
-	init () {
-		AttributeObservable.init.apply(this, arguments);
-		
-		this.node = null;
-	},
 	
 	enhance (srcNode) {
 		if (this.get('rendered')) {
@@ -61,9 +55,12 @@ const WidgetPrototype = mix(Object.create(AttributeObservable), {
 	},
 	
 	_render () {}
+}, function (superInit) {
+	superInit();
+	this.node = null;
 });
 
-export default WidgetPrototype;
+export default createWidget;
 // endregion
 
 

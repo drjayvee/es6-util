@@ -1,15 +1,12 @@
 /*jshint esnext:true*/
 /*global QUnit*/
 
-import {mix, factoryFactory} from 'js/oop';
-import EventTarget from 'js/eventTarget';
+import createEventTarget from 'js/eventTarget';
 	
 QUnit.module('eventTarget');
 
-const ET = factoryFactory(EventTarget);
-
 QUnit.test('on() callbacks are called after fire()', function (assert) {
-	let et = ET.create(),
+	let et = createEventTarget(),
 		i = 0;
 	
 	et.on('ev', function () {
@@ -29,7 +26,7 @@ QUnit.test('on() callbacks are called after fire()', function (assert) {
 });
 
 QUnit.test('cancel does not cause other listeners to be ignored', function (assert) {
-	let et = ET.create(),
+	let et = createEventTarget(),
 		cancelled = false;
 	
 	et.on('ev', e => {e.cancel();});
@@ -40,7 +37,7 @@ QUnit.test('cancel does not cause other listeners to be ignored', function (asse
 });
 
 QUnit.test('Can add custom properties to events', function (assert) {
-	let et = ET.create(),
+	let et = createEventTarget(),
 		eventArgs = {
 			on:				null,
 			after:			null,
@@ -95,7 +92,7 @@ QUnit.test('Can add custom properties to events', function (assert) {
 });
 
 QUnit.test('can unsubscribe handlers', function (assert) {
-	let et = ET.create(),
+	let et = createEventTarget(),
 		context = {i: 0},
 		cb = function () {
 			this.i += 1;
@@ -144,7 +141,7 @@ QUnit.test('can unsubscribe handlers', function (assert) {
 });
 
 QUnit.test('after() callbacks are called after (), but only if default is not cancelled', function (assert) {
-	let et = ET.create(),
+	let et = createEventTarget(),
 		onRan = false,
 		i = 0;
 	
@@ -170,7 +167,7 @@ QUnit.test('after() callbacks are called after (), but only if default is not ca
 });
 
 QUnit.test('once() and onceAfter() callbacks are only called once', function (assert) {
-	let et = ET.create(),
+	let et = createEventTarget(),
 		on = 0,
 		after = 0,
 		once = 0,
@@ -210,7 +207,7 @@ QUnit.test('once() and onceAfter() callbacks are only called once', function (as
 });
 
 QUnit.test('context argument is applied to callback', function (assert) {
-	let et = ET.create(),
+	let et = createEventTarget(),
 		context = {i: 0},
 		cb = function () {this.i += 1;};
 	
@@ -231,7 +228,7 @@ QUnit.test('context argument is applied to callback', function (assert) {
 });
 
 QUnit.test('publish sets event defaults', function (assert) {
-	let et = ET.create(),
+	let et = createEventTarget(),
 		v = null;
 	
 	// check non-cancelable
@@ -277,10 +274,10 @@ QUnit.test('publish sets event defaults', function (assert) {
 });
 
 QUnit.test('can add bubble targets', function (assert) {
-	var et1 = ET.create(),
-		et2 = ET.create(),
-		et3 = ET.create(),
-		et4 = ET.create(),
+	var et1 = createEventTarget(),
+		et2 = createEventTarget(),
+		et3 = createEventTarget(),
+		et4 = createEventTarget(),
 		et1Called = false,
 		et2Called = false,
 		et3Called = false,
@@ -334,8 +331,8 @@ QUnit.test('can add bubble targets', function (assert) {
 });
 
 QUnit.test('can stop bubbling', function (assert) {
-	var et1 = ET.create(),
-		et2 = ET.create(),
+	var et1 = createEventTarget(),
+		et2 = createEventTarget(),
 		et2Called = false,
 		bubblingStopped = false;
 	

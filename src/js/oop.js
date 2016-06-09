@@ -6,7 +6,7 @@
  * @return	{Object}
  */
 export function mix (target, ...mixins) {
-	if (!target.__mixins) {
+	if (!target.hasOwnProperty('__mixins')) {
 		target.__mixins = [];
 	}
 	
@@ -47,23 +47,40 @@ export function factoryFactory (prototype = Object.prototype) {
 	return factory;
 }
 
-function initHierarchy (instance, args, factory) {
-	// recurse to call inits from top to bottom
-	if (factory.super) {
-		initHierarchy(instance, args, factory.super);
+function findFactoryWithNextInit (factory) {
+	if (factory.init) {
+		return factory;
 	}
 	
-	// call init for each link in the factory chain
-	if (factory.init) {
-		factory.init.apply(instance, args);
+	if (factory.super) {
+		return findFactoryWithNextInit(factory.super);
 	}
+	return null;
+}
+
+function initHierarchy (instance, args, factory) {
+	const factoryWithInit = findFactoryWithNextInit(factory);
+	
+	if (!factoryWithInit) {	// neither factory nor any of its base factories have an init
+		return;
+	}
+	
+	// call 1st init in the chain
+	// Unless that init is the base factory's, provide it with a function that calls the _next_ init in the chain
+	// this is recursive, because the _next_ init might need a function that calls _its_ next init, etc
+	const initArgs = args.slice();
+	if (factoryWithInit.super) {
+		initArgs.splice(0, 0, initHierarchy.bind(null, instance, args, factoryWithInit.super));
+	}
+	
+	factoryWithInit.init.call(instance, ...initArgs);
 }
 
 export function createFactory (prototype, init = null) {
-	var factory = function () {
+	const factory = function (...args) {
 		const i = Object.create(prototype);
 		
-		initHierarchy(i, arguments, factory);
+		initHierarchy(i, args, factory);
 		
 		return i;
 	};

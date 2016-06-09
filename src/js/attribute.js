@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 
-import {mix} from 'js/oop';
-import EventTarget, {AFTER} from 'js/eventTarget';
+import {mix, createFactory, extendFactory} from 'js/oop';
+import createEventTarget, {AFTER} from 'js/eventTarget';
 
 // region Attribute
 /**
@@ -37,20 +37,8 @@ function mergeAttrConfigs (source) {
 	return attrs;
 }
 
-var Attribute = {
+export const createAttribute = createFactory({
 	INVALID: {},	// used as a constant
-	
-	/**
-	 * 
-	 * @param {Object} values
-	 */
-	init: function (values = {}) {
-		this._attributes = new Map();
-	
-		this._initAttributes(values);
-		
-		return this;
-	},
 
 	/**
 	 * Config can have value, validator, getters, setter
@@ -119,7 +107,7 @@ var Attribute = {
 		
 		if (okToSet && attrConfig.setter) {
 			value = attrConfig.setter(value, name);
-			if (value === Attribute.INVALID) {
+			if (value === this.INVALID) {
 				okToSet = false;
 			}
 		}
@@ -153,18 +141,15 @@ var Attribute = {
 		}
 		return value;
 	}
-};
+}, function (values = {}) {
+	this._attributes = new Map();
+
+	this._initAttributes(values);
+});
 // endregion
 
 // region AttributeObservable
-var AttributeObservable = {
-	init (config) {
-		EventTarget.init.call(this, config);
-		Attribute.init.call(this, config);
-		
-		return this;
-	},
-	
+export const createAttributeObservable = extendFactory(createAttribute, {
 	_set (name, value) {
 		let data = {
 				prevVal:	this.get(name),
@@ -181,7 +166,7 @@ var AttributeObservable = {
 		if (success) {
 			value = onEvent.newVal;		// allow on() listeners to change the new value
 			
-			success = Attribute._set.call(this, name, value);
+			success = createAttribute.prototype._set.call(this, name, value);
 			
 			if (success) {		// attribute value was changed
 				data.newVal = this.get(name);		// update newVal (post-setter)
@@ -196,9 +181,10 @@ var AttributeObservable = {
 		
 		return success;
 	}
-};
+}, function (superInit) {
+	createEventTarget.init.apply(this, arguments);
+	superInit();
+});
 
-mix(AttributeObservable, EventTarget, Attribute);
+mix(createAttributeObservable.prototype, createEventTarget.prototype);
 // endregion
-
-export {Attribute, AttributeObservable};

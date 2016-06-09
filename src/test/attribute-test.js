@@ -1,17 +1,13 @@
 /*jshint esnext:true*/
 /*global QUnit*/
 
-import {mix, factoryFactory} from 'js/oop';
-import {Attribute, AttributeObservable} from 'js/attribute';
+import {mix, createFactory, extendFactory} from 'js/oop';
+import {createAttribute, createAttributeObservable} from 'js/attribute';
 
-QUnit.module('attribute', {
-	beforeEach: function () {
-		this.SimpleAttribute = factoryFactory(Attribute);
-	}
-});
+QUnit.module('attribute');
 
 QUnit.test('basic add, set / get use', function (assert) {
-	let at = this.SimpleAttribute.create();
+	let at = createAttribute();
 	
 	at.addAttribute('k');
 	
@@ -35,18 +31,20 @@ QUnit.test('basic add, set / get use', function (assert) {
 	assert.equal(at.set('k', true), at);
 	
 	// try with definition on prototype
-	this.SimpleAttribute.ATTRS = {
-		k: {
-			value: 1337
+	const createMyAttribute = extendFactory(createAttribute, {
+		ATTRS: {
+			k: {
+				value: 1337
+			}
 		}
-	};
+	});
 	
-	at = this.SimpleAttribute.create();
+	at = createMyAttribute();
 	assert.equal(at.get('k'), 1337);
 	at.set('k', 1336);
 	assert.equal(at.get('k'), 1336);
 	
-	at = this.SimpleAttribute.create();
+	at = createMyAttribute();
 	assert.equal(at.get('k'), 1337);
 	
 	// check whether value configured through addAttribute is set
@@ -55,7 +53,7 @@ QUnit.test('basic add, set / get use', function (assert) {
 });
 
 QUnit.test('test validator', function (assert) {
-	let at = this.SimpleAttribute.create(),
+	let at = createAttribute(),
 		validatorCalled = false;
 	
 	at.addAttribute('k', {
@@ -79,7 +77,7 @@ QUnit.test('test validator', function (assert) {
 });
 
 QUnit.test('getter / setter', function (assert) {
-	let at = this.SimpleAttribute.create(),
+	let at = createAttribute(),
 		getterCalled = false,
 		setterCalled = false;
 	
@@ -95,7 +93,7 @@ QUnit.test('getter / setter', function (assert) {
 			setterCalled = true;
 			
 			if (!value) {
-				return Attribute.INVALID;
+				return at.INVALID;
 			}
 			ob[name] = value;
 			return JSON.stringify(ob);
@@ -118,27 +116,29 @@ QUnit.test('getter / setter', function (assert) {
 });
 
 QUnit.test('initialize attributes via constructor', function (assert) {
-	this.SimpleAttribute.ATTRS = {
-		k1: {
-			value: 1337,
-			validator: function (value) {
-				let numVal = +value;
-				return value === numVal;
+	const createMyAttribute = extendFactory(createAttribute, {
+		ATTRS: {
+			k1: {
+				value: 1337,
+				validator: function ( value ) {
+					let numVal = +value;
+					return value === numVal;
+				}
+			},
+			k2: {
+				value: 'elite'
 			}
-		},
-		k2: {
-			value: 'elite'
 		}
-	};
+	});
 	
 	// empty config
-	let at = this.SimpleAttribute.create({});
+	let at = createMyAttribute({});
 	
 	assert.equal(at.get('k1'), 1337);
 	assert.equal(at.get('k2'), 'elite');
 	
 	// supply config
-	at = this.SimpleAttribute.create({
+	at = createMyAttribute({
 		k1: 13.37,
 		k2: 'sweet'
 	});
@@ -147,7 +147,7 @@ QUnit.test('initialize attributes via constructor', function (assert) {
 	assert.equal(at.get('k2'), 'sweet');
 	
 	// supply invalid initial value
-	at = this.SimpleAttribute.create({
+	at = createMyAttribute({
 		k1: 'bad'
 	});
 	
@@ -155,16 +155,7 @@ QUnit.test('initialize attributes via constructor', function (assert) {
 });
 
 QUnit.test('attribute change events', function (assert) {
-	// AttributeObservable object factory
-	function createAO (config) {
-		var ob = Object.create(AttributeObservable);
-		
-		AttributeObservable.init.call(ob, config);
-		
-		return ob;
-	}
-	
-	let ao = createAO(),
+	let ao = createAttributeObservable(),
 		cancelChange = false,
 		onChangeEvent = null,
 		afterChangeEvent = null,
@@ -288,18 +279,19 @@ QUnit.test('attribute change events', function (assert) {
 
 QUnit.test('class chain attributes', function (assert) {
 	// case 1: base class has SimpleAttribute extension
-	let C1 = factoryFactory(this.SimpleAttribute);
+	let C1 = extendFactory(createAttribute, {
+		ATTRS: {
+			c1: {value: 'c1'}
+		}
+	});
 	
-	C1.ATTRS = {
-		c1: {value: 'c1'}
-	};
+	let C2 = extendFactory(C1, {
+		ATTRS: {
+			c2: {value: 'c2'}
+		}
+	});
 	
-	let C2 = factoryFactory(C1);
-	C2.ATTRS = {
-		c2: {value: 'c2'}
-	};
-	
-	let i = C2.create();
+	let i = C2();
 	assert.equal(i.get('c1'), 'c1');
 	assert.equal(i.get('c2'), 'c2');
 	
@@ -316,31 +308,41 @@ QUnit.test('class chain attributes', function (assert) {
 		}
 	};
 	
-	let CE1 = factoryFactory(this.SimpleAttribute);
-	CE1.ATTRS = {
-		c1: {value: 'c1'}
-	};
-	mix(CE1, E1);
+	let CE1 = extendFactory(createAttribute, mix(
+		{
+			ATTRS: {
+				c1: {value: 'c1'}
+			}
+		},
+		E1
+	));
 	
-	let CE2 = factoryFactory(CE1);
-	CE2.ATTRS = {
-		c2: {value: 'c2'}
-	};
-	mix(CE2, E2);
+	let CE2 = extendFactory(CE1, mix(
+		{
+			ATTRS: {
+				c2: {value: 'c2'}
+			}
+		},
+		E2
+	));
 	
-	let CE3 = factoryFactory(CE2);
-	CE3.ATTRS =  {
-		c3: {value: 'c3'}
-	};
+	let CE3 = extendFactory(CE2, mix(
+		{
+			ATTRS: {
+				c3: {value: 'c3'}
+			}
+		},
+		E2
+	));
 	
-	i = CE3.create();
+	i = CE3();
 	assert.equal(i.get('c1'), 'c1');
 	assert.equal(i.get('c2'), 'c2');
 	assert.equal(i.get('c3'), 'c3');
 	assert.equal(i.get('e1'), 'e1');
 	assert.equal(i.get('e2'), 'e2');
 	
-	i = CE3.create({
+	i = CE3({
 		c1: '1',
 		c2: '2',
 		c3: '3',
@@ -367,35 +369,34 @@ QUnit.test('AttributeObservable chain attributes', function (assert) {
 		}
 	};
 	
-	class C1 {
-		constructor (config) {
-			AttributeObservable.init.call(this, config);
+	const createC1 = extendFactory(createAttributeObservable, {
+		ATTRS: {
+			c1: {value: 'c1'}
 		}
-	}
-	C1.prototype.ATTRS = {
-		c1: {value: 'c1'}
-	};
-	mix(C1.prototype, AttributeObservable, E1);
+	});
+	mix(createC1.prototype, E1);
 	
-	class C2 extends C1 {}
-	C2.prototype.ATTRS = {
-		c2: {value: 'c2'}
-	};
-	mix(C2.prototype, E2);
+	const createC2 = extendFactory(createC1, {
+		ATTRS: {
+			c2: {value: 'c2'}
+		}
+	});
+	mix(createC2.prototype, E2);
 	
-	class C3 extends C2 {}
-	C3.prototype.ATTRS = {
-		c3: {value: 'c3'}
-	};
+	const createC3 = extendFactory(createC2, {
+		ATTRS: {
+			c3: {value: 'c3'}
+		}
+	});
 	
-	let i = new C3();
+	let i = createC3();
 	assert.equal(i.get('c1'), 'c1');
 	assert.equal(i.get('c2'), 'c2');
 	assert.equal(i.get('c3'), 'c3');
 	assert.equal(i.get('e1'), 'e1');
 	assert.equal(i.get('e2'), 'e2');
 	
-	i = new C3({
+	i = createC3({
 		c1: '1',
 		c2: '2',
 		c3: '3',

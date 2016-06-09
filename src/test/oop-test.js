@@ -104,18 +104,18 @@ QUnit.test('createFactory', function (assert) {
 	// region base factory
 	const createBase = createFactory({
 		baseM () {
-			return 'baseM ' + Object.keys(this.initArgs).length;
+			return 'baseM ' + this.baseInit.length;
 		},
 		other () {
 			return 'other';
 		}
 	}, function (...args) {
-		this.initArgs = args;
+		this.baseInit = args;
 	});
 	
 	const bi = createBase('base');
 	assert.ok(Object.getPrototypeOf(bi) === createBase.prototype);
-	assert.deepEqual(['base'], bi.initArgs);
+	assert.deepEqual(['base'], bi.baseInit);
 	assert.equal('baseM 1', bi.baseM());
 	assert.equal('other', bi.other());
 	// endregion
@@ -129,7 +129,7 @@ QUnit.test('createFactory', function (assert) {
 	
 	const si = createSub('sup', 'dude');
 	assert.ok(Object.getPrototypeOf(si) === createSub.prototype);
-	assert.deepEqual(['sup', 'dude'], si.initArgs);
+	assert.deepEqual(['sup', 'dude'], si.baseInit);
 	assert.equal('subbaseM 2', si.baseM());
 	assert.equal('other', si.other());
 	// endregion
@@ -140,12 +140,18 @@ QUnit.test('createFactory', function (assert) {
 	// endregion
 	
 	// region try two init functions
-	const createIniter = extendFactory(createSub, {}, function () {
-		this.init = true;
+	const createSub2 = extendFactory(createSub, {}, function (superInit, ...args) {
+		superInit();
+		this.sub2Init = args;
+	});
+	const createSub3 = extendFactory(createSub2, {}, function (superInit, ...args) {
+		superInit();
+		this.sub3Init = args;
 	});
 	
-	const ii = createIniter('init');
-	assert.ok(ii.init);
-	assert.ok(ii.initArgs);
+	const s3i = createSub3('init');
+	assert.deepEqual(['init'], s3i.baseInit);
+	assert.deepEqual(s3i.baseInit, s3i.sub2Init);
+	assert.deepEqual(s3i.baseInit, s3i.sub3Init);
 	// endregion
 });

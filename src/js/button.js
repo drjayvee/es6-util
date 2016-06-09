@@ -1,10 +1,10 @@
 /*jshint esnext:true*/
 
 import {mix, createFactory, extendFactory} from 'js/oop';
-import WidgetPrototype from 'js/widget';
+import createWidget from 'js/widget';
 
 // region Button extends WidgetP
-export const Button = createFactory(mix(Object.create(WidgetPrototype), {
+export const Button = extendFactory(createWidget, {
 	ATTRS: {
 		disabled: {
 			value: false,
@@ -43,8 +43,8 @@ export const Button = createFactory(mix(Object.create(WidgetPrototype), {
 		
 		this.node.innerHTML = this.get('label');
 	}
-}), function () {
-	WidgetPrototype.init.apply(this, arguments);
+}, function (superInit) {
+	superInit();
 	
 	this.after('disabledChange', this._setDisabled.bind(this));
 	this.after('labelChange', this._setLabel.bind(this));
@@ -67,7 +67,9 @@ export const ToggleButton = extendFactory(Button, {
 		
 		this.set('pressed', pressed);
 	}
-}, function () {
+}, function (superInit) {
+	superInit();
+	
 	// sync state to DOM
 	this.after('pressedChange', () => {
 		if (!this.get('rendered')) {

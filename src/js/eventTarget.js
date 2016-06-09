@@ -1,5 +1,7 @@
 /*jshint esnext:true*/
 
+import {createFactory} from 'js/oop';
+
 // region CustomEvent
 class CustomEvent {
 	constructor (type, cancelable = true, bubbles = true) {
@@ -187,13 +189,7 @@ const DEFAULT_CONFIG = {
 	defaultFn:		null
 };
 
-var EventTarget = {
-	
-	init: function (config) {
-		this._eventDispatch = new Dispatch();
-		this._eventDefinitions = new Map();
-		this._bubbleTargets = [];
-	},
+const createEventTarget = createFactory({
 	
 	/**
 	 * Define a new event
@@ -347,8 +343,12 @@ var EventTarget = {
 		
 		return event;
 	}
-};
+}, function () {
+	this._eventDispatch = new Dispatch();
+	this._eventDefinitions = new Map();
+	this._bubbleTargets = [];
+});
 // endregion
 
-export default EventTarget;
+export default createEventTarget;
 export {AFTER};
