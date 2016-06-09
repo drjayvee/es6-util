@@ -47,6 +47,8 @@ export function factoryFactory (prototype = Object.prototype) {
 	return factory;
 }
 
+const initMap = new Map();	// cache factory => (next) init
+
 function findFactoryWithNextInit (factory) {
 	if (factory.init) {
 		return factory;
@@ -59,7 +61,7 @@ function findFactoryWithNextInit (factory) {
 }
 
 function initHierarchy (instance, args, factory) {
-	const factoryWithInit = findFactoryWithNextInit(factory);
+	const factoryWithInit = initMap.get(factory);
 	
 	if (!factoryWithInit) {	// neither factory nor any of its base factories have an init
 		return;
@@ -88,6 +90,8 @@ export function createFactory (prototype, init = null) {
 	factory.prototype = prototype;
 	factory.init = init;
 	
+	initMap.set(factory, init ? factory : null);
+	
 	return factory;
 }
 
@@ -99,6 +103,8 @@ export function extendFactory (base, prototype, init = null) {
 	const factory = createFactory(proto, init);
 	
 	factory.super = base;
+	
+	initMap.set(factory, findFactoryWithNextInit(factory));
 	
 	return factory;
 }
