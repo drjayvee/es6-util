@@ -2,7 +2,7 @@
 
 /**
  * @param	{Object} target	object to receive mixins
- * @param	{Object[]} mixins
+ * @param	{...Object} mixins
  * @return	{Object}
  */
 export function mix (target, ...mixins) {

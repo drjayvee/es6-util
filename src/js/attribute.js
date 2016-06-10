@@ -89,7 +89,7 @@ export const createAttribute = createFactory({
 	 * 
 	 * @param {String} name
 	 * @param {*} value
-	 * @returns {SimpleAttribute}
+	 * @returns {*}
 	 */
 	set: function (name, value) {
 		this._set(name, value);
