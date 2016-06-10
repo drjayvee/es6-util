@@ -189,7 +189,5 @@ export const createAttributeObservable = extendFactory(createAttribute, {
 }, function (superInit) {
 	createEventTarget.init.apply(this, arguments);
 	superInit();
-});
-
-mix(createAttributeObservable.prototype, createEventTarget.prototype);
+}).mix(createEventTarget.prototype);
 // endregion

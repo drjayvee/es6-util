@@ -155,3 +155,32 @@ QUnit.test('createFactory', function (assert) {
 	assert.deepEqual(s3i.baseInit, s3i.sub3Init);
 	// endregion
 });
+
+QUnit.test('factory.mix', function (assert) {
+	const base = createFactory({
+		f: 'f'
+	}).mix({
+		m1: 'm1'
+	}, {
+		m2: 'm2'
+	});
+	
+	const bo = base();
+	assert.equal(bo.f, 'f');
+	assert.equal(bo.m1, 'm1');
+	assert.equal(bo.m2, 'm2');
+	
+	// extend and mix again
+	const ext = extendFactory(base, {
+		e: 'e'
+	}).mix({
+		m3: 'm3'
+	});
+	
+	const eo = ext();
+	assert.equal(eo.f, 'f');
+	assert.equal(eo.m1, 'm1');
+	assert.equal(eo.m2, 'm2');
+	assert.equal(eo.e, 'e');
+	assert.equal(eo.m3, 'm3');
+});

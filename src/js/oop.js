@@ -76,7 +76,11 @@ export function createFactory (prototype, init = null) {
 	
 	Object.defineProperties(factory, {
 		prototype:		{value: prototype},
-		init:			{value: init}
+		init:			{value: init},
+		mix:			{value: function (...mixins) {
+			mix(prototype, ...mixins);
+			return factory;
+		}}
 	});
 	
 	initMap.set(factory, init ? factory : null);
