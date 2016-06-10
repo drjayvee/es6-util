@@ -3,6 +3,8 @@
 import {extendFactory} from 'js/oop';
 import {createAttributeObservable} from 'js/attribute';
 
+const map = new Map();
+
 // region WidgetP extends AttributeObservable
 const createWidget = extendFactory(createAttributeObservable, {
 
@@ -33,6 +35,7 @@ const createWidget = extendFactory(createAttributeObservable, {
 		this._enhance(srcNode);
 		
 		this._set('rendered', true, true);
+		map.set(this.node, this);
 	},
 	
 	render (parentNode = null) {
@@ -54,17 +57,15 @@ const createWidget = extendFactory(createAttributeObservable, {
 		(parentNode || document.body).appendChild(this.node);
 		
 		this._set('rendered', true, true);
+		map.set(this.node, this);
 	},
 	
 	_render () {}
 });
 
 export default createWidget;
+
+export function getByNode (node) {
+	return map.get(node);
+}
 // endregion
-
-
-/*
- two cases:
-   - render to container = document.body
-   - progressively enhance existing node
-  */
