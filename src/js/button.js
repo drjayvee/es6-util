@@ -46,8 +46,8 @@ export const Button = extendFactory(createWidget, {
 }, function (superInit) {
 	superInit();
 	
-	this.after('disabledChange', this._setDisabled.bind(this));
-	this.after('labelChange', this._setLabel.bind(this));
+	this.after('disabledChange', this._setDisabled);
+	this.after('labelChange', this._setLabel);
 });
 // endregion
 
