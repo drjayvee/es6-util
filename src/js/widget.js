@@ -30,7 +30,7 @@ const createWidget = extendFactory(createAttributeObservable, {
 		
 		this._enhance(srcNode);
 		
-		this.set('rendered', true);
+		this._set('rendered', true, true);
 	},
 	
 	render (parentNode = null) {

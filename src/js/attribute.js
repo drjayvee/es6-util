@@ -50,7 +50,7 @@ export const createAttribute = createFactory({
 	 * @param {Function} config.getter
 	 * @param {Function} config.setter
 	 */
-	addAttribute: function (name, {value, validator, getter, setter} = {}) {
+	addAttribute: function (name, {value, validator, getter, setter, readOnly} = {}) {
 		if (this.hasAttribute(name)) {
 			throw new Error(`Attribute "${name}" has already been added`);
 		}
@@ -59,7 +59,8 @@ export const createAttribute = createFactory({
 			value,
 			validator,
 			getter,
-			setter
+			setter,
+			readOnly
 		});
 	},
 
@@ -95,13 +96,17 @@ export const createAttribute = createFactory({
 		return this;
 	},
 	
-	_set: function (name, value) {
+	_set: function (name, value, overrideReadOnly = false) {
 		let attrConfig = this._attributes.get(name),
 			current = this.get(name),	// will throw Error if attr doesn't exist, which if fine!
 			okToSet = true;
 		
+		if (attrConfig.readOnly && !overrideReadOnly) {
+			okToSet = false;
+		}
+		
 		// call validator / setter
-		if (attrConfig.validator) {
+		if (okToSet && attrConfig.validator) {
 			okToSet = attrConfig.validator(value, name, this) !== false;
 		}
 		
@@ -150,7 +155,7 @@ export const createAttribute = createFactory({
 
 // region AttributeObservable
 export const createAttributeObservable = extendFactory(createAttribute, {
-	_set (name, value) {
+	_set (name, value, overrideReadOnly = false) {
 		let data = {
 				prevVal:	this.get(name),
 				newVal:		value,
@@ -166,7 +171,7 @@ export const createAttributeObservable = extendFactory(createAttribute, {
 		if (success) {
 			value = onEvent.newVal;		// allow on() listeners to change the new value
 			
-			success = createAttribute.prototype._set.call(this, name, value);
+			success = createAttribute.prototype._set.call(this, name, value, overrideReadOnly);
 			
 			if (success) {		// attribute value was changed
 				data.newVal = this.get(name);		// update newVal (post-setter)

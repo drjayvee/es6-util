@@ -115,6 +115,21 @@ QUnit.test('getter / setter', function (assert) {
 	assert.ok(getterCalled);
 });
 
+QUnit.test('readOnly attributes', function (assert) {
+	let at = createAttribute();
+	
+	at.addAttribute('k', {
+		readOnly: true,
+		value: true
+	});
+	
+	at.set('k', false);
+	assert.ok(at.get('k'));
+	
+	at._set('k', false, true);
+	assert.notOk(at.get('k'));
+});
+
 QUnit.test('initialize attributes via constructor', function (assert) {
 	const createMyAttribute = extendFactory(createAttribute, {
 		ATTRS: {
