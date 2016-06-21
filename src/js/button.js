@@ -20,6 +20,7 @@ export const Button = extendFactory(createWidget, {
 	NODE_TEMPLATE: '<button type="button"></button>',
 	
 	_enhance (srcNode) {
+		this.set('disabled', srcNode.disabled);
 		this.set('label', srcNode.innerHTML);
 	},
 	
@@ -66,17 +67,30 @@ export const ToggleButton = extendFactory(Button, {
 		}
 		
 		this.set('pressed', pressed);
+	},
+	
+	_enhance (srcNode) {
+		this.set('pressed', srcNode.classList.contains('pressed'));
+	},
+	
+	_render () {
+		Button.prototype._render.apply(this, arguments);
+		
+		this._setPressed();
+	},
+	
+	_setPressed () {
+		if (!this.node) {
+			return;
+		}
+		
+		this.node.classList.toggle('pressed', this.get('pressed'));
 	}
 }, function (superInit) {
 	superInit();
 	
 	// sync state to DOM
-	this.after('pressedChange', () => {
-		if (!this.get('rendered')) {
-			return;
-		}
-		this.node.classList.toggle('pressed', this.get('pressed'));
-	});
+	this.after('pressedChange', this._setPressed);
 	
 	// sync DOM to state
 	this.after('rendered', () => {

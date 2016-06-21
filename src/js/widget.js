@@ -21,8 +21,6 @@ const createWidget = extendFactory(createAttributeObservable, {
 	
 	NODE_TEMPLATE: '<div></div>',
 	
-	node: null,
-	
 	enhance (srcNode) {
 		if (this.get('rendered')) {
 			throw 'Already rendered';
@@ -56,11 +54,20 @@ const createWidget = extendFactory(createAttributeObservable, {
 		// place node in DOM
 		(parentNode || document.body).appendChild(this.node);
 		
-		this._set('rendered', true, true);
 		map.set(this.node, this);
+		this._set('rendered', true, true);
 	},
 	
-	_render () {}
+	_render () {},
+	
+	destroy () {
+		if (this.node) {
+			this.node.parentNode.removeChild(this.node);
+			map.delete(this.node);
+			
+			this.node = null;
+		}
+	}
 });
 
 export default createWidget;
