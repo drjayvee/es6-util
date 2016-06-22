@@ -19,6 +19,8 @@ export const Button = extendFactory(createWidget, {
 	
 	NODE_TEMPLATE: '<button type="button"></button>',
 	
+	CLASS: 'button',
+	
 	_enhance (srcNode) {
 		this.set('disabled', srcNode.disabled);
 		this.set('label', srcNode.innerHTML);
@@ -60,6 +62,8 @@ export const ToggleButton = extendFactory(Button, {
 			setter: newVal => Boolean(newVal)
 		}
 	},
+	
+	CLASS: 'toggleButton',
 	
 	toggle (pressed) {
 		if (typeof pressed === 'undefined') {

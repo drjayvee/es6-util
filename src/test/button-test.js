@@ -28,8 +28,6 @@ QUnit.test('basic Button', function (assert) {
 	
 	buttons.push(b);
 	
-	assert.equal(b.node, null);
-	assert.notOk(b.get('rendered'));
 	assert.notOk(b.get('disabled'));
 	assert.equal('', b.get('label'));
 	
@@ -38,19 +36,8 @@ QUnit.test('basic Button', function (assert) {
 	
 	// render
 	b.render();
-	assert.ok(b.get('rendered'));
-	assert.ok(b.node);
 	assert.ok(b.node.disabled);
 	assert.equal(b, getByNode(b.node), 'getByNode');
-	
-	// re-render
-	let error = false;
-	try {
-		b.render();
-	} catch (e) {
-		error = true;
-	}
-	assert.ok(error);
 	
 	// enable
 	b.set('disabled', false);
@@ -61,10 +48,6 @@ QUnit.test('basic Button', function (assert) {
 	b.set('label', 'Go');
 	assert.equal('Go', b.get('label'));
 	assert.equal('Go', b.node.innerHTML);
-	
-	// destroy
-	b.destroy();
-	assert.notOk(b.node);
 });
 
 QUnit.test('basic ToggleButton', function (assert) {

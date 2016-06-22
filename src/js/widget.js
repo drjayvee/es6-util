@@ -21,6 +21,8 @@ const createWidget = extendFactory(createAttributeObservable, {
 	
 	NODE_TEMPLATE: '<div></div>',
 	
+	CLASS: 'widget',
+	
 	enhance (srcNode) {
 		if (this.get('rendered')) {
 			throw 'Already rendered';
@@ -30,11 +32,17 @@ const createWidget = extendFactory(createAttributeObservable, {
 		
 		this.node = srcNode;
 		
+		this._addClassesToNode();
+		
 		this._enhance(srcNode);
 		
 		this._set('rendered', true, true);
 		map.set(this.node, this);
+		
+		return this;
 	},
+	
+	_enhance () {},
 	
 	render (parentNode = null) {
 		if (this.get('rendered')) {
@@ -46,6 +54,8 @@ const createWidget = extendFactory(createAttributeObservable, {
 		c.innerHTML = this.NODE_TEMPLATE;
 		this.node = c.firstElementChild;
 		
+		this._addClassesToNode();
+		
 		this.node.hidden = this.get('hidden');
 		
 		// call custom rendering
@@ -56,17 +66,41 @@ const createWidget = extendFactory(createAttributeObservable, {
 		
 		map.set(this.node, this);
 		this._set('rendered', true, true);
+		
+		return this;
 	},
 	
 	_render () {},
 	
+	_getClasses () {
+		const classes = [];
+		
+		let proto = this;
+		do {
+			proto = Object.getPrototypeOf(proto);
+			if (proto.CLASS) {
+				classes.push(proto.CLASS);
+			}
+		} while (proto !== createWidget.prototype);
+		
+		return classes;
+	},
+	
+	_addClassesToNode () {
+		this.node.classList.add(...this._getClasses());
+	},
+	
 	destroy () {
 		if (this.node) {
-			this.node.parentNode.removeChild(this.node);
+			if (this.node.parentNode) {		// node may not have been appended to DOM: widget.render(document.createElement('div')))
+				this.node.parentNode.removeChild(this.node);
+			}
 			map.delete(this.node);
 			
 			this.node = null;
 		}
+		
+		this._set('rendered', false, true);
 	}
 });
 
