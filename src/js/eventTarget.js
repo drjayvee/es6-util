@@ -186,7 +186,8 @@ const DEFAULT_CONFIG = {
 	cancelable:		true,
 	bubbles:		true,
 	cancelledFn:	null,
-	defaultFn:		null
+	defaultFn:		null,
+	context:		null
 };
 
 const createEventTarget = createFactory({
@@ -207,7 +208,8 @@ const createEventTarget = createFactory({
 			cancelable	= DEFAULT_CONFIG.cancelable,
 			bubbles		= DEFAULT_CONFIG.bubbles,
 			cancelledFn	= DEFAULT_CONFIG.cancelledFn,
-			defaultFn	= DEFAULT_CONFIG.defaultFn
+			defaultFn	= DEFAULT_CONFIG.defaultFn,
+			context		= DEFAULT_CONFIG.context
 		} = {}
 	) {
 		if (this._eventDefinitions.has(type)) {
@@ -218,7 +220,8 @@ const createEventTarget = createFactory({
 			cancelable,
 			bubbles,
 			cancelledFn,
-			defaultFn
+			defaultFn,
+			context
 		});
 	},
 
@@ -310,7 +313,7 @@ const createEventTarget = createFactory({
 		if (!onEvent.cancelled) {
 			// call defaultFn
 			if (def.defaultFn) {
-				def.defaultFn(data);
+				def.defaultFn.call(def.context || this, data);
 			}
 			
 			// fire 'after' event
@@ -318,7 +321,7 @@ const createEventTarget = createFactory({
 				this._eventDispatch.createEvent(AFTER + type, false, def.bubbles, data)
 			);
 		} else if (def.cancelledFn) {
-			def.cancelledFn(data);
+			def.cancelledFn.call(def.context || this, data);
 		}
 		
 		return !onEvent.cancelled;

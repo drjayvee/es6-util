@@ -273,6 +273,55 @@ QUnit.test('publish sets event defaults', function (assert) {
 	assert.deepEqual(v, ['on', 'def', 'after', 'on', 'prev']);
 });
 
+QUnit.test('publish can set context for defaultFn and cancelledFn', function (assert) {
+	let et = createEventTarget(),
+		defaultFnContext,
+		cancelledFnContext;
+	
+	et.publish('without-context', {
+		defaultFn () {defaultFnContext = this;},
+		cancelledFn () {cancelledFnContext = this;}
+	});
+	
+	// make sure both defaultFn and cancelledFn get called
+	let cancel = false;
+	et.on('without-context', (e) => {
+		if (cancel) {
+			e.cancel();
+		}
+	});
+	
+	et.fire('without-context');
+	cancel = true;
+	et.fire('without-context');
+	
+	// check that et itself was context (default)
+	assert.equal(defaultFnContext, et, 'defaultFn defaults to "this" as context');
+	assert.equal(cancelledFnContext, et, 'cancelledFn defaults to "this" as context');
+	
+	// now try with explicit context
+	let context = {};
+	et.publish('with-context', {
+		defaultFn () {defaultFnContext = this;},
+		cancelledFn () {cancelledFnContext = this;},
+		context
+	});
+	
+	cancel = false;
+	et.on('with-context', (e) => {
+		if (cancel) {
+			e.cancel();
+		}
+	});
+	
+	et.fire('with-context');
+	cancel = true;
+	et.fire('with-context');
+	
+	assert.equal(defaultFnContext, context, 'defaultFn uses provided context');
+	assert.equal(cancelledFnContext, context, 'cancelledFn uses provided context');
+});
+
 QUnit.test('can add bubble targets', function (assert) {
 	var et1 = createEventTarget(),
 		et2 = createEventTarget(),
