@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 /*global QUnit*/
 
-import {mix, createFactory, extendFactory} from 'js/oop';
+import {mix, createFactory, extendFactory, createdBy} from 'js/oop';
 
 QUnit.module('oop', {
 	beforeEach: function () {
@@ -114,6 +114,9 @@ QUnit.test('createFactory', function (assert) {
 	});
 	
 	const bi = createBase('base');
+	
+	assert.ok(createdBy(bi, createBase), 'createdBy recognizes object\'s factory');
+	
 	assert.ok(Object.getPrototypeOf(bi) === createBase.prototype);
 	assert.deepEqual(['base'], bi.baseInit);
 	assert.equal('baseM 1', bi.baseM());
@@ -128,6 +131,10 @@ QUnit.test('createFactory', function (assert) {
 	});
 	
 	const si = createSub('sup', 'dude');
+	
+	assert.ok(createdBy(si, createSub), 'createdBy recognizes object\'s extended factory');
+	assert.ok(createdBy(si, createBase), 'createdBy recognizes object\'s base factory');
+	
 	assert.ok(Object.getPrototypeOf(si) === createSub.prototype);
 	assert.deepEqual(['sup', 'dude'], si.baseInit);
 	assert.equal('subbaseM 2', si.baseM());

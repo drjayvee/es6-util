@@ -110,3 +110,15 @@ export function extendFactory (base, prototype, init = null) {
 	
 	return factory;
 }
+
+export function createdBy (object, factory) {
+	if (typeof object !== 'object' || object === null) {
+		throw 'Not an object';
+	}
+	
+	if (typeof factory !== 'function' || !factory.hasOwnProperty('prototype') || !factory.hasOwnProperty('init')) {
+		throw 'Not a factory';
+	}
+	
+	return factory.prototype.isPrototypeOf(object);
+}
