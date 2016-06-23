@@ -4,7 +4,7 @@ import {mix, createFactory, extendFactory} from 'js/oop';
 import createWidget from 'js/widget';
 
 // region Button extends WidgetP
-export const Button = extendFactory(createWidget, {
+export const createButton = extendFactory(createWidget, {
 	ATTRS: {
 		disabled: {
 			value: false,
@@ -55,7 +55,7 @@ export const Button = extendFactory(createWidget, {
 // endregion
 
 // region ToggleButton extends Button
-export const ToggleButton = extendFactory(Button, {
+export const createToggleButton = extendFactory(createButton, {
 	ATTRS: {
 		pressed: {
 			value: false,
@@ -78,7 +78,7 @@ export const ToggleButton = extendFactory(Button, {
 	},
 	
 	_render () {
-		Button.prototype._render.apply(this, arguments);
+		createButton.prototype._render.apply(this, arguments);
 		
 		this._setPressed();
 	},

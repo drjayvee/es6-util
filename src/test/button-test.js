@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 /*global QUnit*/
 
-import {Button, ToggleButton} from 'js/button';
+import {createButton, createToggleButton} from 'js/button';
 import {getByNode} from 'js/widget';
 
 const buttons = [];
@@ -24,7 +24,7 @@ QUnit.module('button', {
 });
 
 QUnit.test('basic Button', function (assert) {
-	const b = Button();
+	const b = createButton();
 	
 	buttons.push(b);
 	
@@ -51,7 +51,7 @@ QUnit.test('basic Button', function (assert) {
 });
 
 QUnit.test('basic ToggleButton', function (assert) {
-	const b = ToggleButton();
+	const b = createToggleButton();
 	
 	buttons.push(b);
 	
@@ -88,7 +88,7 @@ QUnit.test('enhance Button', function (assert) {
 	node.disabled = true;
 	document.body.appendChild(node);
 	
-	const b = Button();
+	const b = createButton();
 	b.enhance(node);
 	
 	assert.equal('Oh hi', b.get('label'));
@@ -105,7 +105,7 @@ QUnit.test('enhance ToggleButton', function (assert) {
 	node.classList.add('pressed');
 	document.body.appendChild(node);
 	
-	const b = ToggleButton();
+	const b = createToggleButton();
 	b.enhance(node);
 	
 	assert.ok(b.get('pressed'));
