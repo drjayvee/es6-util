@@ -3,16 +3,19 @@
 import {extendFactory, createdBy} from 'js/oop';
 import createWidget from 'js/widget';
 
-function testWidget (object) {
-	if (!createdBy(object, createWidget)) {
-		throw 'Child is not a widget';
-	}
-}
-
 // region WidgetParent
-const createParentWidget = extendFactory(createWidget, {
+const createWidgetParent = extendFactory(createWidget, {
+	
+	CHILD_TYPE: createWidget,
+	
+	_testChildType (child) {
+		if (!createdBy(child, this.CHILD_TYPE)) {
+			throw 'Child is not a widget or wrong subtype';
+		}
+	},
+	
 	add (child, index = null, render = true) {
-		testWidget(child);
+		this._testChildType(child);
 		
 		if (this.contains(child)) {
 			throw 'Parent widget already contains child';
@@ -33,16 +36,17 @@ const createParentWidget = extendFactory(createWidget, {
 	
 	_addChildDefFn (event) {
 		this.children.splice(event.index, 0, event.child);
+		event.child.addBubbleTarget(this);
 	},
 	
 	contains (child) {
-		testWidget(child);
+		this._testChildType(child);
 		
 		return this.children.indexOf(child) !== -1;
 	},
 	
 	getIndex (child) {
-		testWidget(child);
+		this._testChildType(child);
 		
 		if (!this.contains(child)) {
 			throw 'Not a child';
@@ -77,15 +81,15 @@ const createParentWidget = extendFactory(createWidget, {
 }, function (superInit, {children = []} = {}) {
 	superInit();
 	
+	this.publish('addChild', {
+		defaultFn: this._addChildDefFn
+	});
+	
 	this.children = [];
 	for (let child of children) {
 		this.add(child);
 	}
-	
-	this.publish('addChild', {
-		defaultFn: this._addChildDefFn
-	});
 });
 // endregion
 
-export default createParentWidget;
+export default createWidgetParent;

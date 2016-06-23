@@ -8,7 +8,7 @@ import createWidgetParent from 'js/widgetParent';
 const widgets = [];
 const nodes = [];
 
-QUnit.module('widget', {
+QUnit.module('widget / widgetParent', {
 	afterEach: () => {
 		while (widgets.length) {
 			const b = widgets.pop();
@@ -41,13 +41,7 @@ QUnit.test('basic Widget render / destroy', function (assert) {
 	assert.ok(widget.node, 'Widgets have node after render');
 	assert.equal(widget.node.parentNode, document.body, 'Widgets render to document.body by default');
 	
-	let err = null;
-	try {
-		widget.render();
-	} catch (e) {
-		err = e;
-	}
-	assert.equal('Already rendered', err, 'Cannot re-render widget');
+	assert.throws(() => {widget.render();}, 'Already rendered', 'Cannot re-render widget');
 	
 	// destroy
 	widget.destroy();
@@ -119,7 +113,7 @@ QUnit.test('Widget node class names', function (assert) {
 	);
 });
 
-QUnit.test('Add children to rendered WidgetParent', function (assert) {
+QUnit.test('Add children to WidgetParent', function (assert) {
 	let parent = createWidgetParent().render();
 	widgets.push(parent);
 	
@@ -132,20 +126,14 @@ QUnit.test('Add children to rendered WidgetParent', function (assert) {
 	parent.add(child1);
 	
 	assert.ok(parent.contains(child1), 'Parent recognizes unrendered child after add');
-	assert.ok(child1.get('rendered'), 'Parent calls child\'s render');
-	assert.equal(child1.node.parentNode, parent.node, 'Child renders into parent');
-	
 	assert.equal(parent.getIndex(child1), 0, 'First child has index 0');
 	
-	// add rendered child
-	let child2 = createWidget().render();
+	// add second child
+	let child2 = createWidget();
 	widgets.push(child2);
 	parent.add(child2);
 	
 	assert.ok(parent.contains(child2), 'Parent recognizes rendered child after add');
-	assert.equal(child2.node.parentNode, parent.node, 'Parent places child under its care');
-	assert.equal(child2.node.previousElementSibling, child1.node, 'Child nodes are siblings');
-	
 	assert.equal(parent.getIndex(child2), 1, 'Second child has index 1');
 	
 	// add child at index 1
@@ -158,22 +146,42 @@ QUnit.test('Add children to rendered WidgetParent', function (assert) {
 	assert.equal(parent.getIndex(child3), 1, 'New child was added at specified index');
 	
 	// add existing child
-	let error = null;
-	try {
-		parent.add(child1);
-	} catch (e) {
-		error = e;
-	}
-	
-	assert.equal(error, 'Parent widget already contains child', 'Parent should not accept same child twice');
+	assert.throws(
+		() => {parent.add(child1);},
+		'Parent widget already contains child',
+		'Parent should not accept same child twice'
+	);
 	
 	// add at invalid index
-	error = null;
-	try {
-		parent.add(createWidget(), 4);
-	} catch (e) {
-		error = e;
-	}
+	assert.throws(
+		() => {parent.add(createWidget(), 4);},
+		'Invalid index',
+		'Cannot add child at invalid index'
+	);
+});
+
+QUnit.test('Add children to WidgetParent through init', function (assert) {
+	const child1 = createWidget(),
+		child2 = createWidget(),
+		parent = createWidgetParent({children: [child1, child2]});
 	
-	assert.equal(error, 'Invalid index', 'Parent should not accept same child twice');
+	assert.ok(parent.contains(child1));
+	assert.ok(parent.contains(child2));
+	assert.equal(parent.getIndex(child1), 0);
+	assert.equal(parent.getIndex(child2), 1);
+});
+
+QUnit.test('child events bubble up to parents', function (assert) {
+	let parent = createWidgetParent(),
+		child = createWidget();
+	
+	parent.add(child);
+	
+	let ev = null;
+	parent.on('hey', (e) => {ev = e;});
+	
+	child.fire('hey');
+	
+	assert.ok(ev, 'child event bubbles to parent');
+	assert.equal(ev.originalTarget, child, 'event.originalTarget is child');
 });
