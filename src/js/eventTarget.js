@@ -37,7 +37,7 @@ class Dispatch {
 	 * @returns {boolean} wether the event completed (i.e. was not cancelled)
 	 */
 	dispatch (event) {
-		for (let sub of this._findSubs(event.type)) {
+		for (let sub of this._findSubs(event.type).slice()) {	// .slice() because this._subscriptions change during interation
 			sub.callback.call(sub.context, event);
 			
 			if (sub.once) {

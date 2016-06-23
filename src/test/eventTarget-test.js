@@ -204,6 +204,44 @@ QUnit.test('once() and onceAfter() callbacks are only called once', function (as
 	
 	assert.equal(after, 2);
 	assert.equal(onceAfter, 1);
+	
+	// fire once, with two subscriptions
+	et = createEventTarget();
+	
+	on = after = once = onceAfter = 0;
+	et.on('ev', () => {
+		on += 1;
+	});
+	et.on('ev', () => {
+		on += 1;
+	});
+	
+	et.once('ev', () => {
+		once += 1;
+	});
+	et.once('ev', () => {
+		once += 1;
+	});
+	
+	et.after('ev', () => {
+		after += 1;
+	});
+	et.after('ev', () => {
+		after += 1;
+	});
+	
+	et.onceAfter('ev', () => {
+		onceAfter += 1;
+	});
+	et.onceAfter('ev', () => {
+		onceAfter += 1;
+	});
+	
+	et.fire('ev');
+	assert.equal(on, 2);
+	assert.equal(once, 2);
+	assert.equal(after, 2);
+	assert.equal(onceAfter, 2);
 });
 
 QUnit.test('context argument is applied to callback', function (assert) {
