@@ -165,8 +165,9 @@ export const createAttributeObservable = extendFactory(createAttribute, {
 		let onEvent = this._eventDispatch.createEvent(
 			name + 'Change', true, true, data
 		);
+		this._fireEvent(onEvent);
 		
-		let success = this._eventDispatch.dispatch(onEvent);
+		let success = !onEvent.cancelled;
 		
 		if (success) {
 			value = onEvent.newVal;		// allow on() listeners to change the new value
@@ -180,7 +181,7 @@ export const createAttributeObservable = extendFactory(createAttribute, {
 					AFTER + name + 'Change', false, true, data
 				);
 				
-				this._eventDispatch.dispatch(afterEvent);
+				this._fireEvent(afterEvent);
 			}
 		}
 		

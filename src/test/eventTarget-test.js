@@ -377,6 +377,13 @@ QUnit.test('can add bubble targets', function (assert) {
 	et1.fire('noBubble');
 	
 	assert.notOk(et2Called);
+	
+	// listen only on bubble target, fire on original
+	et2Called = false;
+	et2.on('ve', () => {et2Called = true;});
+	et1.fire('ve');
+	
+	assert.ok(et2Called, 'Events reach bubble targets even if original target is not subscribed');
 });
 
 QUnit.test('can stop bubbling', function (assert) {
