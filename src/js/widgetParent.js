@@ -23,12 +23,12 @@ const createWidgetParent = extendFactory(createWidget, {
 		
 		if (index === null) {
 			index = this.children.length;
-		} else if (index > this.children.length) {
+		} else if (index > this.children.length || index < 0) {	// Note: index === length _is_ valid!
 			throw 'Invalid index';
 		}
 		
 		if (this.get('rendered') && render) {
-			this._renderChild(child);
+			this._renderChild(child, index);
 		}
 		
 		this.fire('addChild', {child, index});
@@ -59,15 +59,17 @@ const createWidgetParent = extendFactory(createWidget, {
 		this.children.forEach(this._renderChild, this);
 	},
 	
-	_renderChild (child) {
-		if (!this.get('rendered')) {
-			throw 'Cannot render child before parent';
-		}
+	_renderChild (child, index = null) {
+		const beforeNode = (index && index < this.children.length) ? this.children[index].node : null;	// if index === length, then append, therefore beforeNode = null
 		
 		if (child.get('rendered')) {
-			this.node.appendChild(child.node);
+			if (beforeNode) {
+				this.node.insertBefore(child.node, beforeNode);
+			} else {
+				this.node.appendChild(child.node);
+			}
 		} else {
-			child.render(this.node);
+			child.render(this.node, beforeNode);
 		}
 	},
 	

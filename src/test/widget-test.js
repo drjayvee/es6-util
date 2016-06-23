@@ -171,6 +171,42 @@ QUnit.test('Add children to WidgetParent through init', function (assert) {
 	assert.equal(parent.getIndex(child2), 1);
 });
 
+QUnit.test('Add children to rendered WidgetParent', function (assert) {
+	let parent = createWidgetParent().render();
+	widgets.push(parent);
+	
+	// create child and add to parent
+	let child1 = createWidget();
+	widgets.push(child1);
+	
+	parent.add(child1);
+	
+	assert.equal(child1.node.parentNode, parent.node, 'Child renders into parent');
+	
+	// add rendered child
+	let child2 = createWidget().render();
+	widgets.push(child2);
+	parent.add(child2);
+	
+	assert.equal(child2.node.parentNode, parent.node, 'Parent places child under its care');
+	assert.equal(child2.node.previousElementSibling, child1.node, 'Child nodes are siblings');
+	
+	// add child at index 1
+	let child3 = createWidget();
+	widgets.push(child3);
+	parent.add(child3, 1);	// order should now be child1, child3, child2
+	
+	assert.equal(child3.node.previousElementSibling, child1.node, 'Child nodes are siblings');
+	assert.equal(child2.node.previousElementSibling, child3.node, 'Child nodes are siblings');
+	
+	// add child at index == length
+	let child4 = createWidget();
+	widgets.push(child4);
+	parent.add(child4, 3);
+	
+	assert.equal(parent.node.childNodes[3], child4.node, 'Parent should append child node if index === length');
+});
+
 QUnit.test('child events bubble up to parents', function (assert) {
 	let parent = createWidgetParent(),
 		child = createWidget();

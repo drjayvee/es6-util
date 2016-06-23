@@ -44,7 +44,7 @@ const createWidget = extendFactory(createAttributeObservable, {
 	
 	_enhance () {},
 	
-	render (parentNode = null) {
+	render (parentNode = null, beforeNode = null) {
 		if (this.get('rendered')) {
 			throw 'Already rendered';
 		}
@@ -62,7 +62,12 @@ const createWidget = extendFactory(createAttributeObservable, {
 		this._render(this.node);
 		
 		// place node in DOM
-		(parentNode || document.body).appendChild(this.node);
+		const parent = parentNode || document.body;
+		if (beforeNode) {
+			parent.insertBefore(this.node, beforeNode);
+		} else {
+			parent.appendChild(this.node);
+		}
 		
 		map.set(this.node, this);
 		this._set('rendered', true, true);
