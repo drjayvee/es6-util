@@ -2,12 +2,13 @@
 /*global QUnit*/
 
 import {createButton, createToggleButton} from 'js/button';
+import createButtonGroup from 'js/buttonGroup';
 import {getByNode} from 'js/widget';
 
 const buttons = [];
 const nodes = [];
 
-QUnit.module('button', {
+QUnit.module('button / buttonGroup', {
 	afterEach: () => {
 		while (buttons.length) {
 			let b = buttons.pop();
@@ -109,4 +110,48 @@ QUnit.test('enhance ToggleButton', function (assert) {
 	b.enhance(node);
 	
 	assert.ok(b.get('pressed'));
+});
+
+QUnit.test('regular ButtonGroup', function (assert) {
+	const b1 = createToggleButton(),
+		b2 = createToggleButton(),
+		group = createButtonGroup({children: [b1, b2]});
+	
+	buttons.push(group);
+	
+	assert.deepEqual(group.getPressedButtons(), [], 'no buttons pressed');
+	
+	b2.toggle();
+	assert.deepEqual(group.getPressedButtons(), [b2], 'one button pressed');
+	
+	b1.toggle();
+	assert.deepEqual(group.getPressedButtons(), [b1, b2], 'one button pressed');
+	
+	b2.toggle();
+	assert.deepEqual(group.getPressedButtons(), [b1], 'one button pressed');
+	
+	b1.toggle();
+	assert.deepEqual(group.getPressedButtons(), [], 'no buttons pressed');
+});
+
+QUnit.test('radio ButtonGroup', function (assert) {
+	const b1 = createToggleButton(),
+		b2 = createToggleButton(),
+		group = createButtonGroup({children: [b1, b2], radio: true});
+	
+	buttons.push(group);
+	
+	assert.deepEqual(group.getPressedButtons(), [], 'no buttons pressed');
+	
+	b2.toggle();
+	assert.deepEqual(group.getPressedButtons(), [b2], 'one button pressed');
+	
+	b1.toggle();
+	assert.deepEqual(group.getPressedButtons(), [b1], 'pressing a different button makes that the only pressed one');
+	
+	b2.toggle();
+	assert.deepEqual(group.getPressedButtons(), [b2], 'idem dito');
+	
+	b2.toggle();
+	assert.deepEqual(group.getPressedButtons(), [b2], 'cannot unpress pressed button');
 });
