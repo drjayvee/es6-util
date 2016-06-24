@@ -64,6 +64,8 @@ export const createToggleButton = extendFactory(createButton, {
 	},
 	
 	_enhance () {
+		createButton.prototype._enhance.apply(this, arguments);
+		
 		this.set('pressed', this.node.classList.contains('pressed'));	// read state from DOM
 	},
 	
@@ -74,6 +76,8 @@ export const createToggleButton = extendFactory(createButton, {
 	},
 	
 	_bindUI () {
+		createButton.prototype._bindUI.apply(this, arguments);
+		
 		this._registerSubscriptions(
 			this.after('pressedChange', this._setPressed)
 		);
