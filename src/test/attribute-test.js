@@ -292,6 +292,31 @@ QUnit.test('attribute change events', function (assert) {
 	assert.equal(ao.get('t'), 8008);
 });
 
+QUnit.test('readOnly attribute change events', function (assert) {
+	let ao = createAttributeObservable(),
+		onChangeEvent = null,
+		afterChangeEvent = null;
+	
+	// define readOnly attribute
+	ao.addAttribute('k', {
+		readOnly: true
+	});
+	
+	// set up listeners
+	ao.on('kChange', e => {
+		onChangeEvent = e;
+		e.newVal = 2;
+	});
+	ao.after('kChange', function (e) {
+		afterChangeEvent = e;
+	});
+	
+	ao._set('k', 1, true);
+	
+	assert.notOk(onChangeEvent.cancelable, 'change event is not cancelable');
+	assert.equal(ao.get('k'), 1, 'on subscriber cannot change value');
+});
+
 QUnit.test('class chain attributes', function (assert) {
 	// case 1: base class has SimpleAttribute extension
 	let C1 = extendFactory(createAttribute, {

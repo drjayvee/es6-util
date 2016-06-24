@@ -160,17 +160,20 @@ export const createAttributeObservable = extendFactory(createAttribute, {
 				prevVal:	this.get(name),
 				newVal:		value,
 				attrName:	name
-			};
+			},
+			readOnly = this._attributes.get(name).readOnly;
 		
 		let onEvent = this._eventDispatch.createEvent(
-			name + 'Change', true, true, data
+			name + 'Change', !readOnly, true, data
 		);
 		this._fireEvent(onEvent);
 		
 		let success = !onEvent.cancelled;
 		
 		if (success) {
-			value = onEvent.newVal;		// allow on() listeners to change the new value
+			if (!readOnly) {
+				value = onEvent.newVal;		// allow on() listeners to change the new value
+			}
 			
 			success = createAttribute.prototype._set.call(this, name, value, overrideReadOnly);
 			
