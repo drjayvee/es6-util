@@ -13,6 +13,7 @@ const createWidget = extendFactory(createAttributeObservable, {
 			value: false,
 			validator: newVal => typeof newVal === 'boolean'
 		},
+		
 		rendered: {
 			value: false,
 			readOnly: true
@@ -34,7 +35,8 @@ const createWidget = extendFactory(createAttributeObservable, {
 		
 		this._addClassesToNode();
 		
-		this._enhance(srcNode);
+		this._enhance();
+		this._bindUI();
 		
 		this._set('rendered', true, true);
 		map.set(this.node, this);
@@ -44,7 +46,7 @@ const createWidget = extendFactory(createAttributeObservable, {
 	
 	_enhance () {},
 	
-	render (parentNode = null, beforeNode = null) {
+	render (parentNode = document.body, beforeNode = null) {
 		if (this.get('rendered')) {
 			throw 'Already rendered';
 		}
@@ -54,19 +56,19 @@ const createWidget = extendFactory(createAttributeObservable, {
 		c.innerHTML = this.NODE_TEMPLATE;
 		this.node = c.firstElementChild;
 		
-		this._addClassesToNode();
-		
 		this.node.hidden = this.get('hidden');
 		
-		// call custom rendering
-		this._render(this.node);
+		this._addClassesToNode();
+		
+		// call custom render, sync, binding
+		this._render();
+		this._bindUI();
 		
 		// place node in DOM
-		const parent = parentNode || document.body;
 		if (beforeNode) {
-			parent.insertBefore(this.node, beforeNode);
+			parentNode.insertBefore(this.node, beforeNode);
 		} else {
-			parent.appendChild(this.node);
+			parentNode.appendChild(this.node);
 		}
 		
 		map.set(this.node, this);
@@ -76,6 +78,8 @@ const createWidget = extendFactory(createAttributeObservable, {
 	},
 	
 	_render () {},
+	
+	_bindUI () {},
 	
 	_getClasses () {
 		const classes = [];
@@ -100,13 +104,41 @@ const createWidget = extendFactory(createAttributeObservable, {
 			if (this.node.parentNode) {		// node may not have been appended to DOM: widget.render(document.createElement('div')))
 				this.node.parentNode.removeChild(this.node);
 			}
-			map.delete(this.node);
 			
+			// clear event listeners and subscriptions
+			for (let {eventType, cb} of this._nodeListeners) {
+				this.node.removeEventListener(eventType, cb);
+			}
+			this._nodeListeners = [];
+			
+			for (let sub of this._subscriptions) {
+				sub.unsubscribe();
+			}
+			this._subscriptions = [];
+			
+			// unset node
+			map.delete(this.node);
 			this.node = null;
 		}
 		
 		this._set('rendered', false, true);
+	},
+	
+	_registerListener (eventType, cb, context = this) {
+		cb = cb.bind(context);
+		
+		this.node.addEventListener(eventType, cb);
+		this._nodeListeners.push({eventType, cb});
+	},
+	
+	_registerSubscriptions (...subs) {
+		this._subscriptions.splice(this._subscriptions.length, 0, ...subs);
 	}
+}, function (superInit) {
+	superInit();
+	
+	this._nodeListeners = [];
+	this._subscriptions = [];
 });
 
 export default createWidget;

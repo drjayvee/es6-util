@@ -21,9 +21,9 @@ export const createButton = extendFactory(createWidget, {
 	
 	CLASS: 'button',
 	
-	_enhance (srcNode) {
-		this.set('disabled', srcNode.disabled);
-		this.set('label', srcNode.innerHTML);
+	_enhance () {
+		this.set('disabled', this.node.disabled);
+		this.set('label', this.node.innerHTML);
 	},
 	
 	_render () {
@@ -31,26 +31,20 @@ export const createButton = extendFactory(createWidget, {
 		this._setDisabled();
 	},
 	
+	_bindUI () {
+		this._registerSubscriptions(
+			this.after('disabledChange', this._setDisabled),
+			this.after('labelChange', this._setLabel)
+		);
+	},
+	
 	_setDisabled () {
-		if (!this.node) {
-			return;
-		}
-		
 		this.node.disabled = this.get('disabled');
 	},
 	
 	_setLabel () {
-		if (!this.node) {
-			return;
-		}
-		
 		this.node.innerHTML = this.get('label');
 	}
-}, function (superInit) {
-	superInit();
-	
-	this.after('disabledChange', this._setDisabled);
-	this.after('labelChange', this._setLabel);
 });
 // endregion
 
@@ -65,40 +59,30 @@ export const createToggleButton = extendFactory(createButton, {
 	
 	CLASS: 'toggleButton',
 	
-	toggle (pressed) {
-		if (typeof pressed === 'undefined') {
-			pressed = !this.get('pressed');
-		}
-		
+	toggle (pressed = !this.get('pressed')) {
 		this.set('pressed', pressed);
 	},
 	
-	_enhance (srcNode) {
-		this.set('pressed', srcNode.classList.contains('pressed'));
+	_enhance () {
+		this.set('pressed', this.node.classList.contains('pressed'));	// read state from DOM
 	},
 	
 	_render () {
 		createButton.prototype._render.apply(this, arguments);
 		
-		this._setPressed();
+		this._setPressed();		// sync state to DOM
+	},
+	
+	_bindUI () {
+		this._registerSubscriptions(
+			this.after('pressedChange', this._setPressed)
+		);
+		
+		this._registerListener('click', () => {this.toggle();});	// anonymous function so toggle doesn't get event argument
 	},
 	
 	_setPressed () {
-		if (!this.node) {
-			return;
-		}
-		
 		this.node.classList.toggle('pressed', this.get('pressed'));
 	}
-}, function (superInit) {
-	superInit();
-	
-	// sync state to DOM
-	this.after('pressedChange', this._setPressed);
-	
-	// sync DOM to state
-	this.after('rendered', () => {
-		this.node.addEventListener('click', this.toggle.bind(this));
-	});
 });
 // endregion

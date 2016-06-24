@@ -60,6 +60,71 @@ QUnit.test('basic Widget render / destroy', function (assert) {
 	assert.equal(widget.node.parentNode, container, 'Widgets renders to provided parentNode');
 });
 
+QUnit.test('widget lifecycle listener / subscription cleanup', function (assert) {
+	let attrEvent = null,
+		DOMevent = null;
+	
+	const createMyWidget = extendFactory(createWidget, {
+		ATTRS: {
+			my: {value: 'precious'}
+		},
+		
+		_bindUI () {
+			this._registerListener('click', (e) => {DOMevent = e;});
+			
+			this._registerSubscriptions(
+				this.on('myChange', (e) => {attrEvent = e;})
+			);
+		}
+	});
+	
+	function testWidget (widget) {
+		const node = widget.node;
+		
+		// cause custom event
+		widget.set('my', 'mine');
+		assert.ok(attrEvent, 'subscription should be called');
+		assert.ok(attrEvent.newVal, 'myChange event.newVal should work like eventTarget');
+		
+		// cause click DOM event
+		const clickEvent = new Event('click');
+		node.dispatchEvent(clickEvent);
+		
+		assert.equal(DOMevent, clickEvent, 'listener should be notified about DOM click event');
+		
+		// destroy widget, check whether subs and listeners have been removed
+		attrEvent = DOMevent = null;
+		widget.destroy();
+		
+		// cause custom event
+		widget.set('my', 'mein');
+		
+		assert.notOk(attrEvent, 'subscription should have been unsubscribed');
+		
+		// cause DOM event
+		node.dispatchEvent(new Event('click'));
+		
+		assert.notOk(DOMevent, 'listener should have been removed');
+	}
+	
+	const widget = createMyWidget();
+	widgets.push(widget);
+	
+	// render widget and test
+	widget.render();
+	
+	testWidget(widget);
+	
+	// now progressively enhance a DOM node and try the same
+	const node = document.createElement('div');
+	document.body.appendChild(node);
+	nodes.push(node);
+	
+	widget.enhance(node);
+	
+	testWidget(widget);
+});
+
 QUnit.test('Widget node template', function (assert) {
 	const createMyWidget = extendFactory(createWidget, {
 		NODE_TEMPLATE: '<p><span>Oh hi</span></p>'
