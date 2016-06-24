@@ -37,4 +37,8 @@ const radioGroup = createButtonGroup({
 	],
 	radio: true
 }).render();
+
+createButtonGroup({
+	radio: true
+}).enhance(document.getElementById('bg'));
 // endregion
