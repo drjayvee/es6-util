@@ -74,7 +74,7 @@ export const createAttribute = createFactory({
 	},
 	
 	_initAttributes: function (values = {}) {
-		let attrConfigs = mergeAttrConfigs(this);
+		const attrConfigs = mergeAttrConfigs(this);
 		
 		for (let [name, config] of attrConfigs) {
 			this.addAttribute(name, config);
@@ -97,9 +97,9 @@ export const createAttribute = createFactory({
 	},
 	
 	_set: function (name, value, overrideReadOnly = false) {
-		let attrConfig = this._attributes.get(name),
-			current = this.get(name),	// will throw Error if attr doesn't exist, which if fine!
-			okToSet = true;
+		const attrConfig = this._attributes.get(name),
+			current = this.get(name);	// will throw Error if attr doesn't exist, which if fine!
+		let okToSet = true;
 		
 		if (attrConfig.readOnly && !overrideReadOnly) {
 			okToSet = false;
@@ -156,14 +156,14 @@ export const createAttribute = createFactory({
 // region AttributeObservable
 export const createAttributeObservable = extendFactory(createAttribute, {
 	_set (name, value, overrideReadOnly = false) {
-		let data = {
+		const data = {
 				prevVal:	this.get(name),
 				newVal:		value,
 				attrName:	name
 			},
 			readOnly = this._attributes.get(name).readOnly;
 		
-		let onEvent = this._eventDispatch.createEvent(
+		const onEvent = this._eventDispatch.createEvent(
 			name + 'Change', !readOnly, true, data
 		);
 		this._fireEvent(onEvent);
@@ -180,7 +180,7 @@ export const createAttributeObservable = extendFactory(createAttribute, {
 			if (success) {		// attribute value was changed
 				data.newVal = this.get(name);		// update newVal (post-setter)
 				
-				let afterEvent = this._eventDispatch.createEvent(
+				const afterEvent = this._eventDispatch.createEvent(
 					AFTER + name + 'Change', false, true, data
 				);
 				

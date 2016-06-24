@@ -80,13 +80,13 @@ class Dispatch {
 	 */
 	subscribe (type, callback, context, once = false) {
 		// prevent duplicate subs
-		let subs = this._findSubs(type, callback, context);
+		const subs = this._findSubs(type, callback, context);
 		if (subs.length === 1) {
 			return subs[0];
 		}
 		
 		// store subscription
-		let sub = new Subscription(this, type, callback, context, once);
+		const sub = new Subscription(this, type, callback, context, once);
 		
 		if (!this._subscriptions.has(type)) {
 			this._subscriptions.set(type, []);
@@ -105,7 +105,7 @@ class Dispatch {
 	 */
 	unsubscribe (type, callback, context) {
 		// merge on and after subs
-		let subs = this._findSubs(type, callback, context).concat(
+		const subs = this._findSubs(type, callback, context).concat(
 			this._findSubs(AFTER + type, callback, context)
 		);
 		
@@ -145,7 +145,7 @@ class Dispatch {
 	 * @private
 	 */
 	_deleteSub (sub) {
-		let subs = this._subscriptions.get(sub.type);
+		const subs = this._subscriptions.get(sub.type);
 		
 		subs.splice(
 			subs.indexOf(sub),
@@ -277,8 +277,8 @@ const createEventTarget = createFactory({
 	 * @param	{Function} callback
 	 * @param	{Object} [context]		if not specified, use this
 	 */
-	detach: function (type, callback, context) {
-		this._eventDispatch.unsubscribe(type, callback, context || this);
+	detach: function (type, callback, context = this) {
+		this._eventDispatch.unsubscribe(type, callback, context);
 	},
 
 	/**
@@ -290,8 +290,8 @@ const createEventTarget = createFactory({
 	 * @returns {Subscription}
 	 * @private
 	 */
-	_on: function (type, callback, context, once = false) {
-		return this._eventDispatch.subscribe(type, callback, context || this, once);
+	_on: function (type, callback, context = this, once = false) {
+		return this._eventDispatch.subscribe(type, callback, context, once);
 	},
 	
 	/**
@@ -301,12 +301,12 @@ const createEventTarget = createFactory({
 	 * @return {boolean}	true if event was not cancelled
 	 */
 	fire: function (type, data = {}) {
-		let def = this._eventDefinitions.get(type) || DEFAULT_CONFIG;
+		const def = this._eventDefinitions.get(type) || DEFAULT_CONFIG;
 		
 		data.originalTarget = this;
 		
 		// fire 'on' event
-		let onEvent = this._eventDispatch.createEvent(type, def.cancelable, def.bubbles, data);
+		const onEvent = this._eventDispatch.createEvent(type, def.cancelable, def.bubbles, data);
 		this._fireEvent(onEvent);
 		
 		// call defaultFn, dispatch 'after' event OR call preventedFn

@@ -52,7 +52,7 @@ const createWidget = extendFactory(createAttributeObservable, {
 		}
 		
 		// create new node
-		let c = document.createElement('div');
+		const c = document.createElement('div');
 		c.innerHTML = this.NODE_TEMPLATE;
 		this.node = c.firstElementChild;
 		
