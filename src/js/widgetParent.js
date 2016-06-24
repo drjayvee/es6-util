@@ -55,6 +55,18 @@ const createWidgetParent = extendFactory(createWidget, {
 		return this.children.indexOf(child);
 	},
 	
+	_enhance () {
+		for (let node of Array.from(this.node.childNodes)) {
+			if (node.nodeType !== Node.ELEMENT_NODE) {
+				continue;
+			}
+			
+			this.add(
+				this.CHILD_TYPE().enhance(node)
+			);
+		}
+	},
+	
 	_render () {
 		this.children.forEach(this._renderChild, this);
 	},

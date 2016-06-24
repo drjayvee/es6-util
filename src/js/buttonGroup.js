@@ -13,6 +13,12 @@ const createButtonGroup = extendFactory(createWidgetParent, {
 		return this.children.filter(button => button.get('pressed'));
 	},
 	
+	_bindUI () {
+		this._registerSubscriptions(
+			this.on('pressedChange', this._buttonPressed)
+		);
+	},
+	
 	_buttonPressed (e) {
 		if (!this.radio) {
 			return;
@@ -39,8 +45,6 @@ const createButtonGroup = extendFactory(createWidgetParent, {
 	superInit();
 	
 	Object.defineProperty(this, 'radio', {value: radio});
-	
-	this.on('pressedChange', this._buttonPressed);
 });
 
 export default createButtonGroup;
