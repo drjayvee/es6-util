@@ -22,7 +22,7 @@ const createButtonGroup = extendFactory(createWidgetParent, {
 			// unpress other buttons
 			this._currentlyHandlingButtonPress = true;
 			
-			const button = e.button;
+			const button = e.originalTarget;
 			for (let bt of this.getPressedButtons()) {
 				if (bt !== button) {
 					bt.toggle(false);	// will cause recursion, and event will be cancelled by this function!

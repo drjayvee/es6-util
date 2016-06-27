@@ -199,8 +199,10 @@ QUnit.test('attribute change events', function (assert) {
 	assert.equal(onChangeEvent.prevVal, undefined);
 	assert.equal(onChangeEvent.newVal, 'sweet');
 	assert.equal(onChangeEvent.attrName, 'k');
+	assert.equal(onChangeEvent.originalTarget, ao);
 	
 	assert.ok(afterChangeEvent);
+	assert.equal(afterChangeEvent.originalTarget, ao);
 	
 	assert.equal(ao.get('k'), 'sweet');
 	

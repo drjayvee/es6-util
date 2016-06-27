@@ -159,7 +159,8 @@ export const createAttributeObservable = extendFactory(createAttribute, {
 		const data = {
 				prevVal:	this.get(name),
 				newVal:		value,
-				attrName:	name
+				attrName:	name,
+				originalTarget: this
 			},
 			readOnly = this._attributes.get(name).readOnly;
 		
