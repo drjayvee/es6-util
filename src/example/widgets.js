@@ -2,6 +2,7 @@
 
 import {createButton, createToggleButton} from 'js/button';
 import createButtonGroup from 'js/buttonGroup';
+import createTabView from 'js/tabView';
 
 // region Button
 const bt = createButton({
@@ -41,4 +42,8 @@ const radioGroup = createButtonGroup({
 createButtonGroup({
 	radio: true
 }).enhance(document.getElementById('bg'));
+// endregion
+
+// region TabView
+createTabView().enhance(document.getElementById('tv'));
 // endregion

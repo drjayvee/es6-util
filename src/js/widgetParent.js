@@ -55,12 +55,16 @@ const createWidgetParent = extendFactory(createWidget, {
 		return this.children.indexOf(child);
 	},
 	
+	enhance (srcNode) {
+		if (this.children.length) {
+			throw 'Cannot enhance - children already set';
+		}
+		
+		createWidget.prototype.enhance.apply(this, arguments);
+	},
+	
 	_enhance () {
-		for (let node of Array.from(this.node.childNodes)) {
-			if (node.nodeType !== Node.ELEMENT_NODE) {
-				continue;
-			}
-			
+		for (let node of Array.from(this.node.children)) {
 			this.add(
 				this.CHILD_TYPE().enhance(node)
 			);
