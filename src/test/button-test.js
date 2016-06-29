@@ -119,18 +119,31 @@ QUnit.test('regular ButtonGroup', function (assert) {
 	
 	buttons.push(group);
 	
+	let selectionChangeEvent = null;
+	group.after('selectionChange', (e) => selectionChangeEvent = e);
+	
 	assert.deepEqual(group.getPressedButtons(), [], 'no buttons pressed');
 	
 	b2.toggle();
+	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
 	assert.deepEqual(group.getPressedButtons(), [b2], 'one button pressed');
 	
+	selectionChangeEvent = null;
+	
 	b1.toggle();
+	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
 	assert.deepEqual(group.getPressedButtons(), [b1, b2], 'one button pressed');
 	
+	selectionChangeEvent = null;
+	
 	b2.toggle();
+	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
 	assert.deepEqual(group.getPressedButtons(), [b1], 'one button pressed');
 	
+	selectionChangeEvent = null;
+	
 	b1.toggle();
+	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
 	assert.deepEqual(group.getPressedButtons(), [], 'no buttons pressed');
 });
 
@@ -141,17 +154,30 @@ QUnit.test('radio ButtonGroup', function (assert) {
 	
 	buttons.push(group);
 	
+	let selectionChangeEvent = null;
+	group.after('selectionChange', (e) => selectionChangeEvent = e);
+	
 	assert.deepEqual(group.getPressedButtons(), [], 'no buttons pressed');
 	
 	b2.toggle();
+	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
 	assert.deepEqual(group.getPressedButtons(), [b2], 'one button pressed');
 	
+	selectionChangeEvent = null;
+	
 	b1.toggle();
+	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
 	assert.deepEqual(group.getPressedButtons(), [b1], 'pressing a different button makes that the only pressed one');
 	
-	b2.toggle();
-	assert.deepEqual(group.getPressedButtons(), [b2], 'idem dito');
+	selectionChangeEvent = null;
 	
 	b2.toggle();
+	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
+	assert.deepEqual(group.getPressedButtons(), [b2], 'idem dito');
+	
+	selectionChangeEvent = null;
+	
+	b2.toggle();
+	assert.notOk(selectionChangeEvent, 'selectionChange event was not fired');
 	assert.deepEqual(group.getPressedButtons(), [b2], 'cannot unpress pressed button');
 });
