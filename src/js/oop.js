@@ -35,8 +35,8 @@ function findFactoryWithNextInit (factory) {
 		return factory;
 	}
 	
-	if (factory.super) {
-		return findFactoryWithNextInit(factory.super);
+	if (factory.base) {
+		return findFactoryWithNextInit(factory.base);
 	}
 	return null;
 }
@@ -52,8 +52,8 @@ function initHierarchy (instance, args, factory) {
 	// Unless that init is the base factory's, provide it with a function that calls the _next_ init in the chain
 	// this is recursive, because the _next_ init might need a function that calls _its_ next init, etc
 	const initArgs = args.slice();
-	if (factoryWithInit.super) {
-		initArgs.splice(0, 0, initHierarchy.bind(null, instance, args, factoryWithInit.super));
+	if (factoryWithInit.base) {
+		initArgs.splice(0, 0, initHierarchy.bind(null, instance, args, factoryWithInit.base));
 	}
 	
 	factoryWithInit.init.call(instance, ...initArgs);
@@ -75,9 +75,9 @@ export function createFactory (prototype, init = null) {
 	};
 	
 	Object.defineProperties(factory, {
-		prototype:		{value: prototype},
-		init:			{value: init},
-		mix:			{value: function (...mixins) {
+		prototype:	{value: prototype},
+		init:		{value: init},
+		mix:		{value: function (...mixins) {
 			mix(prototype, ...mixins);
 			return factory;
 		}}
@@ -103,7 +103,7 @@ export function extendFactory (base, prototype, init = null) {
 	const factory = createFactory(proto, init);
 	
 	Object.defineProperties(factory, {
-		super:			{value: base}
+		base: {value: base}
 	});
 	
 	initMap.set(factory, findFactoryWithNextInit(factory));
