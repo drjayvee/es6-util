@@ -164,30 +164,33 @@ QUnit.test('createFactory', function (assert) {
 });
 
 QUnit.test('factory.mix', function (assert) {
-	const base = createFactory({
+	const createBase = createFactory({
 		f: 'f'
-	}).mix({
+	});
+	
+	const bi = createBase();
+	
+	createBase.mix({
 		m1: 'm1'
 	}, {
 		m2: 'm2'
 	});
 	
-	const bo = base();
-	assert.equal(bo.f, 'f');
-	assert.equal(bo.m1, 'm1');
-	assert.equal(bo.m2, 'm2');
+	assert.equal(bi.f, 'f');
+	assert.equal(bi.m1, 'm1');
+	assert.equal(bi.m2, 'm2');
 	
 	// extend and mix again
-	const ext = extendFactory(base, {
+	const createSub = extendFactory(createBase, {
 		e: 'e'
 	}).mix({
 		m3: 'm3'
 	});
 	
-	const eo = ext();
-	assert.equal(eo.f, 'f');
-	assert.equal(eo.m1, 'm1');
-	assert.equal(eo.m2, 'm2');
-	assert.equal(eo.e, 'e');
-	assert.equal(eo.m3, 'm3');
+	const si = createSub();
+	assert.equal(si.f, 'f');
+	assert.equal(si.m1, 'm1');
+	assert.equal(si.m2, 'm2');
+	assert.equal(si.e, 'e');
+	assert.equal(si.m3, 'm3');
 });
