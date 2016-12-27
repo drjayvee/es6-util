@@ -72,18 +72,6 @@ export const createAttribute = createFactory({
 	hasAttribute: function (name) {
 		return this._attributes.has(name);
 	},
-	
-	_initAttributes: function (values = {}) {
-		const attrConfigs = mergeAttrConfigs(this);
-		
-		for (let [name, config] of attrConfigs) {
-			this.addAttribute(name, config);
-			
-			if (values.hasOwnProperty(name)) {
-				this.set(name, values[name]);
-			}
-		}
-	},
 
 	/**
 	 * 
@@ -149,7 +137,15 @@ export const createAttribute = createFactory({
 }, function (values = {}) {
 	this._attributes = new Map();
 
-	this._initAttributes(values);
+	const attrConfigs = mergeAttrConfigs(this);
+	
+	for (let [name, config] of attrConfigs) {
+		this.addAttribute(name, config);
+		
+		if (values.hasOwnProperty(name)) {
+			this.set(name, values[name]);
+		}
+	}
 });
 // endregion
 
