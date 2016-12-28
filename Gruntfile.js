@@ -11,7 +11,6 @@ module.exports = function(grunt) {
 		},
 		babel: {
 			options: {
-				modules: 'amd',
 				sourceMap: true
 			},
 			dist: {
