@@ -41,7 +41,7 @@ QUnit.test('basic Widget render / destroy', function (assert) {
 	assert.ok(widget.node, 'Widgets have node after render');
 	assert.equal(widget.node.parentNode, document.body, 'Widgets render to document.body by default');
 	
-	assert.throws(() => {widget.render();}, 'Already rendered', 'Cannot re-render widget');
+	assert.throws(() => {widget.render();}, /^Already rendered$/, 'Cannot re-render widget');
 	
 	// destroy
 	widget.destroy();
@@ -213,14 +213,14 @@ QUnit.test('Add children to WidgetParent', function (assert) {
 	// add existing child
 	assert.throws(
 		() => {parent.add(child1);},
-		'Parent widget already contains child',
+		/^Parent widget already contains child$/,
 		'Parent should not accept same child twice'
 	);
 	
 	// add at invalid index
 	assert.throws(
 		() => {parent.add(createWidget(), 4);},
-		'Invalid index',
+		/^Invalid index$/,
 		'Cannot add child at invalid index'
 	);
 });
