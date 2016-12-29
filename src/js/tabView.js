@@ -5,7 +5,26 @@ import {createToggleButton} from 'js/button';
 import createButtonGroup from 'js/buttonGroup';
 import createWidget from 'js/widget';
 
-const createTabView = extendFactory(createWidget, {
+// region Tabview extends Widget
+/**
+ * @class TabView
+ * @augments Widget
+ * @see createTabView
+ */
+
+/**
+ * @typedef {object} TabViewConfig
+ * @property {Object[]} [tabs]
+ * @property {string} tabs[].label
+ * @property {HTMLElement|string} tabs[].content
+ */
+
+/**
+ * @function
+ * @param {TabViewConfig} [config]
+ * @return {TabView}
+ */
+const createTabView = extendFactory(createWidget, /** @lends TabView.prototype */ {
 
 	CLASS: 'tabView',
 	
@@ -143,3 +162,4 @@ const createTabView = extendFactory(createWidget, {
 });
 
 export default createTabView;
+// endregion

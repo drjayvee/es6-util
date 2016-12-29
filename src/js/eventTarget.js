@@ -50,9 +50,9 @@ class Dispatch {
 
 	/**
 	 * 
-	 * @param {String} type
-	 * @param {Boolean} [cancelable=true]
-	 * @param {Boolean} [bubbles=true]
+	 * @param {string} type
+	 * @param {boolean} [cancelable=true]
+	 * @param {boolean} [bubbles=true]
 	 * @param {Object} [data]
 	 * @returns {CustomEvent}
 	 */
@@ -73,7 +73,7 @@ class Dispatch {
 	
 	/**
 	 * 
-	 * @param	{String} type
+	 * @param	{string} type
 	 * @param	{Function} callback
 	 * @param	{Object} context
 	 * @param	{Boolean} [once=false]
@@ -99,7 +99,7 @@ class Dispatch {
 
 	/**
 	 * 
-	 * @param	{String} type
+	 * @param	{string} type
 	 * @param	{Function} callback
 	 * @param	{Object} context
 	 */
@@ -117,7 +117,7 @@ class Dispatch {
 	
 	/**
 	 * 
-	 * @param	{String} type
+	 * @param	{string} type
 	 * @param	{Function} [callback]
 	 * @param	{Object} [context]
 	 * @returns {Subscription[]}
@@ -160,10 +160,10 @@ class Subscription {
 	
 	/**
 	 * @param	{Dispatch} dispatch
-	 * @param	{String} type
+	 * @param	{string} type
 	 * @param	{Function} callback
 	 * @param	{Object} context
-	 * @param	{Boolean} [once=false]
+	 * @param	{boolean} [once=false]
 	 */
 	constructor (dispatch, type, callback, context, once = false) {
 		this._dispatch = dispatch;
@@ -190,15 +190,22 @@ const DEFAULT_CONFIG = {
 	context:		null
 };
 
-const createEventTarget = createFactory({
+/** @class EventTarget */
+
+/**
+ * @function
+ * @return {EventTarget}
+ * @property {EventTarget} prototype
+ */
+const createEventTarget = createFactory(/** @lends EventTarget.prototype */ {
 	
 	/**
 	 * Define a new event
 	 * 
-	 * @param	{String} type
+	 * @param	{string} type
 	 * @param	{Object} [config]
-	 * @param	{Boolean} [config.cancelable=true]
-	 * @param	{Boolean} [config.bubbles=true]
+	 * @param	{boolean} [config.cancelable=true]
+	 * @param	{boolean} [config.bubbles=true]
 	 * @param	{Function} [config.canceledFn=null]
 	 * @param	{Function} [config.defaultFn=null]
 	 */
@@ -240,7 +247,7 @@ const createEventTarget = createFactory({
 	
 	/**
 	 * 
-	 * @param	{String} type
+	 * @param	{string} type
 	 * @param	{Function} callback
 	 * @param	{Object} [context]		if not specified, use this
 	 * @returns {Subscription}
@@ -273,7 +280,7 @@ const createEventTarget = createFactory({
 	/**
 	 * Remove all subscriptions for this type (on and after), callback, context
 	 * 
-	 * @param	{String} type
+	 * @param	{string} type
 	 * @param	{Function} callback
 	 * @param	{Object} [context]		if not specified, use this
 	 */
@@ -283,10 +290,10 @@ const createEventTarget = createFactory({
 
 	/**
 	 * 
-	 * @param	{String} type
+	 * @param	{string} type
 	 * @param	{Function} callback
 	 * @param	{Object} [context=this]
-	 * @param	{Boolean} [once=false]
+	 * @param	{boolean} [once=false]
 	 * @returns {Subscription}
 	 * @private
 	 */
@@ -296,7 +303,7 @@ const createEventTarget = createFactory({
 	
 	/**
 	 * 
-	 * @param {String} type
+	 * @param {string} type
 	 * @param {Object} [data]
 	 * @return {boolean}	true if event was not cancelled
 	 */

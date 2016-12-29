@@ -60,9 +60,8 @@ function initHierarchy (instance, args, factory) {
 }
 
 /**
- * 
  * @param {Object} prototype
- * @param {Function|null} init
+ * @param {Function} [init]
  * @returns {Function}
  */
 export function createFactory (prototype, init = null) {
@@ -89,10 +88,9 @@ export function createFactory (prototype, init = null) {
 }
 
 /**
- * 
  * @param {Function} base
  * @param {Object} prototype
- * @param {Function|null} init
+ * @param {Function} [init]
  * @returns {Function}
  */
 export function extendFactory (base, prototype, init = null) {
@@ -111,6 +109,11 @@ export function extendFactory (base, prototype, init = null) {
 	return factory;
 }
 
+/**
+ * @param {Object} object
+ * @param {Function} factory
+ * @return {boolean}
+ */
 export function createdBy (object, factory) {
 	if (typeof object !== 'object' || object === null) {
 		throw 'Not an object';

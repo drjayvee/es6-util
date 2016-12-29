@@ -5,8 +5,26 @@ import {createAttributeObservable} from 'js/attribute';
 
 const map = new Map();
 
-// region WidgetP extends AttributeObservable
-const createWidget = extendFactory(createAttributeObservable, {
+// region Widget extends AttributeObservable
+/**
+ * @class Widget
+ * @augments AttributeObservable
+ * @see createWidget
+ */
+
+/**
+ * @typedef {Object} WidgetConfig
+ * @property {boolean} [hidden=false]
+ * @see AttributeConfig
+ */
+
+/**
+ * @function
+ * @param {WidgetConfig} [config]
+ * @return {Widget}
+ * @property {Widget} prototype
+ */
+const createWidget = extendFactory(createAttributeObservable, /** @lends Widget.prototype */ {
 
 	ATTRS: {
 		hidden: {
@@ -24,6 +42,10 @@ const createWidget = extendFactory(createAttributeObservable, {
 	
 	CLASS: 'widget',
 	
+	/**
+	 * @param {HTMLElement} srcNode
+	 * @returns {Widget}
+	 */
 	enhance (srcNode) {
 		if (this.get('rendered')) {
 			throw 'Already rendered';
@@ -46,6 +68,11 @@ const createWidget = extendFactory(createAttributeObservable, {
 	
 	_enhance () {},
 	
+	/**
+	 * @param {HTMLElement} parentNode
+	 * @param {HTMLElement} beforeNode
+	 * @returns {Widget}
+	 */
 	render (parentNode = document.body, beforeNode = null) {
 		if (this.get('rendered')) {
 			throw 'Already rendered';
@@ -124,7 +151,15 @@ const createWidget = extendFactory(createAttributeObservable, {
 		this._set('rendered', false, true);
 	},
 	
-	_registerListener (eventType, cb, context = this) {
+	/**
+	 * Register an event listener on this.node which will get removed on destroy()
+	 * 
+	 * @param {String} eventType
+	 * @param {Function} cb
+	 * @param {Object} context
+	 * @see HTMLElement.addEventListener
+	 */
+	addEventListener (eventType, cb, context = this) {
 		cb = cb.bind(context);
 		
 		this.node.addEventListener(eventType, cb);

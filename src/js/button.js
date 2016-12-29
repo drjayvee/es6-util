@@ -3,8 +3,27 @@
 import {mix, createFactory, extendFactory} from 'js/oop';
 import createWidget from 'js/widget';
 
-// region Button extends WidgetP
-export const createButton = extendFactory(createWidget, {
+// region Button extends Widget
+/**
+ * @class Button
+ * @augments Widget
+ * @see createButton
+ */
+
+/**
+ * @typedef {Object} ButtonConfig
+ * @property {boolean} [disabled=false]
+ * @property {string} [label='']
+ * @see WidgetConfig
+ */
+
+/**
+ * @function
+ * @param {ButtonConfig} [config]
+ * @return {Button}
+ * @property {Button} prototype
+ */
+export const createButton = extendFactory(createWidget, /** @lends Button.prototype */ {
 	ATTRS: {
 		disabled: {
 			value: false,
@@ -49,7 +68,25 @@ export const createButton = extendFactory(createWidget, {
 // endregion
 
 // region ToggleButton extends Button
-export const createToggleButton = extendFactory(createButton, {
+/**
+ * @class ToggleButton
+ * @augments Button
+ * @see createToggleButton
+ */
+
+/**
+ * @typedef {Object} ToggleButtonConfig
+ * @property {boolean} [pressed=false]
+ * @see ButtonConfig
+ */
+
+/**
+ * @function
+ * @param {ToggleButtonConfig} [config]
+ * @return {ToggleButton}
+ * @property {ToggleButton} prototype
+ */
+export const createToggleButton = extendFactory(createButton, /** @lends ToggleButton.prototype */ {
 	ATTRS: {
 		pressed: {
 			value: false,
@@ -59,6 +96,9 @@ export const createToggleButton = extendFactory(createButton, {
 	
 	CLASS: 'toggleButton',
 	
+	/**
+	 * @param {boolean} [pressed]
+	 */
 	toggle (pressed = !this.get('pressed')) {
 		this.set('pressed', pressed);
 	},
@@ -82,7 +122,7 @@ export const createToggleButton = extendFactory(createButton, {
 			this.after('pressedChange', this._setPressed)
 		);
 		
-		this._registerListener('click', () => {this.toggle();});	// anonymous function so toggle doesn't get event argument
+		this.addEventListener('click', () => {this.toggle();});	// anonymous function so toggle doesn't get event argument
 	},
 	
 	_setPressed () {

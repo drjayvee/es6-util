@@ -4,11 +4,31 @@ import {extendFactory} from 'js/oop';
 import createWidgetParent from 'js/widgetParent';
 import {createToggleButton} from 'js/button';
 
-const createButtonGroup = extendFactory(createWidgetParent, {
+// region ButtonGroup extends WidgetParent
+/**
+ * @class ButtonGroup
+ * @augments WidgetParent
+ * @see createButtonGroup
+ */
+
+/**
+ * @typedef {object} ButtonGroupConfig
+ * @property {boolean} [radio=false]
+ */
+
+/**
+ * @function
+ * @param {ButtonGroupConfig} [config]
+ * @return {ButtonGroup}
+ */
+const createButtonGroup = extendFactory(createWidgetParent, /** @lends ButtonGroup.prototype */ {
 	CHILD_TYPE: createToggleButton,
 	
 	CLASS: 'buttonGroup',
-	
+
+	/**
+	 * @return {ToggleButton[]}
+	 */
 	getPressedButtons () {
 		return this.children.filter(button => button.get('pressed'));
 	},
@@ -54,5 +74,6 @@ const createButtonGroup = extendFactory(createWidgetParent, {
 });
 
 export default createButtonGroup;
+// endregion
 
 // TODO: add(createToggleButton({pressed: true}));

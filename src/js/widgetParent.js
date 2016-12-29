@@ -3,8 +3,24 @@
 import {extendFactory, createdBy} from 'js/oop';
 import createWidget from 'js/widget';
 
-// region WidgetParent
-const createWidgetParent = extendFactory(createWidget, {
+// region WidgetParent extends Widget
+/**
+ * @class WidgetParent
+ * @augments Widget
+ * @see createWidgetParent
+ */
+
+/**
+ * @typedef {Object} WidgetParentConfig
+ * @property {Widget[]} children
+ */
+
+/**
+ * @function
+ * @param {WidgetParentConfig} [config]
+ * @return {WidgetParent}
+ */
+const createWidgetParent = extendFactory(createWidget, /** @lends WidgetParent.prototype */ {
 	
 	CHILD_TYPE: createWidget,
 	
@@ -14,6 +30,11 @@ const createWidgetParent = extendFactory(createWidget, {
 		}
 	},
 	
+	/**
+	 * @param {Widget} child
+	 * @param {Number} index
+	 * @param {boolean} render
+	 */
 	add (child, index = null, render = true) {
 		this._testChildType(child);
 		
@@ -39,12 +60,20 @@ const createWidgetParent = extendFactory(createWidget, {
 		event.child.addBubbleTarget(this);
 	},
 	
+	/**
+	 * @param {Widget} child
+	 * @returns {boolean}
+	 */
 	contains (child) {
 		this._testChildType(child);
 		
 		return this.children.indexOf(child) !== -1;
 	},
 	
+	/**
+	 * @param {Widget} child
+	 * @returns {number}
+	 */
 	getIndex (child) {
 		this._testChildType(child);
 		
@@ -55,6 +84,9 @@ const createWidgetParent = extendFactory(createWidget, {
 		return this.children.indexOf(child);
 	},
 	
+	/**
+	 * @param {HTMLElement} srcNode
+	 */
 	enhance (srcNode) {
 		if (this.children.length) {
 			throw 'Cannot enhance - children already set';

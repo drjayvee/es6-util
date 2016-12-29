@@ -70,7 +70,7 @@ QUnit.test('widget lifecycle listener / subscription cleanup', function (assert)
 		},
 		
 		_bindUI () {
-			this._registerListener('click', (e) => {DOMevent = e;});
+			this.addEventListener('click', ( e) => {DOMevent = e;});
 			
 			this._registerSubscriptions(
 				this.on('myChange', (e) => {attrEvent = e;})

@@ -17,7 +17,7 @@ setTimeout(() => {
 		.set('disabled', false);
 }, 2000);
 
-bt.node.addEventListener('click', () => {
+bt.addEventListener('click', () => {
 	bt.set('label', 'You got me')
 		.set('disabled', true);
 });

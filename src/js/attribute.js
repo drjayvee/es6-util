@@ -37,18 +37,30 @@ function mergeAttrConfigs (source) {
 	return attrs;
 }
 
-export const createAttribute = createFactory({
+/** @class Attribute */
+
+/**
+ * @typedef {Object} AttributeConfig
+ */
+
+/**
+ * @function
+ * @param {AttributeConfig} [config]	initialize attributes with these values
+ * @return {Attribute}
+ * @property {Attribute} prototype
+ */
+export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 	INVALID: {},	// used as a constant
 
 	/**
 	 * Config can have value, validator, getters, setter
 	 * 
 	 * @param {String} name
-	 * @param {Object} config
-	 * @param {*} config.value
-	 * @param {Function} config.validator
-	 * @param {Function} config.getter
-	 * @param {Function} config.setter
+	 * @param {Object} [config]
+	 * @param {*} [config.value]
+	 * @param {Function} [config.validator]
+	 * @param {Function} [config.getter]
+	 * @param {Function} [config.setter]
 	 */
 	addAttribute: function (name, {value, validator, getter, setter, readOnly} = {}) {
 		if (this.hasAttribute(name)) {
@@ -150,7 +162,19 @@ export const createAttribute = createFactory({
 // endregion
 
 // region AttributeObservable
-export const createAttributeObservable = extendFactory(createAttribute, {
+/**
+ * @class AttributeObservable
+ * @augments Attribute
+ * @augments EventTarget
+ */
+
+/**
+ * @function
+ * @param {AttributeConfig} [config]	initialize attributes with these values
+ * @return {AttributeObservable}
+ * @property {AttributeObservable} prototype
+ */
+export const createAttributeObservable = extendFactory(createAttribute, /** @lends AttributeObservable.prototype */ {
 	_set (name, value, overrideReadOnly = false) {
 		const data = {
 				prevVal:	this.get(name),
