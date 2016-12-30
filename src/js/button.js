@@ -97,6 +97,8 @@ export const createToggleButton = extendFactory(createButton, /** @lends ToggleB
 	CLASS: 'toggleButton',
 	
 	/**
+	 * Toggle or set pressed state
+	 * 
 	 * @param {boolean} [pressed]
 	 */
 	toggle (pressed = !this.get('pressed')) {

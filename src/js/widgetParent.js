@@ -31,9 +31,12 @@ const createWidgetParent = extendFactory(createWidget, /** @lends WidgetParent.p
 	},
 	
 	/**
+	 * Add a child Widget
+	 * 
 	 * @param {Widget} child
-	 * @param {Number} index
-	 * @param {boolean} render
+	 * @param {Number} [index=null]
+	 * @param {boolean} [render=true]
+	 * @returns {WidgetParent} this
 	 */
 	add (child, index = null, render = true) {
 		this._testChildType(child);
@@ -53,6 +56,8 @@ const createWidgetParent = extendFactory(createWidget, /** @lends WidgetParent.p
 		}
 		
 		this.fire('addChild', {child, index});
+		
+		return this;
 	},
 	
 	_addChildDefFn (event) {
@@ -84,9 +89,6 @@ const createWidgetParent = extendFactory(createWidget, /** @lends WidgetParent.p
 		return this.children.indexOf(child);
 	},
 	
-	/**
-	 * @param {HTMLElement} srcNode
-	 */
 	enhance (srcNode) {
 		if (this.children.length) {
 			throw 'Cannot enhance - children already set';
@@ -121,6 +123,9 @@ const createWidgetParent = extendFactory(createWidget, /** @lends WidgetParent.p
 		}
 	},
 	
+	/**
+	 * Destroy each child Widget, then destroy this
+	 */
 	destroy () {
 		for (let child of this.children) {
 			child.destroy();

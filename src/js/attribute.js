@@ -77,6 +77,7 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 	},
 
 	/**
+	 * Check if attribute has already been added (through addAttribute or prototype.ATTRS)
 	 * 
 	 * @param {String} name
 	 * @returns {boolean}
@@ -86,6 +87,7 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 	},
 
 	/**
+	 * Set an attribute value
 	 * 
 	 * @param {String} name
 	 * @param {*} value
@@ -129,8 +131,9 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 	},
 
 	/**
+	 * Get an attribute value
 	 * 
-	 * @param {String} name
+	 * @param {string} name
 	 * @returns {*}
 	 */
 	get: function (name) {

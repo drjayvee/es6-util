@@ -43,6 +43,10 @@ const createWidget = extendFactory(createAttributeObservable, /** @lends Widget.
 	CLASS: 'widget',
 	
 	/**
+	 * Progressively enhance an existing DOM Element
+	 * 
+	 * Will sync state of Widget to that of the element
+	 * 
 	 * @param {HTMLElement} srcNode
 	 * @returns {Widget}
 	 */
@@ -126,6 +130,12 @@ const createWidget = extendFactory(createAttributeObservable, /** @lends Widget.
 		this.node.classList.add(...this._getClasses());
 	},
 	
+	/**
+	 * Destroy this widget
+	 * 
+	 * Removes the element from document and removes DOM event listeners and
+	 * event subscriptions
+	 */
 	destroy () {
 		if (this.node) {
 			if (this.node.parentNode) {		// node may not have been appended to DOM: widget.render(document.createElement('div')))

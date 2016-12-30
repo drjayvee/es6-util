@@ -16,7 +16,7 @@ import createWidget from 'js/widget';
  * @typedef {object} TabViewConfig
  * @property {Object[]} [tabs]
  * @property {string} tabs[].label
- * @property {HTMLElement|string} tabs[].content
+ * @property {(HTMLElement|string)} tabs[].content
  */
 
 /**
@@ -29,16 +29,16 @@ const createTabView = extendFactory(createWidget, /** @lends TabView.prototype *
 	CLASS: 'tabView',
 	
 	/**
+	 * Add a tab
 	 * 
 	 * @param {string} label
-	 * @param {string|HTMLElement} content
-	 * @param {Number|null} index
-	 * @param {boolean} setSelected
+	 * @param {(string|HTMLElement)} content
+	 * @param {number} [index]
+	 * @param {boolean} [setSelected]
+	 * @return {TabView} this
 	 */
 	addTab (label, content, index = this._tabs.length, setSelected = !this._tabs.length) {
-		if (index < 0 || index > this._tabs.length) {
-			throw 'Invalid index';
-		}
+		this._checkIndex(index);
 		
 		// add label Button
 		const labelButton = createToggleButton({label});
@@ -59,6 +59,12 @@ const createTabView = extendFactory(createWidget, /** @lends TabView.prototype *
 		return this;
 	},
 	
+	_checkIndex (index) {
+		if (index < 0 || index > this._tabs.length) {
+			throw 'Invalid index';
+		}
+	},
+	
 	_renderTab (content, index, hidden = true) {
 		if (typeof content === 'string') {
 			const c = document.createElement('div');
@@ -75,27 +81,48 @@ const createTabView = extendFactory(createWidget, /** @lends TabView.prototype *
 		}
 	},
 	
+	/**
+	 * Get the selected tab's index
+	 * 
+	 * @return {number}
+	 */
 	getSelectedIndex () {
 		return this._labelsGroup.getIndex(
 			this._labelsGroup.getPressedButtons()[0]
 		);
 	},
 	
+	/**
+	 * Get the selected tab
+	 * 
+	 * @return {{label: string, content: string}}
+	 */
 	getSelectedTab () {
 		return this.getTab(this.getSelectedIndex());
 	},
 	
+	/**
+	 * Get a tab
+	 * 
+	 * @param {number} index
+	 * @return {{label: string, content: string}}
+	 */
 	getTab (index) {
+		this._checkIndex(index);
+		
 		return {
 			label: this._labelsGroup.children[index].get('label'),
 			content: this.get('rendered') ? this._tabPanelContainer.children[index].innerHTML : null
 		};
 	},
 	
+	/**
+	 * Select a tab
+	 * 
+	 * @param {number} index
+	 */
 	selectTab (index) {
-		if (index < 0 || index >= this._tabs.length) {
-			throw 'Invalid index';
-		}
+		this._checkIndex(index);
 		
 		this._labelsGroup.children[index].toggle(true);
 	},
