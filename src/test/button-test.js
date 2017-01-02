@@ -89,8 +89,9 @@ QUnit.test('enhance Button', function (assert) {
 	node.disabled = true;
 	document.body.appendChild(node);
 	
-	const b = createButton();
-	b.enhance(node);
+	const b = createButton({
+		enhance: node
+	});
 	
 	assert.equal('Oh hi', b.get('label'));
 	assert.ok(b.get('disabled'));
@@ -106,8 +107,9 @@ QUnit.test('enhance ToggleButton', function (assert) {
 	node.classList.add('pressed');
 	document.body.appendChild(node);
 	
-	const b = createToggleButton();
-	b.enhance(node);
+	const b = createToggleButton({
+		enhance: node
+	});
 	
 	assert.ok(b.get('pressed'));
 });

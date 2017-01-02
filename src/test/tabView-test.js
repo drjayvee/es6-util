@@ -70,10 +70,6 @@ QUnit.test('basic TabView', function (assert) {
 });
 
 QUnit.test('enhance TabView', function (assert) {
-	const tv = createTabView();
-	
-	widgets.push(tv);
-	
 	const c = document.createElement('div');
 	c.innerHTML = `
 		<div class="buttonGroup">
@@ -85,7 +81,11 @@ QUnit.test('enhance TabView', function (assert) {
 			<div>nice</div>
 		</div>`;
 	
-	tv.enhance(c);
+	const tv = createTabView({
+		enhance: c
+	});
+	
+	widgets.push(tv);
 	
 	assert.equal(0, tv.getSelectedIndex(), '1st tab should be selected by default');
 	

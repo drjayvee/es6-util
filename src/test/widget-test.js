@@ -70,7 +70,7 @@ QUnit.test('widget lifecycle listener / subscription cleanup', function (assert)
 		},
 		
 		_bindUI () {
-			this.addEventListener('click', ( e) => {DOMevent = e;});
+			this.addEventListener('click', (e) => {DOMevent = e;});
 			
 			this._registerSubscriptions(
 				this.on('myChange', (e) => {attrEvent = e;})
@@ -120,9 +120,11 @@ QUnit.test('widget lifecycle listener / subscription cleanup', function (assert)
 	document.body.appendChild(node);
 	nodes.push(node);
 	
-	widget.enhance(node);
+	const pwidget = createMyWidget({
+		enhance: node
+	});
 	
-	testWidget(widget);
+	testWidget(pwidget);
 });
 
 QUnit.test('Widget node template', function (assert) {
@@ -168,7 +170,7 @@ QUnit.test('Widget node class names', function (assert) {
 	
 	nodes.push(node);
 	
-	let pew = createMySubSubWidget().enhance(node);
+	let pew = createMySubSubWidget({enhance: node});
 	widgets.push(pew);
 	
 	assert.deepEqual(
@@ -285,4 +287,40 @@ QUnit.test('child events bubble up to parents', function (assert) {
 	
 	assert.ok(ev, 'child event bubbles to parent');
 	assert.equal(ev.originalTarget, child, 'event.originalTarget is child');
+});
+
+QUnit.test('progressively enhanced widgets override provided attrs with node', function (assert) {
+	const createMyWidget = extendFactory(createWidget, {
+		ATTRS: {
+			content: {value: 'default'}
+		},
+		_enhance () {
+			this.set('content', this.node.innerHTML);
+		}
+	});
+	
+	// conflicting default value
+	const sourceNode1 = document.createElement('div');
+	sourceNode1.innerHTML = 'html';
+	nodes.push(sourceNode1);
+	
+	const widget1 = createMyWidget({
+		enhance: sourceNode1
+	});
+	widgets.push(widget1);
+	
+	assert.equal(widget1.get('content'), 'html');
+	
+	// conflicting attr value in init
+	const sourceNode2 = document.createElement('div');
+	sourceNode2.innerHTML = 'html';
+	nodes.push(sourceNode2);
+	
+	const widget2 = createMyWidget({
+		content: 'init',
+		enhance: sourceNode2
+	});
+	widgets.push(widget2);
+	
+	assert.equal(widget2.get('content'), 'html');
 });

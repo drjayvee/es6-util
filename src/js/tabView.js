@@ -105,7 +105,7 @@ const createTabView = extendFactory(createWidget, /** @lends TabView.prototype *
 	 * Get a tab
 	 * 
 	 * @param {number} index
-	 * @return {{label: string, content: string}}
+	 * @return {{label: string, content: (string|null)}}
 	 */
 	getTab (index) {
 		this._checkIndex(index);
@@ -127,17 +127,7 @@ const createTabView = extendFactory(createWidget, /** @lends TabView.prototype *
 		this._labelsGroup.children[index].toggle(true);
 	},
 	
-	enhance (srcNode) {
-		if (this._tabs.length) {
-			throw 'Cannot enhance - tabs already set';
-		}
-		
-		createWidget.prototype.enhance.apply(this, arguments);
-	},
-	
 	_enhance () {
-		this._labelsGroup.enhance(this.node.firstElementChild);
-		
 		if (!this._labelsGroup.getPressedButtons().length) {
 			this._labelsGroup.children[0].toggle();
 		}
@@ -177,14 +167,30 @@ const createTabView = extendFactory(createWidget, /** @lends TabView.prototype *
 			panelNode.hidden = panelIndex !== tabIndex;
 		}
 	}
-}, function (superInit, {tabs = []} = {}) {
+}, function (superInit, {tabs = [], enhance = null} = {}) {
+	if (enhance && tabs.length) {
+		throw 'Cannot enhance existing element and add tabs';
+	}
+	
+	this._labelsGroup = createButtonGroup({
+		enhance: enhance ? enhance.firstElementChild : null,
+		radio: true
+	});
+	
 	superInit();
 	
-	this._labelsGroup = createButtonGroup({radio: true});
-	
 	this._tabs = [];
-	for (let tab of tabs) {
-		this.addTab(tab.label, tab.content);
+	if (enhance) {
+		for (let [index, labelButton] of this._labelsGroup.children.entries()) {
+			this._tabs.push({
+				label: labelButton.get('label'),
+				content: this._tabPanelContainer.childNodes[index].innerHTML
+			});
+		}
+	} else {
+		for (let tab of tabs) {
+			this.addTab(tab.label, tab.content);
+		}
 	}
 });
 

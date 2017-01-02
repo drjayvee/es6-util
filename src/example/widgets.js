@@ -40,10 +40,13 @@ const radioGroup = createButtonGroup({
 }).render();
 
 createButtonGroup({
+	enhance: document.getElementById('bg'),
 	radio: true
-}).enhance(document.getElementById('bg'));
+});
 // endregion
 
 // region TabView
-createTabView().enhance(document.getElementById('tv'));
+createTabView({
+	enhance: document.getElementById('tv')
+});
 // endregion

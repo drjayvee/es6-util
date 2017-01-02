@@ -15,6 +15,7 @@ const map = new Map();
 /**
  * @typedef {Object} WidgetConfig
  * @property {boolean} [hidden=false]
+ * @property {HTMLElement} [enhance]
  * @see AttributeConfig
  */
 
@@ -43,36 +44,6 @@ const createWidget = extendFactory(createAttributeObservable, /** @lends Widget.
 	CLASS: 'widget',
 	
 	/**
-	 * Progressively enhance an existing DOM Element
-	 * 
-	 * Will sync state of Widget to that of the element
-	 * 
-	 * @param {HTMLElement} srcNode
-	 * @returns {Widget}
-	 */
-	enhance (srcNode) {
-		if (this.get('rendered')) {
-			throw 'Already rendered';
-		}
-		
-		this.set('hidden', srcNode.hidden);
-		
-		this.node = srcNode;
-		
-		this._addClassesToNode();
-		
-		this._enhance();
-		this._bindUI();
-		
-		this._set('rendered', true, true);
-		map.set(this.node, this);
-		
-		return this;
-	},
-	
-	_enhance () {},
-	
-	/**
 	 * @param {HTMLElement} parentNode
 	 * @param {HTMLElement} beforeNode
 	 * @returns {Widget}
@@ -82,31 +53,49 @@ const createWidget = extendFactory(createAttributeObservable, /** @lends Widget.
 			throw 'Already rendered';
 		}
 		
-		// create new node
-		const c = document.createElement('div');
-		c.innerHTML = this.NODE_TEMPLATE;
-		this.node = c.firstElementChild;
+		this._enhanceOrRender({parentNode, beforeNode});
 		
-		this.node.hidden = this.get('hidden');
+		return this;
+	},
+	
+	_enhanceOrRender ({parentNode, beforeNode, sourceNode}) {
+		if (parentNode) {
+			// create new node
+			const c = document.createElement('div');
+			c.innerHTML = this.NODE_TEMPLATE;
+			this.node = c.firstElementChild;
+			
+			this.node.hidden = this.get('hidden');
+		} else {
+			this.node = sourceNode;
+			
+			this.set('hidden', sourceNode.hidden);
+		}
 		
 		this._addClassesToNode();
 		
-		// call custom render, sync, binding
-		this._render();
+		if (parentNode) {
+			this._render();
+		} else {
+			this._enhance();
+		}
+		
 		this._bindUI();
 		
-		// place node in DOM
-		if (beforeNode) {
-			parentNode.insertBefore(this.node, beforeNode);
-		} else {
-			parentNode.appendChild(this.node);
+		if (parentNode) {
+			// place node in DOM
+			if (beforeNode) {
+				parentNode.insertBefore(this.node, beforeNode);
+			} else {
+				parentNode.appendChild(this.node);
+			}
 		}
 		
 		map.set(this.node, this);
 		this._set('rendered', true, true);
-		
-		return this;
 	},
+	
+	_enhance () {},
 	
 	_render () {},
 	
@@ -179,11 +168,15 @@ const createWidget = extendFactory(createAttributeObservable, /** @lends Widget.
 	_registerSubscriptions (...subs) {
 		this._subscriptions.splice(this._subscriptions.length, 0, ...subs);
 	}
-}, function (superInit) {
+}, function (superInit, {enhance = null} = {}) {
 	superInit();
 	
 	this._nodeListeners = [];
 	this._subscriptions = [];
+	
+	if (enhance) {
+		this._enhanceOrRender({sourceNode: enhance});
+	}
 });
 
 export default createWidget;

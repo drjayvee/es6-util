@@ -12,7 +12,8 @@ import createWidget from 'js/widget';
 
 /**
  * @typedef {Object} WidgetParentConfig
- * @property {Widget[]} children
+ * @property {Widget[]} [children]
+ * @property {HTMLElement} [enhance]
  */
 
 /**
@@ -89,22 +90,6 @@ const createWidgetParent = extendFactory(createWidget, /** @lends WidgetParent.p
 		return this.children.indexOf(child);
 	},
 	
-	enhance (srcNode) {
-		if (this.children.length) {
-			throw 'Cannot enhance - children already set';
-		}
-		
-		createWidget.prototype.enhance.apply(this, arguments);
-	},
-	
-	_enhance () {
-		for (let node of Array.from(this.node.children)) {
-			this.add(
-				this.CHILD_TYPE().enhance(node)
-			);
-		}
-	},
-	
 	_render () {
 		this.children.forEach(this._renderChild, this);
 	},
@@ -133,7 +118,11 @@ const createWidgetParent = extendFactory(createWidget, /** @lends WidgetParent.p
 		
 		createWidget.prototype.destroy.apply(this);
 	}
-}, function (superInit, {children = []} = {}) {
+}, function (superInit, {children = [], enhance = null} = {}) {
+	if (enhance && children.length) {
+		throw 'Cannot enhance existing element and add children';
+	}
+	
 	superInit();
 	
 	this.publish('addChild', {
@@ -141,8 +130,17 @@ const createWidgetParent = extendFactory(createWidget, /** @lends WidgetParent.p
 	});
 	
 	this.children = [];
-	for (let child of children) {
-		this.add(child);
+	
+	if (enhance) {
+		for (let node of Array.from(this.node.children)) {
+			this.add(
+				this.CHILD_TYPE({enhance: node})
+			);
+		}
+	} else {
+		for (let child of children) {
+			this.add(child);
+		}
 	}
 });
 // endregion
