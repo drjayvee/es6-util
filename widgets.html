@@ -33,9 +33,34 @@
 	
 	<h1>Rendered</h1>
 	
-	<script src="lib/require.js"></script>
+	<script src="node_modules/systemjs/dist/system.js"></script>
 	<script>
-		require(['example/widgets']);
+		System.config({
+			baseURL: './src',
+			transpiler: 'plugin-babel',
+			map: {
+				'plugin-babel':					'./node_modules/systemjs-plugin-babel/plugin-babel.js',
+				'systemjs-babel-build': './node_modules/systemjs-plugin-babel/systemjs-babel-browser.js'
+			},
+			/*depCache: {
+				'js/eventTarget': ['js/oop'],
+				'js/attribute': ['js/oop', 'js/eventTarget'],
+				'js/widget': ['js/oop', 'js/attribute'],
+				'js/widgetParent': ['js/oop', 'js/widget'],
+				'js/button': ['js/oop', 'js/widget'],
+				'js/buttonGroup': ['js/oop', 'js/widgetParent', 'js/button'],
+				'js/tabView': ['js/oop', 'js/widget', 'js/button', 'js/buttonGroup'],
+				'example/widgets': ['js/button', 'js/buttonGroup', 'js/tabView']
+			},*/
+			packages: {
+				'./src': {
+//					format: 'esm',
+					defaultExtension: 'js'
+				}
+			}
+		});
+		
+		System.import('example/widgets.js');
 	</script>
 </body>
 </html>
