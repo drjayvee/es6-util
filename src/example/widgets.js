@@ -2,7 +2,6 @@
 
 import {createButton, createToggleButton} from 'js/button';
 import createButtonGroup from 'js/buttonGroup';
-import createTabView from 'js/tabView';
 import createOverlay from 'js/overlay';
 
 // region Button
@@ -50,8 +49,12 @@ createButtonGroup({
 // endregion
 
 // region TabView
-createTabView({
-	enhance: document.getElementById('tv')
+document.getElementById('tv').addEventListener('click', () => {
+	import('js/tabView').then(createTabView => {
+		createTabView.default({
+			enhance: document.getElementById('tv')
+		});
+	});
 });
 // endregion
 

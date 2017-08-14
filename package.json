@@ -22,10 +22,11 @@
     "grunt-contrib-clean": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",
     "load-grunt-tasks": "^3.2.0",
-    "qunitjs": "^2.0.0"
+    "qunitjs": "^2.0.0",
+    "webpack": "^3.5.3"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack"
   },
   "author": "",
   "license": "ISC"
