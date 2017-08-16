@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 
-import {extendFactory} from 'js/oop';
-import {createAttributeObservable} from 'js/attribute';
+import {extendFactory} from 'js/oop.js';
+import {createAttributeObservable} from 'js/attribute.js';
 
 const map = new Map();
 

@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 
-import {mix, createFactory, extendFactory} from 'js/oop';
-import createEventTarget, {AFTER} from 'js/eventTarget';
+import {mix, createFactory, extendFactory} from 'js/oop.js';
+import createEventTarget, {AFTER} from 'js/eventTarget.js';
 
 // region Attribute
 /**

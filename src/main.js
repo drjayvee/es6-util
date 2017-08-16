@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 
-import {createButton, createToggleButton} from 'js/button';
-import createButtonGroup from 'js/buttonGroup';
+import {createButton, createToggleButton} from 'js/button.js';
+import createButtonGroup from 'js/buttonGroup.js';
 
 // region Button
 const bt = createButton({
@@ -48,7 +48,7 @@ createButtonGroup({
 const tabViewInit = () => {
 	document.getElementById('tv').removeEventListener('mouseover', tabViewInit);
 	
-	System.import('js/tabView').then(tabView => {
+	System.import('js/tabView.js').then(tabView => {
 		tabView.default({
 			enhance: document.getElementById('tv')
 		});

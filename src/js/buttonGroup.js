@@ -1,8 +1,8 @@
 /*jshint esnext:true*/
 
-import {extendFactory} from 'js/oop';
-import createWidgetParent from 'js/widgetParent';
-import {createToggleButton} from 'js/button';
+import {extendFactory} from 'js/oop.js';
+import createWidgetParent from 'js/widgetParent.js';
+import {createToggleButton} from 'js/button.js';
 
 // region ButtonGroup extends WidgetParent
 /**

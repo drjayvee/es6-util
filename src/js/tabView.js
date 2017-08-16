@@ -1,9 +1,9 @@
 /*jshint esnext:true*/
 
-import {extendFactory} from 'js/oop';
-import {createToggleButton} from 'js/button';
-import createButtonGroup from 'js/buttonGroup';
-import createWidget from 'js/widget';
+import {extendFactory} from 'js/oop.js';
+import {createToggleButton} from 'js/button.js';
+import createButtonGroup from 'js/buttonGroup.js';
+import createWidget from 'js/widget.js';
 
 // region Tabview extends Widget
 /**

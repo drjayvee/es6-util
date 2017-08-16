@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 
-import {extendFactory, createdBy} from 'js/oop';
-import createWidget from 'js/widget';
+import {extendFactory, createdBy} from 'js/oop.js';
+import createWidget from 'js/widget.js';
 
 // region WidgetParent extends Widget
 /**

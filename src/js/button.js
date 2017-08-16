@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 
-import {mix, createFactory, extendFactory} from 'js/oop';
-import createWidget from 'js/widget';
+import {mix, createFactory, extendFactory} from 'js/oop.js';
+import createWidget from 'js/widget.js';
 
 // region Button extends Widget
 /**

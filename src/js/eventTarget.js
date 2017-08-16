@@ -1,6 +1,6 @@
 /*jshint esnext:true*/
 
-import {createFactory} from 'js/oop';
+import {createFactory} from 'js/oop.js';
 
 // region CustomEvent
 class CustomEvent {

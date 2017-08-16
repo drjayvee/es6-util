@@ -10,12 +10,7 @@ builder.config({
 		'plugin-babel':			'node_modules/systemjs-plugin-babel/plugin-babel.js',
 		'systemjs-babel-build':	'node_modules/systemjs-plugin-babel/systemjs-babel-browser.js'
 	},
-	baseURL: path.resolve('src'),
-	packages: {
-		js: {
-			defaultExtension: 'js'
-		}
-	}
+	baseURL: path.resolve('src')
 });
 
 var bundleOptions = {
