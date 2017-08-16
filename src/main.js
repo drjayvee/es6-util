@@ -46,7 +46,7 @@ createButtonGroup({
 
 // region TabView
 const tabViewInit = () => {
-	document.getElementById('tv').removeEventListener('click', tabViewInit);
+	document.getElementById('tv').removeEventListener('mouseover', tabViewInit);
 	
 	System.import('js/tabView').then(tabView => {
 		tabView.default({
@@ -54,5 +54,5 @@ const tabViewInit = () => {
 		});
 	});
 };
-document.getElementById('tv').addEventListener('click', tabViewInit);
+document.getElementById('tv').addEventListener('mouseover', tabViewInit);
 // endregion

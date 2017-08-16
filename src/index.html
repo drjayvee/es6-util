@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Widgets demo</title>
+	<meta charset="UTF-8">
+	<style type="text/css">
+		button.pressed {
+			background-color: darkgray;
+			color: white;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Progressive enhancement</h1>
+	<div id="bg">
+		<button type="button" disabled>Progressively</button>
+		<button type="button" class="pressed">enhance</button>
+		<button type="button">this!</button>
+	</div>
+	
+	<div id="tv">
+		<div>
+			<button type="button">1st</button>
+			<button type="button" class="pressed">2nd</button>
+			<button type="button">3rd</button>
+		</div>
+		<div>
+			<div hidden>Lorem</div>
+			<div>ipsum</div>
+			<div hidden>...</div>
+		</div>
+	</div>
+	
+	<h1>Rendered</h1>
+	
+	<script src="../node_modules/systemjs/dist/system.js"></script>
+	<script>
+		System.config({
+			transpiler: 'plugin-babel',
+			map: {
+				'plugin-babel':					'../node_modules/systemjs-plugin-babel/plugin-babel.js',
+				'systemjs-babel-build': '../node_modules/systemjs-plugin-babel/systemjs-babel-browser.js'
+			},
+			packages: {
+				'./': {
+					defaultExtension: 'js'
+				}
+			}
+		});
+		
+		System.import('main');
+	</script>
+</body>
+</html>
