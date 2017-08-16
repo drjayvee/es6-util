@@ -6,9 +6,9 @@ var Builder = require('systemjs-builder');
 var builder = new Builder();
 
 builder.config({
+	transpiler: 'babel',
 	map: {
-		'plugin-babel':			'node_modules/systemjs-plugin-babel/plugin-babel.js',
-		'systemjs-babel-build':	'node_modules/systemjs-plugin-babel/systemjs-babel-browser.js'
+		'systemjs-babel-build':	'node_modules/systemjs-plugin-babel/systemjs-babel-node.js'
 	},
 	baseURL: path.resolve('src')
 });
