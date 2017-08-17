@@ -63,7 +63,7 @@ QUnit.test('basic ToggleButton', function (assert) {
 	assert.ok(b.get('pressed'));
 	
 	b.render();
-	assert.ok(b.node.classList.contains('pressed'));
+	assert.ok(b.node.classList.contains('active'));
 	
 	b.toggle(true);
 	
@@ -72,7 +72,7 @@ QUnit.test('basic ToggleButton', function (assert) {
 	b.toggle();
 	
 	assert.notOk(b.get('pressed'));
-	assert.notOk(b.node.classList.contains('pressed'));
+	assert.notOk(b.node.classList.contains('active'));
 	
 	b.toggle(false);
 	
@@ -104,7 +104,7 @@ QUnit.test('enhance ToggleButton', function (assert) {
 	
 	node.setAttribute('type', 'button');
 	node.innerHTML = 'Oh hi';
-	node.classList.add('pressed');
+	node.classList.add('active');
 	document.body.appendChild(node);
 	
 	const b = createToggleButton({

@@ -2,11 +2,10 @@
 <html>
 <head>
 	<title>Widgets demo</title>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 	<style type="text/css">
-		button.pressed {
-			background-color: darkgray;
-			color: white;
-		}
+		body > .widget {display: block}
 	</style>
 </head>
 
@@ -14,14 +13,14 @@
 	<h1>Progressive enhancement</h1>
 	<div id="bg">
 		<button type="button" disabled>Progressively</button>
-		<button type="button" class="pressed">enhance</button>
+		<button type="button" class="active">enhance</button>
 		<button type="button">this!</button>
 	</div>
 	
 	<div id="tv">
 		<div>
 			<button type="button">1st</button>
-			<button type="button" class="pressed">2nd</button>
+			<button type="button" class="active">2nd</button>
 			<button type="button">3rd</button>
 		</div>
 		<div>

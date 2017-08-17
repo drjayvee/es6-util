@@ -108,7 +108,7 @@ const createWidget = extendFactory(createAttributeObservable, /** @lends Widget.
 		do {
 			proto = Object.getPrototypeOf(proto);
 			if (proto.CLASS) {
-				classes.push(proto.CLASS);
+				classes.push(...proto.CLASS.split(' '));
 			}
 		} while (proto !== createWidget.prototype);
 		
