@@ -76,9 +76,15 @@ export function createFactory (prototype, init = null) {
 	Object.defineProperties(factory, {
 		prototype:	{value: prototype},
 		init:		{value: init},
-		mix:		{value: function (...mixins) {
+		mix:		{value: (...mixins) => {
 			mix(prototype, ...mixins);
 			return factory;
+		}},
+		extend:		{value: (prototype, init = null) => {
+			return extendFactory(factory, prototype, init);
+		}},
+		created:	{value: (object) => {
+			return createdBy(object, factory);
 		}}
 	});
 	

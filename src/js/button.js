@@ -1,6 +1,5 @@
 /*jshint esnext:true*/
 
-import {mix, createFactory, extendFactory} from 'js/oop';
 import createWidget from 'js/widget';
 
 // region Button extends Widget
@@ -23,7 +22,7 @@ import createWidget from 'js/widget';
  * @return {Button}
  * @property {Button} prototype
  */
-export const createButton = extendFactory(createWidget, /** @lends Button.prototype */ {
+export const createButton = createWidget.extend(/** @lends Button.prototype */ {
 	ATTRS: {
 		disabled: {
 			value: false,
@@ -86,7 +85,7 @@ export const createButton = extendFactory(createWidget, /** @lends Button.protot
  * @return {ToggleButton}
  * @property {ToggleButton} prototype
  */
-export const createToggleButton = extendFactory(createButton, /** @lends ToggleButton.prototype */ {
+export const createToggleButton = createButton.extend(/** @lends ToggleButton.prototype */ {
 	ATTRS: {
 		pressed: {
 			value: false,

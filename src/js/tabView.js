@@ -1,6 +1,5 @@
 /*jshint esnext:true*/
 
-import {extendFactory} from 'js/oop';
 import {createToggleButton} from 'js/button';
 import createButtonGroup from 'js/buttonGroup';
 import createWidget from 'js/widget';
@@ -24,7 +23,7 @@ import createWidget from 'js/widget';
  * @param {TabViewConfig} [config]
  * @return {TabView}
  */
-const createTabView = extendFactory(createWidget, /** @lends TabView.prototype */ {
+const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 
 	CLASS: 'tabView',
 	

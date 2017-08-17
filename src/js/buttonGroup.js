@@ -1,6 +1,5 @@
 /*jshint esnext:true*/
 
-import {extendFactory} from 'js/oop';
 import createWidgetParent from 'js/widgetParent';
 import {createToggleButton} from 'js/button';
 
@@ -21,7 +20,7 @@ import {createToggleButton} from 'js/button';
  * @param {ButtonGroupConfig} [config]
  * @return {ButtonGroup}
  */
-const createButtonGroup = extendFactory(createWidgetParent, /** @lends ButtonGroup.prototype */ {
+const createButtonGroup = createWidgetParent.extend(/** @lends ButtonGroup.prototype */ {
 	CHILD_TYPE: createToggleButton,
 	
 	CLASS: 'btn-group',

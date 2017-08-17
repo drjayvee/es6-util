@@ -1,6 +1,6 @@
 /*jshint esnext:true*/
 
-import {mix, createFactory, extendFactory} from 'js/oop';
+import {createFactory} from 'js/oop';
 import createEventTarget, {AFTER} from 'js/eventTarget';
 
 // region Attribute
@@ -177,7 +177,7 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
  * @return {AttributeObservable}
  * @property {AttributeObservable} prototype
  */
-export const createAttributeObservable = extendFactory(createAttribute, /** @lends AttributeObservable.prototype */ {
+export const createAttributeObservable = createAttribute.extend(/** @lends AttributeObservable.prototype */ {
 	_set (name, value, overrideReadOnly = false) {
 		const data = {
 				prevVal:	this.get(name),

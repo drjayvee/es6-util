@@ -1,6 +1,5 @@
 /*jshint esnext:true*/
 
-import {extendFactory, createdBy} from 'js/oop';
 import createWidget from 'js/widget';
 
 // region WidgetParent extends Widget
@@ -21,12 +20,12 @@ import createWidget from 'js/widget';
  * @param {WidgetParentConfig} [config]
  * @return {WidgetParent}
  */
-const createWidgetParent = extendFactory(createWidget, /** @lends WidgetParent.prototype */ {
+const createWidgetParent = createWidget.extend(/** @lends WidgetParent.prototype */ {
 	
 	CHILD_TYPE: createWidget,
 	
 	_testChildType (child) {
-		if (!createdBy(child, this.CHILD_TYPE)) {
+		if (!this.CHILD_TYPE.created(child)) {
 			throw 'Child is not a widget or wrong subtype';
 		}
 	},

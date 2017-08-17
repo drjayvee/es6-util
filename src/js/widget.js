@@ -1,6 +1,5 @@
 /*jshint esnext:true*/
 
-import {extendFactory} from 'js/oop';
 import {createAttributeObservable} from 'js/attribute';
 
 const map = new Map();
@@ -25,7 +24,7 @@ const map = new Map();
  * @return {Widget}
  * @property {Widget} prototype
  */
-const createWidget = extendFactory(createAttributeObservable, /** @lends Widget.prototype */ {
+const createWidget = createAttributeObservable.extend(/** @lends Widget.prototype */ {
 
 	ATTRS: {
 		hidden: {
