@@ -7,7 +7,9 @@
     "test": "test"
   },
   "dependencies": {
-    "jquery": "^3.1.1"
+    "bootstrap": "^4.0.0-beta",
+    "jquery": "^3.1.1",
+    "popper.js": "^1.12.2"
   },
   "devDependencies": {
     "babel-cli": "^6.18.0",

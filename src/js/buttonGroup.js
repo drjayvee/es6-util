@@ -24,7 +24,7 @@ import {createToggleButton} from 'js/button';
 const createButtonGroup = extendFactory(createWidgetParent, /** @lends ButtonGroup.prototype */ {
 	CHILD_TYPE: createToggleButton,
 	
-	CLASS: 'buttonGroup',
+	CLASS: 'btn-group',
 
 	/**
 	 * @return {ToggleButton[]}

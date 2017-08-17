@@ -38,7 +38,7 @@ export const createButton = extendFactory(createWidget, /** @lends Button.protot
 	
 	NODE_TEMPLATE: '<button type="button"></button>',
 	
-	CLASS: 'button',
+	CLASS: 'btn btn-secondary',
 	
 	_enhance () {
 		this.set('disabled', this.node.disabled);
@@ -94,8 +94,6 @@ export const createToggleButton = extendFactory(createButton, /** @lends ToggleB
 		}
 	},
 	
-	CLASS: 'toggleButton',
-	
 	/**
 	 * Toggle or set pressed state
 	 * 
@@ -108,7 +106,7 @@ export const createToggleButton = extendFactory(createButton, /** @lends ToggleB
 	_enhance () {
 		createButton.prototype._enhance.apply(this, arguments);
 		
-		this.set('pressed', this.node.classList.contains('pressed'));	// read state from DOM
+		this.set('pressed', this.node.classList.contains('active'));	// read state from DOM
 	},
 	
 	_render () {
@@ -128,7 +126,7 @@ export const createToggleButton = extendFactory(createButton, /** @lends ToggleB
 	},
 	
 	_setPressed () {
-		this.node.classList.toggle('pressed', this.get('pressed'));
+		this.node.classList.toggle('active', this.get('pressed'));
 	}
 });
 // endregion
