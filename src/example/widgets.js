@@ -3,6 +3,7 @@
 import {createButton, createToggleButton} from 'js/button';
 import createButtonGroup from 'js/buttonGroup';
 import createTabView from 'js/tabView';
+import createOverlay from 'js/overlay';
 
 // region Button
 const bt = createButton({
@@ -52,4 +53,29 @@ createButtonGroup({
 createTabView({
 	enhance: document.getElementById('tv')
 });
+// endregion
+
+// region Overlay
+const placement = {
+	index: 0,
+	options: ['left', 'top', 'right', 'bottom']
+};
+const referenceElement = document.querySelector('#overlay-ref');
+
+const overlay = createOverlay({
+	bodyContent: 'Moon'
+})
+	.align(referenceElement, 'bottom', {offset: {offset: '50, 50'}})
+	.render()
+	.addEventListener('mouseenter', function () {
+		this.align(referenceElement, placement.options[placement.index++ % 4]);
+		
+		if (placement.index === 4) {
+			this.set('headerContent', 'Le')
+				.set('bodyContent', `${this.get('bodyContent')} (2nd cycle)`);
+		}
+		if (placement.index === 8) {
+			this.destroy();
+		}
+	});
 // endregion

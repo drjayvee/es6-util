@@ -5,7 +5,21 @@
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 	<style type="text/css">
-		body > .widget {display: block}
+		body > .widget:not(.tooltip) {
+			display: block;
+		}
+		.tooltip {
+			display: inline-block;
+			opacity: 1;
+		}
+		
+		#overlay-ref {
+			display: inline-block;
+			position: relative;
+			left: 45%;
+			
+			padding: 1em;
+		}
 	</style>
 </head>
 
@@ -31,9 +45,16 @@
 	</div>
 	
 	<h1>Rendered</h1>
+	<div id="overlay-ref">Planet</div>
 	
 	<script src="node_modules/requirejs/require.js"></script>
 	<script>
+		require.config({
+			paths: {
+				Popper: 'node_modules/popper.js/dist/umd/popper.min'
+			}
+		});
+		
 		require(['example/widgets']);
 	</script>
 </body>
