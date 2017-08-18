@@ -18,20 +18,23 @@ setTimeout(() => {
 }, 2000);
 
 bt.addEventListener('click', () => {
+	bt.hide();
+	setTimeout(() => bt.show(), 2000);
+	
 	bt.set('label', 'You got me')
 		.set('disabled', true);
 });
 // endregion
 
 // region ButtonGroup
-const checkGroup = createButtonGroup({
+createButtonGroup({
 	children: [
 		createToggleButton({label: 'check', pressed: true}),
 		createToggleButton({label: 'mate'})
 	]
 }).render();
 
-const radioGroup = createButtonGroup({
+createButtonGroup({
 	children: [
 		createToggleButton({label: 'blue pil'}),
 		createToggleButton({label: 'red pil'})

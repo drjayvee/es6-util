@@ -32,6 +32,11 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 			validator: newVal => typeof newVal === 'boolean'
 		},
 		
+		visible: {
+			value: true,
+			validator: newVal => typeof newVal === 'boolean'
+		},
+		
 		rendered: {
 			value: false,
 			readOnly: true
@@ -79,6 +84,10 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 			this._enhance();
 		}
 		
+		this._registerSubscriptions(
+			this.after('hiddenChange',	e => this.node.hidden = e.newVal),
+			this.after('visibleChange',	e => this.node.style.visibility = e.newVal ? '' : 'hidden')
+		);
 		this._bindUI();
 		
 		if (parentNode) {
@@ -116,6 +125,26 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 	
 	_addClassesToNode () {
 		this.node.classList.add(...this._getClasses());
+	},
+	
+	/**
+	 * Shortcut to setting the hidden or visible attributes.
+	 * The hidden attr is linked to this.node.hidden, whereas
+	 * visibile is linked to this.node.style.visibility
+	 * 
+	 * @param {Boolean} [hidden=false] set hidden or visible attribute
+	 * @return {Widget}
+	 */
+	hide (hidden = false) {
+		this.set(hidden ? 'hidden' : 'visible', hidden);	// hidden = true / visible = false
+		return this;
+	},
+	
+	/**
+	 * @see hide
+	 */
+	show (hidden = false) {
+		this.set(hidden ? 'hidden' : 'visible', !hidden);
 	},
 	
 	/**

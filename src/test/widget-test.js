@@ -180,6 +180,31 @@ QUnit.test('Widget node class names', function (assert) {
 	);
 });
 
+QUnit.test('Attributes hidden and visible synced to DOM node', function (assert) {
+	let widget = createWidget().render();
+	
+	widgets.push(widget);
+	
+	assert.notOk(widget.node.hidden);
+	assert.notOk(widget.node.style.visibility);
+	
+	widget.hide();
+	assert.notOk(widget.node.hidden);
+	assert.equal(widget.node.style.visibility, 'hidden');
+	
+	widget.hide(true);
+	assert.ok(widget.node.hidden);
+	assert.equal(widget.node.style.visibility, 'hidden');
+	
+	widget.show();
+	assert.ok(widget.node.hidden);
+	assert.notOk(widget.node.style.visibility);
+	
+	widget.show(true);
+	assert.notOk(widget.node.hidden);
+	assert.notOk(widget.node.style.visibility);
+});
+
 QUnit.test('Add children to WidgetParent', function (assert) {
 	let parent = createWidgetParent().render();
 	widgets.push(parent);
