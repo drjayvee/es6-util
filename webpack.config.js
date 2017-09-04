@@ -1,15 +1,21 @@
 /*jshint node: true, esnext: true*/
 
 const path = require('path');
+const MinifyPlugin = require("babel-minify-webpack-plugin");
 
 module.exports = {
-	entry: 'example/widgets.js',
+	entry: 'nucore.js',
 	output: {
-		filename: 'widgets.js',
-		chunkFilename: '[name].widgets.js',
+		filename: 'nucore.js',
+		chunkFilename: '[name].nucore.js',
 		path: path.resolve(__dirname, 'js'),
-		publicPath: 'js/'
+		publicPath: 'js/',
+		library: 'NuCore',
+		libraryTarget: 'var',
 	},
+	plugins: [
+		new MinifyPlugin(),
+	],
 	resolve: {
 		alias: {
 			Popper$: path.resolve(__dirname, 'node_modules/popper.js/dist/popper.js'),
