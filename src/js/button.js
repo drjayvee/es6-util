@@ -37,7 +37,7 @@ export const createButton = createWidget.extend(/** @lends Button.prototype */ {
 	
 	NODE_TEMPLATE: '<button type="button"></button>',
 	
-	CLASS: 'btn btn-secondary',
+	CLASS: 'yui3-button',
 	
 	_enhance () {
 		this.set('disabled', this.node.disabled);
@@ -105,7 +105,7 @@ export const createToggleButton = createButton.extend(/** @lends ToggleButton.pr
 	_enhance () {
 		createButton.prototype._enhance.apply(this, arguments);
 		
-		this.set('pressed', this.node.classList.contains('active'));	// read state from DOM
+		this.set('pressed', this.node.classList.contains(`${this.CLASS}-selected`));	// read state from DOM
 	},
 	
 	_render () {
@@ -125,7 +125,7 @@ export const createToggleButton = createButton.extend(/** @lends ToggleButton.pr
 	},
 	
 	_setPressed () {
-		this.node.classList.toggle('active', this.get('pressed'));
+		this.node.classList.toggle(`${this.CLASS}-selected`, this.get('pressed'));
 	}
 });
 // endregion

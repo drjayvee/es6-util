@@ -25,7 +25,7 @@ import createWidget from 'js/widget';
  */
 const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 
-	CLASS: 'tabView',
+	CLASS: 'yui3-tabview',
 	
 	/**
 	 * Add a tab

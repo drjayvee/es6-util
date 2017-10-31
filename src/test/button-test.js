@@ -63,7 +63,7 @@ QUnit.test('basic ToggleButton', function (assert) {
 	assert.ok(b.get('pressed'));
 	
 	b.render();
-	assert.ok(b.node.classList.contains('active'));
+	assert.ok(b.node.classList.contains('yui3-button-selected'));
 	
 	b.toggle(true);
 	
@@ -72,7 +72,7 @@ QUnit.test('basic ToggleButton', function (assert) {
 	b.toggle();
 	
 	assert.notOk(b.get('pressed'));
-	assert.notOk(b.node.classList.contains('active'));
+	assert.notOk(b.node.classList.contains('yui3-button-selected'));
 	
 	b.toggle(false);
 	
@@ -104,7 +104,7 @@ QUnit.test('enhance ToggleButton', function (assert) {
 	
 	node.setAttribute('type', 'button');
 	node.innerHTML = 'Oh hi';
-	node.classList.add('active');
+	node.classList.add('yui3-button-selected');
 	document.body.appendChild(node);
 	
 	const b = createToggleButton({

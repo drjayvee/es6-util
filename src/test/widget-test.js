@@ -160,7 +160,7 @@ QUnit.test('Widget node class names', function (assert) {
 	
 	assert.deepEqual(
 		Array.from(widget.node.classList),
-		['mySubSubWidget', 'myWidget', 'widget'],
+		['mySubSubWidget', 'myWidget', 'yui3-widget'],
 		'Widget\'s node has all classes in prototype chain'
 	);
 	
@@ -175,7 +175,7 @@ QUnit.test('Widget node class names', function (assert) {
 	
 	assert.deepEqual(
 		Array.from(pew.node.classList),
-		['stay', 'mySubSubWidget', 'myWidget', 'widget'],
+		['stay', 'mySubSubWidget', 'myWidget', 'yui3-widget'],
 		'Progressively enhanced Widget\'s node has all classes in prototype chain'
 	);
 });

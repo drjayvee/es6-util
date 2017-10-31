@@ -45,7 +45,7 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 	
 	NODE_TEMPLATE: '<div></div>',
 	
-	CLASS: 'widget',
+	CLASS: 'yui3-widget',
 	
 	/**
 	 * @param {HTMLElement} parentNode

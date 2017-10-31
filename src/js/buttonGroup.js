@@ -23,7 +23,7 @@ import {createToggleButton} from 'js/button';
 const createButtonGroup = createWidgetParent.extend(/** @lends ButtonGroup.prototype */ {
 	CHILD_TYPE: createToggleButton,
 	
-	CLASS: 'btn-group',
+	CLASS: 'yui3-buttongroup yui3-buttongroup-content',
 
 	/**
 	 * @return {ToggleButton[]}
