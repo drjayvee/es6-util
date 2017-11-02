@@ -124,71 +124,89 @@ QUnit.test('enhance ToggleButton', function (assert) {
 });
 
 QUnit.test('regular ButtonGroup', function (assert) {
-	const b1 = createToggleButton(),
-		b2 = createToggleButton(),
+	const b1 = createToggleButton({value: 'v1'}),
+		b2 = createToggleButton({value: 'v2'}),
 		group = createButtonGroup({children: [b1, b2]});
 	
 	buttons.push(group);
 	
 	let selectionChangeEvent = null;
-	group.after('selectionChange', (e) => selectionChangeEvent = e);
+	group.after('selectionChange', e => selectionChangeEvent = e);
 	
 	assert.deepEqual(group.getPressedButtons(), [], 'no buttons pressed');
 	
 	b2.toggle();
 	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
-	assert.deepEqual(group.getPressedButtons(), [b2], 'one button pressed');
+	assert.equal(selectionChangeEvent.button, b2, 'event.originalTarget is correct');
+	assert.deepEqual(selectionChangeEvent.values, ['v2'], 'event.values is correct');
+	assert.deepEqual(group.getValues(), ['v2'], 'getValues returns correct values');
+	assert.deepEqual(group.getPressedButtons(), [b2], 'b2 button pressed');
 	
 	selectionChangeEvent = null;
 	
 	b1.toggle();
 	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
-	assert.deepEqual(group.getPressedButtons(), [b1, b2], 'one button pressed');
+	assert.equal(selectionChangeEvent.button, b1, 'event.originalTarget is correct');
+	assert.deepEqual(selectionChangeEvent.values, ['v1', 'v2'], 'event.value is correct');
+	assert.deepEqual(group.getValues(), ['v1', 'v2'], 'getValues returns correct values');
+	assert.deepEqual(group.getPressedButtons(), [b1, b2], 'b1 and b2 pressed');
 	
 	selectionChangeEvent = null;
 	
 	b2.toggle();
 	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
-	assert.deepEqual(group.getPressedButtons(), [b1], 'one button pressed');
+	assert.equal(selectionChangeEvent.button, b2, 'event.originalTarget is correct');
+	assert.deepEqual(selectionChangeEvent.values, ['v1'], 'event.values is correct');
+	assert.deepEqual(group.getPressedButtons(), [b1], 'b1 pressed');
 	
 	selectionChangeEvent = null;
 	
 	b1.toggle();
 	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
-	assert.deepEqual(group.getPressedButtons(), [], 'no buttons pressed');
+	assert.equal(selectionChangeEvent.button, b1, 'event.originalTarget is correct');
+	assert.deepEqual(selectionChangeEvent.values, [], 'event.values is correct');
+	assert.deepEqual(group.getPressedButtons(), [], 'no button pressed');
 	
 	group.disable();
-	assert.ok(b1.get('disabled'));
-	assert.ok(b2.get('disabled'));
+	assert.ok(b1.get('disabled') && b2.get('disabled'), 'buttons disabled');
+	
+	group.enable();
+	assert.notOk(b1.get('disabled') || b2.get('disabled'), 'buttons enabled');
 });
 
 QUnit.test('radio ButtonGroup', function (assert) {
-	const b1 = createToggleButton(),
-		b2 = createToggleButton(),
+	const b1 = createToggleButton({value: 'v1'}),
+		b2 = createToggleButton({value: 'v2'}),
 		group = createButtonGroup({children: [b1, b2], radio: true});
 	
 	buttons.push(group);
 	
 	let selectionChangeEvent = null;
-	group.after('selectionChange', (e) => selectionChangeEvent = e);
+	group.after('selectionChange', e => selectionChangeEvent = e);
 	
 	assert.deepEqual(group.getPressedButtons(), [], 'no buttons pressed');
 	
 	b2.toggle();
 	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
+	assert.equal(selectionChangeEvent.button, b2, 'event.originalTarget is correct');
+	assert.deepEqual(selectionChangeEvent.values, ['v2'], 'event.values is correct');
 	assert.deepEqual(group.getPressedButtons(), [b2], 'one button pressed');
 	
 	selectionChangeEvent = null;
 	
 	b1.toggle();
 	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
+	assert.equal(selectionChangeEvent.button, b1, 'event.originalTarget is correct');
+	assert.deepEqual(selectionChangeEvent.values, ['v1'], 'event.values is correct');
 	assert.deepEqual(group.getPressedButtons(), [b1], 'pressing a different button makes that the only pressed one');
 	
 	selectionChangeEvent = null;
 	
 	b2.toggle();
 	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
-	assert.deepEqual(group.getPressedButtons(), [b2], 'idem dito');
+	assert.equal(selectionChangeEvent.button, b2, 'event.originalTarget is correct');
+	assert.deepEqual(selectionChangeEvent.values, ['v2'], 'event.values is correct');
+	assert.deepEqual(group.getPressedButtons(), [b2], 'correct button is pressed');
 	
 	selectionChangeEvent = null;
 	
@@ -197,6 +215,8 @@ QUnit.test('radio ButtonGroup', function (assert) {
 	assert.deepEqual(group.getPressedButtons(), [b2], 'cannot unpress pressed button');
 	
 	group.disable();
-	assert.ok(b1.get('disabled'));
-	assert.ok(b2.get('disabled'));
+	assert.ok(b1.get('disabled') && b2.get('disabled'), 'buttons disabled');
+	
+	group.enable();
+	assert.notOk(b1.get('disabled') || b2.get('disabled'), 'buttons enabled');
 });

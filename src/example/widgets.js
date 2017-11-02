@@ -50,11 +50,11 @@ createButtonGroup({
 
 // region TabView
 document.getElementById('tv').addEventListener('click', () => {
-	import('js/tabView').then(createTabView => {
-		createTabView.default({
-			enhance: document.getElementById('tv')
-		});
-	});
+	// import('js/tabView').then(createTabView => {
+	// 	createTabView.default({
+	// 		enhance: document.getElementById('tv')
+	// 	});
+	// });
 });
 // endregion
 

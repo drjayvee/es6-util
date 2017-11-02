@@ -27,6 +27,12 @@ const createButtonGroup = createWidgetParent.extend(/** @lends ButtonGroup.proto
 
 	disable () {
 		this.children.forEach(button => button.set('disabled', true));
+		return this;
+	},
+	
+	enable () {
+		this.children.forEach(button => button.set('disabled', false));
+		return this;
 	},
 	
 	/**
@@ -34,6 +40,10 @@ const createButtonGroup = createWidgetParent.extend(/** @lends ButtonGroup.proto
 	 */
 	getPressedButtons () {
 		return this.children.filter(button => button.get('pressed'));
+	},
+	
+	getValues () {
+		return this.getPressedButtons().map(button => button.get('value'));
 	},
 	
 	_buttonPressed (e) {
@@ -71,7 +81,10 @@ const createButtonGroup = createWidgetParent.extend(/** @lends ButtonGroup.proto
 		// a button was clicked OR this._buttonPressed toggled a button
 		// therefore, don't fire selectionChanged on _unPress_ if radio
 		if (!(radio && !e.newVal)) {
-			this.fire('selectionChange');
+			this.fire('selectionChange', {
+				button: e.originalTarget,
+				values: this.getValues()
+			});
 		}
 	});
 });
