@@ -25,6 +25,10 @@ const createButtonGroup = createWidgetParent.extend(/** @lends ButtonGroup.proto
 	
 	CLASS: 'yui3-buttongroup yui3-buttongroup-content',
 
+	disable () {
+		this.children.forEach(button => button.set('disabled', true));
+	},
+	
 	/**
 	 * @return {ToggleButton[]}
 	 */

@@ -32,6 +32,11 @@ export const createButton = createWidget.extend(/** @lends Button.prototype */ {
 		label: {
 			value: '',
 			validator: newVal => typeof newVal === 'string'
+		},
+		
+		value: {
+			value: '',
+			validator: newVal => typeof newVal === 'string'
 		}
 	},
 	
@@ -42,17 +47,20 @@ export const createButton = createWidget.extend(/** @lends Button.prototype */ {
 	_enhance () {
 		this.set('disabled', this.node.disabled);
 		this.set('label', this.node.innerHTML);
+		this.set('value', this.node.value);
 	},
 	
 	_render () {
 		this._setLabel();
 		this._setDisabled();
+		this._setValue();
 	},
 	
 	_bindUI () {
 		this._registerSubscriptions(
 			this.after('disabledChange', this._setDisabled),
-			this.after('labelChange', this._setLabel)
+			this.after('labelChange', this._setLabel),
+			this.after('valueChange', this._setValue)
 		);
 	},
 	
@@ -62,7 +70,11 @@ export const createButton = createWidget.extend(/** @lends Button.prototype */ {
 	
 	_setLabel () {
 		this.node.innerHTML = this.get('label');
-	}
+	},
+	
+	_setValue () {
+		this.node.value = this.get('value');
+	},
 });
 // endregion
 

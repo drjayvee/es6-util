@@ -31,6 +31,7 @@ QUnit.test('basic Button', function (assert) {
 	
 	assert.notOk(b.get('disabled'));
 	assert.equal('', b.get('label'));
+	assert.equal('', b.get('value'));
 	
 	b.set('disabled', true);
 	assert.ok(b.get('disabled'));
@@ -38,6 +39,7 @@ QUnit.test('basic Button', function (assert) {
 	// render
 	b.render();
 	assert.ok(b.node.disabled);
+	assert.equal('', b.node.value);
 	assert.equal(b, getByNode(b.node), 'getByNode');
 	
 	// enable
@@ -49,6 +51,11 @@ QUnit.test('basic Button', function (assert) {
 	b.set('label', 'Go');
 	assert.equal('Go', b.get('label'));
 	assert.equal('Go', b.node.innerHTML);
+	
+	// change value
+	b.set('value', 'on');
+	assert.equal('on', b.get('value'));
+	assert.equal('on', b.node.value);
 });
 
 QUnit.test('basic ToggleButton', function (assert) {
@@ -85,16 +92,18 @@ QUnit.test('enhance Button', function (assert) {
 	nodes.push(node);
 	
 	node.setAttribute('type', 'button');
-	node.innerHTML = 'Oh hi';
 	node.disabled = true;
+	node.innerHTML = 'Oh hi';
+	node.value = 'there';
 	document.body.appendChild(node);
 	
 	const b = createButton({
 		enhance: node
 	});
 	
-	assert.equal('Oh hi', b.get('label'));
 	assert.ok(b.get('disabled'));
+	assert.equal('Oh hi', b.get('label'));
+	assert.equal('there', b.get('value'));
 });
 
 QUnit.test('enhance ToggleButton', function (assert) {
@@ -147,6 +156,10 @@ QUnit.test('regular ButtonGroup', function (assert) {
 	b1.toggle();
 	assert.ok(selectionChangeEvent, 'selectionChange event was fired');
 	assert.deepEqual(group.getPressedButtons(), [], 'no buttons pressed');
+	
+	group.disable();
+	assert.ok(b1.get('disabled'));
+	assert.ok(b2.get('disabled'));
 });
 
 QUnit.test('radio ButtonGroup', function (assert) {
@@ -182,4 +195,8 @@ QUnit.test('radio ButtonGroup', function (assert) {
 	b2.toggle();
 	assert.notOk(selectionChangeEvent, 'selectionChange event was not fired');
 	assert.deepEqual(group.getPressedButtons(), [b2], 'cannot unpress pressed button');
+	
+	group.disable();
+	assert.ok(b1.get('disabled'));
+	assert.ok(b2.get('disabled'));
 });
