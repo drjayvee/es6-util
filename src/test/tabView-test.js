@@ -36,8 +36,8 @@ QUnit.test('basic TabView', function (assert) {
 	assert.equal(0, tv.getSelectedIndex(), '1st tab should be selected by default');
 	
 	let selectedTab = tv.getSelectedTab();
-	assert.equal(selectedTab.label, 'One');
-	assert.equal(selectedTab.content, '1st');
+	assert.equal(selectedTab.label.get('label'), 'One');
+	assert.equal(selectedTab.panel.innerHTML, '1st');
 	
 	// select 2nd tab
 	tv.selectTab(1);
@@ -45,8 +45,8 @@ QUnit.test('basic TabView', function (assert) {
 	assert.equal(1, tv.getSelectedIndex(), '2nd tab should be selected after button press');
 	
 	selectedTab = tv.getSelectedTab();
-	assert.equal(selectedTab.label, 'Two');
-	assert.equal(selectedTab.content, '2nd');
+	assert.equal(selectedTab.label.get('label'), 'Two');
+	assert.equal(selectedTab.panel.innerHTML, '2nd');
 	
 	assert.throws(() => {tv.selectTab(2);}, 'Invalid index');
 	
@@ -56,8 +56,8 @@ QUnit.test('basic TabView', function (assert) {
 	assert.equal(2, tv.getSelectedIndex(), '2nd tab still selected, but index changed');
 	
 	selectedTab = tv.getSelectedTab();
-	assert.equal(selectedTab.label, 'Two');
-	assert.equal(selectedTab.content, '2nd');
+	assert.equal(selectedTab.label.get('label'), 'Two');
+	assert.equal(selectedTab.panel.innerHTML, '2nd');
 	
 	// add new tab
 	tv.selectTab(1);
@@ -65,8 +65,8 @@ QUnit.test('basic TabView', function (assert) {
 	assert.equal(1, tv.getSelectedIndex(), '2nd tab still selected, but index changed');
 	
 	selectedTab = tv.getSelectedTab();
-	assert.equal(selectedTab.label, '2.5');
-	assert.equal(selectedTab.content, 'In between');
+	assert.equal(selectedTab.label.get('label'), '2.5');
+	assert.equal(selectedTab.panel.innerHTML, 'In between');
 });
 
 QUnit.test('enhance TabView', function (assert) {
@@ -90,10 +90,10 @@ QUnit.test('enhance TabView', function (assert) {
 	assert.equal(0, tv.getSelectedIndex(), '1st tab should be selected by default');
 	
 	let tab = tv.getSelectedTab();
-	assert.equal(tab.label, 'Ay');
-	assert.equal(tab.content, 'captain');
+	assert.equal(tab.label.get('label'), 'Ay');
+	assert.equal(tab.panel.innerHTML, 'captain');
 	
 	tab = tv.getTab(1);
-	assert.equal(tab.label, 'Be');
-	assert.equal(tab.content, 'nice');
+	assert.equal(tab.label.get('label'), 'Be');
+	assert.equal(tab.panel.innerHTML, 'nice');
 });

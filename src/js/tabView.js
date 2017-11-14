@@ -72,6 +72,7 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 		}
 		
 		content.hidden = hidden;
+		content.classList.add(`${this.CLASS}-panel`);
 		
 		if (index === this._tabs.length) {
 			this._tabPanelContainer.appendChild(content);
@@ -104,14 +105,15 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 	 * Get a tab
 	 * 
 	 * @param {number} index
-	 * @return {{label: string, content: (string|null)}}
+	 * @return {{index: number, label: string, panel: (HTMLElement|null)}}
 	 */
 	getTab (index) {
 		this._checkIndex(index);
 		
 		return {
-			label: this._labelsGroup.children[index].get('label'),
-			content: this.get('rendered') ? this._tabPanelContainer.children[index].innerHTML : null
+			index,
+			label:	this._labelsGroup.children[index],
+			panel:	this.get('rendered') ? this._tabPanelContainer.children[index] : null
 		};
 	},
 	
@@ -132,7 +134,8 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 		}
 		
 		this._tabPanelContainer = this.node.children[1];
-		this._tabPanelContainer.classList.add('tabView-panels');
+		this._labelsGroup.node.classList.add(`${this.CLASS}-labels`);
+		this._tabPanelContainer.classList.add(`${this.CLASS}-panels`);
 		
 		this._setSelectedTab();
 	},
@@ -141,7 +144,8 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 		this._labelsGroup.render(this.node);
 		
 		this._tabPanelContainer = document.createElement('div');
-		this._tabPanelContainer.classList.add('tabView-panels');
+		this._labelsGroup.node.classList.add(`${this.CLASS}-labels`);
+		this._tabPanelContainer.classList.add(`${this.CLASS}-panels`);
 		
 		for (let [index, {labelButton, content}] of this._tabs.entries()) {
 			this._renderTab(content, index, !labelButton.get('pressed'));
@@ -171,14 +175,19 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 		throw 'Cannot enhance existing element and add tabs';
 	}
 	
+	// init labels button group
 	this._labelsGroup = createButtonGroup({
 		enhance: enhance ? enhance.firstElementChild : null,
 		radio: true
 	});
+	this._labelsGroup.after('selectionChange', () => {
+		this.fire('selectionChange', this.getSelectedTab());
+	}, this);
+	
+	this._tabs = [];
 	
 	superInit();
 	
-	this._tabs = [];
 	if (enhance) {
 		for (let [index, labelButton] of this._labelsGroup.children.entries()) {
 			this._tabs.push({
