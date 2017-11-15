@@ -9,17 +9,21 @@
   "dependencies": {
     "bootstrap": "^4.0.0-beta",
     "jquery": "^3.1.1",
-    "popper.js": "^1.12.2",
-    "requirejs": "^2.3.4"
+    "popper.js": "^1.12.2"
   },
   "devDependencies": {
-    "babel-cli": "^6.18.0",
+    "babel-cli": "^7.0.0-beta.3",
+    "babel-core": "^7.0.0-beta.3",
+    "babel-loader": "^7.1.2",
     "babel-minify-webpack-plugin": "^0.2.0",
-    "babel-plugin-transform-es2015-modules-amd": "^6.18.0",
+    "babel-plugin-transform-es2015-arrow-functions": "^7.0.0-beta.3",
+    "babel-plugin-transform-es2015-modules-amd": "^7.0.0-beta.3",
+    "babel-polyfill": "^7.0.0-beta.3",
     "babel-preset-babili": "0.0.9",
-    "babel-preset-latest": "^6.16.0",
+    "babel-preset-env": "^7.0.0-beta.3",
+    "babel-preset-minify": "^0.2.0",
     "grunt": "^1.0.0",
-    "grunt-babel": "^6.0.0",
+    "grunt-babel": "^7.0.0",
     "grunt-contrib-clean": "^1.0.0",
     "grunt-contrib-watch": "^1.0.0",
     "load-grunt-tasks": "^3.2.0",

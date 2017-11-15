@@ -10,14 +10,7 @@
 	<div id="qunit-fixture"></div>
  
 	<script src="node_modules/qunitjs/qunit/qunit.js"></script>
-	<script src="node_modules/requirejs/require.js"></script>
-	<script>
-		require.config({
-			paths: {
-				jquery:			'node_modules/jquery/dist/jquery.min.js'
-			}
-		});
-		require(['test/oop-test', 'test/eventTarget-test', 'test/attribute-test', 'test/widget-test', 'test/button-test', 'test/tabView-test']);
-	</script>
+	<script src="node_modules/jquery/dist/jquery.min.js"></script>
+	<script src="js/test.js"></script>
 </body>
 </html>
