@@ -299,6 +299,50 @@ QUnit.test('Add children to rendered WidgetParent', function (assert) {
 	assert.equal(parent.node.childNodes[3], child4.node, 'Parent should append child node if index === length');
 });
 
+QUnit.test('Remove children from WidgetParent', function (assert) {
+	let parent = createWidgetParent().render();
+	widgets.push(parent);
+	
+	// create child and add to parent, then remove
+	let child = createWidget();
+	widgets.push(child);
+	
+	parent.add(child);
+	
+	let childEvent = null;
+	parent.on('childEv', e => childEvent = e);
+	
+	let removeEvent = null;
+	parent.on('removeChild', e => removeEvent = e);
+	
+	parent.removeChild(child);
+	
+	// childEvent doesn't bubble
+	child.fire('childEv');
+	assert.notOk(childEvent);
+	
+	// removeChild event
+	assert.ok(removeEvent, 'removeChild event was fired');
+	assert.equal(removeEvent.index, 0);
+	assert.equal(removeEvent.child, child);
+	
+	// removed from DOM
+	assert.notOk(parent.node.contains(child.node));
+	
+	// parent should not recognize orphan
+	assert.throws(
+		() => parent.getIndex(child),
+		/^Not a child$/,
+		'Parent should not return index for removed child'
+	);
+	
+	assert.throws(
+		() => parent.removeChild(child),
+		/^Not a child$/,
+		'Parent should not return index for removed child'
+	);
+});
+
 QUnit.test('child events bubble up to parents', function (assert) {
 	let parent = createWidgetParent(),
 		child = createWidget();
@@ -312,6 +356,11 @@ QUnit.test('child events bubble up to parents', function (assert) {
 	
 	assert.ok(ev, 'child event bubbles to parent');
 	assert.equal(ev.originalTarget, child, 'event.originalTarget is child');
+	
+	ev = null;
+	parent.removeChild(child);
+	child.fire('hey');
+	assert.notOk(ev, 'removed child\'s event should not bubble to parent');
 });
 
 QUnit.test('progressively enhanced widgets override provided attrs with node', function (assert) {

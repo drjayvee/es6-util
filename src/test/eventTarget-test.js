@@ -360,7 +360,7 @@ QUnit.test('publish can set context for defaultFn and cancelledFn', function (as
 	assert.equal(cancelledFnContext, context, 'cancelledFn uses provided context');
 });
 
-QUnit.test('can add bubble targets', function (assert) {
+QUnit.test('can add and remove bubble targets', function (assert) {
 	var et1 = createEventTarget(),
 		et2 = createEventTarget(),
 		et3 = createEventTarget(),
@@ -422,6 +422,15 @@ QUnit.test('can add bubble targets', function (assert) {
 	et1.fire('ve');
 	
 	assert.ok(et2Called, 'Events reach bubble targets even if original target is not subscribed');
+	
+	// remove target
+	et3Called = et2Called = false;
+	et2.removeBubbleTarget(et3);
+	
+	et1.fire('ev');
+	assert.ok(et2Called);
+	
+	assert.notOk(et3Called);
 });
 
 QUnit.test('can stop bubbling', function (assert) {

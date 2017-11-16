@@ -37,8 +37,6 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 	 * @return {TabView} this
 	 */
 	addTab (label, content, index = this._tabs.length, setSelected = !this._tabs.length) {
-		this._checkIndex(index);
-		
 		// add label Button
 		const labelButton = createToggleButton({label});
 		this._labelsGroup.add(labelButton, index);
@@ -56,6 +54,21 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 		}
 		
 		return this;
+	},
+	
+	removeTab (index) {
+		const tab = this.getTab(index);
+		
+		this._labelsGroup.removeChild(tab.label);
+		if (tab.panel) {
+			this._tabPanelContainer.removeChild(tab.panel);
+		}
+		
+		this._tabs.splice(index, 1);
+		
+		if (this._tabs.length) {
+			this.selectTab(0);
+		}
 	},
 	
 	_checkIndex (index) {

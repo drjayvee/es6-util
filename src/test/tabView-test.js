@@ -97,3 +97,21 @@ QUnit.test('enhance TabView', function (assert) {
 	assert.equal(tab.label.get('label'), 'Be');
 	assert.equal(tab.panel.innerHTML, 'nice');
 });
+
+QUnit.test('remove Tab', function (assert) {
+	const tv = createTabView();
+	
+	widgets.push(tv);
+	
+	tv.addTab('One', '1st')
+		.addTab('Two', '2nd', 1, true)	// selected
+		.addTab('Three', '3rd')
+		.render();
+	
+	const tab1 = tv.getTab(1);
+	tv.removeTab(1);
+	
+	assert.equal(tv.getSelectedIndex(), 0, '1st tab gets selected if selected tab is removed');
+	assert.equal(tv.getTab(1).label.get('label'), 'Three');
+	assert.notOk(tv.node.contains(tab1.content));
+});

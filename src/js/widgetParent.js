@@ -64,6 +64,44 @@ const createWidgetParent = createWidget.extend(/** @lends WidgetParent.prototype
 		this.children.splice(event.index, 0, event.child);
 		event.child.addBubbleTarget(this);
 	},
+
+	/**
+	 * Remove a child Widget
+	 * 
+	 * @param {Widget|Number} child or index
+	 * @returns {WidgetParent} this
+	 */
+	removeChild (child) {
+		let index;
+		
+		if (typeof child === 'number') {
+			index = child;
+			
+			if (index > this.children.length || index < 0) {	// Note: index === length _is_ valid!
+				throw 'Invalid index';
+			}
+			child = this.children[index];
+		} else {
+			this._testChildType(child);
+			index = this.children.indexOf(child);
+			if (index === -1) {
+				throw 'Not a child';
+			}
+		}
+		
+		if (this.get('rendered')) {
+			this.node.removeChild(child.node);
+		}
+		
+		this.fire('removeChild', {index, child});
+		
+		return this;
+	},
+	
+	_removeChildDefFn (event) {
+		this.children.splice(event.index, 1);
+		event.child.removeBubbleTarget(this);
+	},
 	
 	/**
 	 * @param {Widget} child
@@ -126,6 +164,10 @@ const createWidgetParent = createWidget.extend(/** @lends WidgetParent.prototype
 	
 	this.publish('addChild', {
 		defaultFn: this._addChildDefFn
+	});
+	
+	this.publish('removeChild', {
+		defaultFn: this._removeChildDefFn
 	});
 	
 	this.children = [];

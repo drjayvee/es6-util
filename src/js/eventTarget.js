@@ -247,6 +247,21 @@ const createEventTarget = createFactory(/** @lends EventTarget.prototype */ {
 	
 	/**
 	 * 
+	 * @param	{EventTarget} target
+	 * @return	{EventTarget} this
+	 * @chainable
+	 */
+	removeBubbleTarget: function (target) {
+		for (let [i, t] of this._bubbleTargets.entries()) {
+			if (t === target) {
+				this._bubbleTargets.splice(i, 1);
+			}
+		}
+		return this;
+	},
+	
+	/**
+	 * 
 	 * @param	{string} type
 	 * @param	{Function} callback
 	 * @param	{Object} [context]		if not specified, use this
