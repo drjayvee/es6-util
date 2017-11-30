@@ -103,6 +103,8 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 			current = this.get(name);	// will throw Error if attr doesn't exist, which if fine!
 		let okToSet = true;
 		
+		value = this._copy(value);
+		
 		if (attrConfig.readOnly && !overrideReadOnly) {
 			okToSet = false;
 		}
@@ -142,13 +144,24 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 		}
 		
 		let attrConfig = this._attributes.get(name),
-			value = attrConfig.value;
+			value = this._copy(attrConfig.value);
 		
 		if (attrConfig.getter) {
 			value = attrConfig.getter(value, name);
 		}
 		return value;
-	}
+	},
+	
+	_copy: function (value) {
+		if (Array.isArray(value)) {
+			value = value.slice(0);
+		} else if (value && typeof value === 'object') {
+			value = Object.assign({}, value);
+		}
+		
+		return value;
+	},
+	
 }, function (values = {}) {
 	this._attributes = new Map();
 

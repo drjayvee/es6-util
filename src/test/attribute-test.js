@@ -25,7 +25,7 @@ QUnit.test('basic add, set / get use', function (assert) {
 	assert.equal(at.get('k'), null);
 	
 	let ob = {};
-	assert.equal(at.set('k', ob).get('k'), ob);
+	assert.deepEqual(at.set('k', ob).get('k'), ob);
 	
 	// test chainability
 	assert.equal(at.set('k', true), at);
@@ -114,6 +114,37 @@ QUnit.test('getter / setter', function (assert) {
 	assert.equal(at.get('k'), 1337);
 	assert.ok(getterCalled);
 });
+
+QUnit.test('cannot change attr values through references', function (assert) {
+	let at = createAttribute();
+	
+	at.addAttribute('k');
+	
+	// object
+	let val = {};
+	at.set('k', val);
+	val.oh = 'hi';
+	
+	assert.deepEqual(at.get('k'), {}, 'set uses copy of object');
+	
+	val = at.get('k');
+	val.oh = 'hi';
+	
+	assert.deepEqual(at.get('k'), {}, 'get returns copy of object');
+	
+	// array
+	val = [];
+	at.set('k', val);
+	val.push('hi');
+	
+	assert.deepEqual(at.get('k'), [], 'set uses copy of array');
+	
+	val = at.get('k');
+	val.push('hi');
+	
+	assert.deepEqual(at.get('k'), [], 'get returns copy of array');
+});
+
 
 QUnit.test('readOnly attributes', function (assert) {
 	let at = createAttribute();
