@@ -70,6 +70,7 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 			this.node = c.firstElementChild;
 			
 			this.node.hidden = this.get('hidden');
+			this.node.style.visibility = this.get('visible') ? '' : 'hidden';
 		} else {
 			this.node = sourceNode;
 			

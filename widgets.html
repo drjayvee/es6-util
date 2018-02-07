@@ -5,10 +5,10 @@
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 	<style type="text/css">
-		body > .widget:not(.tooltip) {
+		body > .widget:not(.yui3-overlay) {
 			display: block;
 		}
-		.tooltip {
+		.yui3-overlay {
 			display: inline-block;
 			opacity: 1;
 		}
@@ -47,6 +47,7 @@
 	<h1>Rendered</h1>
 	<div id="overlay-ref">Planet</div>
 	
+	<script src="node_modules/popper.js/dist/umd/popper.min.js"></script>
 	<script src="js/widgets.js"></script>
 </body>
 </html>

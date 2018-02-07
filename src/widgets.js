@@ -68,7 +68,7 @@ const referenceElement = document.querySelector('#overlay-ref');
 const overlay = createOverlay({
 	bodyContent: 'Moon'
 })
-	.align(referenceElement, 'bottom', {offset: {offset: '50, 50'}})
+	.align(referenceElement, 'bottom', '50px, 50px')
 	.render()
 	.addEventListener('mouseenter', function () {
 		this.align(referenceElement, placement.options[placement.index++ % 4]);

@@ -1,6 +1,6 @@
 /*jshint esnext:true*/
+/*global YUI, Popper*/
 
-import Popper from 'Popper';
 import createWidget from 'js/widget';
 
 /**
@@ -34,9 +34,11 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		},
 	},
 	
-	NODE_TEMPLATE: `<div class="tooltip">
-		<div class="tooltip-header" hidden></div>
-		<div class="tooltip-inner"></div>
+	CLASS: 'yui3-overlay yui3-overlay-content',
+	
+	NODE_TEMPLATE: `<div>
+		<div class="yui3-widget-hd" hidden></div>
+		<div class="yui3-widget-bd"></div>
 	</div>`,
 	
 	_render () {
@@ -62,34 +64,57 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	 * 
 	 * @param {HTMLElement} referenceElement
 	 * @param {string} placement
-	 * @param {Object} [modifiers]
+	 * @param {string} [offset]
 	 * @return {Overlay}
 	 * @see Popper
 	 */
-	align (referenceElement, placement, modifiers = {}) {
-		const initPop = () => {
-			this._popper = new Popper(referenceElement, this.node, {placement, modifiers});
-			
-			// Popper.destroy() after this.destroy()
-			this.onceAfter('renderedChange', () => this._popper.destroy);
-		};
-		
+	align (referenceElement, placement, offset = null) {
 		if (this._popper) {
 			this._popper.reference = referenceElement;
 			this._popper.options.placement = placement;
-			// Stage 2: { ...this._popper.modifiers, ...modifiers }
-			for (let [property, conf] of Object.entries(modifiers)) {
-				Object.assign(this._popper.options.modifiers[property], conf);
+			
+			// update 'offset' modifier directly
+			for (let mod of this._popper.modifiers) {
+				if (mod.name === 'offset') {
+					mod.offset = offset;
+					break;
+				}
 			}
+			
 			this._popper.scheduleUpdate();
 		} else {
+			const initPopper = () => {
+				let modifiers = {
+					preventOverflow: {
+						boundariesElement: 'viewport',
+						padding: 16,
+					},
+				};
+				if (offset) {
+					modifiers.offset = {offset: offset};
+				}
+				
+				this._popper = new Popper(referenceElement, this.node, {placement, modifiers});
+				
+				// Popper.destroy() after this.destroy()
+				this.onceAfter('renderedChange', () => this._popper.destroy);
+			};
+			
+			// lazy-load Popper using YUI if necessary and possible
+			let pop = initPopper;
+			if (typeof Popper === 'undefined' && typeof YUI !== 'undefined') {
+				pop = () => {
+					YUI().use('popper', initPopper);
+				};
+			}
+			
 			if (this.get('rendered')) {
-				initPop();
+				pop();
 			} else {
 				if (this._initPopSub) {				// align() called twice before render?
 					this._initPopSub.unsubscribe();		// cancel init with previous params
 				}
-				this._initPopSub = this.onceAfter('renderedChange', initPop);
+				this._initPopSub = this.onceAfter('renderedChange', pop);
 			}
 		}
 		

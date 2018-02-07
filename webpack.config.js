@@ -33,7 +33,7 @@ module.exports = {
 	],
 	resolve: {
 		alias: {
-			Popper$: path.resolve(__dirname, 'node_modules/popper.js/dist/popper.js'),
+			Popper$: path.resolve(__dirname, 'node_modules/popper.js/dist/esm/popper.js'),
 		},
 		modules: [
 			path.resolve(__dirname, 'src'),
