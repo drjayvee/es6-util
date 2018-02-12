@@ -13,6 +13,7 @@ import createWidget from 'js/widget';
  * @typedef {Object} OverlayConfig
  * @property {string} bodyContent	 		html
  * @property {string} [headerContent=null]	html
+ * @property {boolean|Object} [draggable=false]
  * @see WidgetConfig
  */
 
@@ -120,6 +121,127 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		
 		return this;
 	},
+
+	/**
+	 * 
+	 * @param {HTMLElement} [cageNode]
+	 * @param {Number} [padding=0]
+	 */
+	enableDragging (cageNode, padding = 0) {
+		const handle = this.node.querySelector('.drag-handle') || this.node;
+		
+		// region constrain boxes
+		let cageBox = null, screenBox;
+		
+		const setConstrainBoxes = () => {
+			if (cageNode) {
+				const {left: x, top: y, width, height} = cageNode.getBoundingClientRect();
+				cageBox = {x: x + window.pageXOffset, y: y + window.pageYOffset, width, height};	// translate to client rect to window space
+			}
+			
+			screenBox = {x: window.pageXOffset, y: window.pageYOffset, width: window.innerWidth, height: window.innerHeight};
+		};
+		
+		setConstrainBoxes();
+		// endregion
+		
+		// region positioning utilities
+		const getPos = () => {
+			const rect = this.node.getBoundingClientRect();
+			return {x: rect.left, y: rect.top};
+		};
+		
+		let position = getPos();
+		
+		const move = () => {
+			Object.assign(this.node.style, {
+				left:	`${position.x}px`,
+				top:	`${position.y}px`,
+			});
+			// transform: translate gives weird artifacts in Firefox
+			// this.node.style.transform = `translate(${position.x}px, ${position.y}px)`;
+		};
+		
+		const constrain = ({x: destX, y: destY}, {x: boxX, y: boxY, width: boxWidth, height: boxHeight}) => {
+			return {
+				x: Math.max(boxX + padding, Math.min(destX, boxX + boxWidth  - padding - this.node.offsetWidth)),
+				y: Math.max(boxY + padding, Math.min(destY, boxY + boxHeight - padding - this.node.offsetHeight))
+			};
+		};
+		// endregion
+		
+		let animId, cursorOffset;
+		
+		const updatePosition = e => {
+			// new position
+			let newPos = {
+				x: e.clientX - cursorOffset.x,
+				y: e.clientY - cursorOffset.y
+			};
+			
+			// constrain by window and cage
+			if (cageBox) {
+				newPos = constrain(newPos, cageBox);
+			}
+			newPos = constrain(newPos, screenBox);
+			
+			// move node only if position changed
+			if (position.x !== newPos.x || position.y !== newPos.y) {
+				position = newPos;
+				
+				if (!animId) {
+					animId = window.requestAnimationFrame(() => {
+						move();
+						
+						animId = null;
+					});
+				}
+			}
+		};
+		
+		const stopDragging = () => {
+			document.removeEventListener('mousemove', updatePosition);
+			document.removeEventListener('mouseup', stopDragging);
+		};
+		
+		// initialize node's position (at current location)
+		if (this.node.parentNode.nodeName !== "BODY") {				// if not already child of <body>
+			document.querySelector('body').appendChild(this.node);		// move it there to make position: absolute actually 'absolute'
+		}
+		
+		Object.assign(this.node.style, {
+			cursor:		'move',
+			position:	'absolute',
+			left:		position.x,
+			top:		position.y,
+		});
+		move();
+		
+		// start dragging on mousedown
+		handle.addEventListener('mousedown', e => {
+			setConstrainBoxes();
+			
+			cursorOffset = {
+				x: e.clientX - position.x,
+				y: e.clientY - position.y
+			};
+			
+			document.addEventListener('mousemove', updatePosition);
+			document.addEventListener('mouseup', stopDragging);
+			
+			e.preventDefault();		// prevent text selection
+		});
+	},
+}, function init (superInit, {draggable = false} = {}) {
+	superInit();
+	
+	if (draggable) {
+		if (this.get('rendered')) {
+			this.enableDragging(draggable.cageNode, draggable.padding);
+		} else {
+			this.onceAfter('renderedChange', this.enableDragging.bind(this, draggable.cageNode, draggable.padding));
+		}
+	}
 });
 
 export default createOverlay;

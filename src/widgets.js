@@ -81,4 +81,12 @@ const overlay = createOverlay({
 			this.destroy();
 		}
 	});
+
+createOverlay({
+	headerContent:	'Drag',
+	bodyContent:	'Me',
+	draggable:		{
+		padding: 20
+	},
+}).render();
 // endregion
