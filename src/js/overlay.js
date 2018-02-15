@@ -2,6 +2,7 @@
 /*global YUI, Popper*/
 
 import createWidget from 'js/widget';
+import {initPositioning, getPosition, move} from "js/position";
 
 /**
  * @class Overlay
@@ -124,79 +125,23 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 
 	/**
 	 * 
-	 * @param {HTMLElement} [cageNode]
+	 * @param {HTMLElement} [container]
 	 * @param {Number} [padding=0]
 	 */
-	enableDragging (cageNode, padding = 0) {
+	enableDragging (container, padding = 0) {
 		const handle = this.node.querySelector('.drag-handle') || this.node;
 		
-		// region constrain boxes
-		let cageBox = null, screenBox;
-		
-		const setConstrainBoxes = () => {
-			if (cageNode) {
-				const {left: x, top: y, width, height} = cageNode.getBoundingClientRect();
-				cageBox = {x: x + window.pageXOffset, y: y + window.pageYOffset, width, height};	// translate to client rect to window space
-			}
-			
-			screenBox = {x: window.pageXOffset, y: window.pageYOffset, width: window.innerWidth, height: window.innerHeight};
-		};
-		
-		setConstrainBoxes();
-		// endregion
-		
-		// region positioning utilities
-		const getPos = () => {
-			const rect = this.node.getBoundingClientRect();
-			return {x: rect.left, y: rect.top};
-		};
-		
-		let position = getPos();
-		
-		const move = () => {
-			Object.assign(this.node.style, {
-				left:	`${position.x}px`,
-				top:	`${position.y}px`,
-			});
-			// transform: translate gives weird artifacts in Firefox
-			// this.node.style.transform = `translate(${position.x}px, ${position.y}px)`;
-		};
-		
-		const constrain = ({x: destX, y: destY}, {x: boxX, y: boxY, width: boxWidth, height: boxHeight}) => {
-			return {
-				x: Math.max(boxX + padding, Math.min(destX, boxX + boxWidth  - padding - this.node.offsetWidth)),
-				y: Math.max(boxY + padding, Math.min(destY, boxY + boxHeight - padding - this.node.offsetHeight))
-			};
-		};
-		// endregion
-		
-		let animId, cursorOffset;
+		let cursorOffset;
 		
 		const updatePosition = e => {
-			// new position
-			let newPos = {
-				x: e.clientX - cursorOffset.x,
-				y: e.clientY - cursorOffset.y
+			const eventPos = getPosition(e);
+			
+			const newPos = {
+				x: eventPos.x - cursorOffset.x,
+				y: eventPos.y - cursorOffset.y
 			};
 			
-			// constrain by window and cage
-			if (cageBox) {
-				newPos = constrain(newPos, cageBox);
-			}
-			newPos = constrain(newPos, screenBox);
-			
-			// move node only if position changed
-			if (position.x !== newPos.x || position.y !== newPos.y) {
-				position = newPos;
-				
-				if (!animId) {
-					animId = window.requestAnimationFrame(() => {
-						move();
-						
-						animId = null;
-					});
-				}
-			}
+			move(this.node, newPos, {container, padding});
 		};
 		
 		const stopDragging = () => {
@@ -204,26 +149,17 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 			document.removeEventListener('mouseup', stopDragging);
 		};
 		
-		// initialize node's position (at current location)
-		if (this.node.parentNode.nodeName !== "BODY") {				// if not already child of <body>
-			document.querySelector('body').appendChild(this.node);		// move it there to make position: absolute actually 'absolute'
-		}
-		
-		Object.assign(this.node.style, {
-			cursor:		'move',
-			position:	'absolute',
-			left:		position.x,
-			top:		position.y,
-		});
-		move();
+		initPositioning(this.node);
+		handle.style.cursor = 'move';
 		
 		// start dragging on mousedown
 		handle.addEventListener('mousedown', e => {
-			setConstrainBoxes();
+			const eventPos = getPosition(e);
+			const position = getPosition(this.node);
 			
 			cursorOffset = {
-				x: e.clientX - position.x,
-				y: e.clientY - position.y
+				x: eventPos.x - position.x,
+				y: eventPos.y - position.y
 			};
 			
 			document.addEventListener('mousemove', updatePosition);
