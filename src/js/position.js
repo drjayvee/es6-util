@@ -20,7 +20,7 @@
  * 
  * @param {HTMLElement} el
  */
-export function initPositioning (el) {
+function initPosition (el) {
 	const pos = getPosition(el);
 	
 	if (el.parentNode.nodeName !== "BODY") {			// if not already child of <body>
@@ -32,6 +32,21 @@ export function initPositioning (el) {
 		left:		`${pos.x}px`,
 		top:		`${pos.y}px`
 	});
+}
+
+/**
+ * 
+ * @param {HTMLElement} el
+ * @param {Position} pos
+ */
+function setPosition (el, pos) {
+	Object.assign(el.style, {
+		left:	`${pos.x}px`,
+		top:	`${pos.y}px`,
+	});
+	
+	// transform: translate gives weird artifacts in Firefox
+	// this.node.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
 }
 
 function normalize (pos) {
@@ -87,9 +102,25 @@ export function getWindowBox () {
 	};
 }
 
+/**
+ * 
+ * @param {Box} box
+ * @param {Position} destination
+ * @param {Box} container
+ * @param {Number} [padding=0]
+ * @return {Position}
+ */
+function constrain (box, destination, container, padding = 0) {
+	return {
+		x: Math.max(container.x + padding, Math.min(destination.x, container.x + container.width  - padding - box.width)),
+		y: Math.max(container.y + padding, Math.min(destination.y, container.y + container.height - padding - box.height))
+	};
+}
+
 
 
 const moves = new Map();
+const initialied = new Map();
 
 /**
  * 
@@ -97,11 +128,18 @@ const moves = new Map();
  * @param {Position} pos
  * @param {{container: HTMLElement, [padding]: Number}}
  */
-export function move (el, pos, {container, padding = 0}) {
-	if (container) {
-		pos = constrain(el, pos, getBox(container), padding);
+export function move (el, pos, {container, padding = 0} = {}) {
+	if (!initialied.has(el)) {
+		initPosition(el);
+		initialied.set(el, true);
 	}
-	pos = constrain(el, pos, getWindowBox(), padding);
+	
+	const elBox = getBox(el);
+	
+	if (container) {
+		pos = constrain(elBox, pos, getBox(container), padding);
+	}
+	pos = constrain(elBox, pos, getWindowBox(), padding);
 	
 	// schedule move (if position changed)
 	const curPos = getBox(el);
@@ -109,16 +147,7 @@ export function move (el, pos, {container, padding = 0}) {
 		if (!moves.get(el)) {								// no update scheduled yet
 			// schedule update
 			window.requestAnimationFrame(() => {
-				const pos = moves.get(el);	// get _latest_ position
-				
-				Object.assign(el.style, {
-					left:	`${pos.x}px`,
-					top:	`${pos.y}px`,
-				});
-				
-				// transform: translate gives weird artifacts in Firefox
-				// this.node.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
-				
+				setPosition(el, moves.get(el));	// move to _latest_ position
 				moves.delete(el);
 			});
 		}
@@ -127,17 +156,94 @@ export function move (el, pos, {container, padding = 0}) {
 	}
 }
 
+
+
+// region alignment calculation
+const ALIGN_LEFT	= 'l';
+const ALIGN_CENTER	= 'c';
+const ALIGN_RIGHT	= 'r';
+
+const ALIGN_TOP		= 't';
+const ALIGN_MIDDLE	= 'm';
+const ALIGN_BOTTOM	= 'b';
+
 /**
  * 
- * @param {HTMLElement} el
- * @param {Position} destination
- * @param {Box} container
- * @param {Number} [padding=0]
+ * @param {Box} box
+ * @param {String[]} align
+ * @param {Number} padding
  * @return {Position}
  */
-export function constrain (el, destination, container, padding = 0) {
-	return {
-		x: Math.max(container.x + padding, Math.min(destination.x, container.x + container.width  - padding - el.offsetWidth)),
-		y: Math.max(container.y + padding, Math.min(destination.y, container.y + container.height - padding - el.offsetHeight))
+function calcAlignPos (box, align, padding = 0) {
+	const [alignY, alignX] = align;
+	
+	const pos = {x: 0, y: 0};
+	
+	switch (alignY) {
+		case ALIGN_TOP:
+			pos.y = box.y - padding;
+			break;
+			
+		case ALIGN_MIDDLE:
+			pos.y = box.y + (box.height / 2);
+			break;
+			
+		case ALIGN_BOTTOM:
+			pos.y = box.y + box.height + padding;
+			break;
+			
+		default:
+			throw 'wrong alignment';
+	}
+	
+	switch (alignX) {
+		case ALIGN_LEFT:
+			pos.x = box.x - padding;
+			break;
+		
+		case ALIGN_CENTER:
+			pos.x = box.x + (box.width / 2);
+			break;
+			
+		case ALIGN_RIGHT:
+			pos.x = box.x + box.width + padding;
+			break;
+			
+		default:
+			throw 'wrong alignment';
+	}
+	
+	return pos;
+}
+// endregion
+
+export function align (
+	el,
+	target,
+	{
+		alignment	= [ALIGN_TOP + ALIGN_CENTER, ALIGN_BOTTOM + ALIGN_CENTER],
+		container	= null,
+		padding		= 0,
+		shift		= false,
+	} = {} 
+) {
+	const [elAlign, targetAlign] = alignment;
+	
+	const elBox		= getBox(el);
+	const targetBox = getBox(target);
+	
+	const elAlignPos		= calcAlignPos(elBox, elAlign, padding);
+	const targetAlignPos	= calcAlignPos(targetBox, targetAlign, padding);
+	
+	const destination = {
+		// new: current + (align position offset)
+		x: elBox.x + (targetAlignPos.x - elAlignPos.x),
+		y: elBox.y + (targetAlignPos.y - elAlignPos.y),
 	};
+	
+	if (shift) {
+		
+	}
+	
+	move(el, destination, {container, padding});
 }

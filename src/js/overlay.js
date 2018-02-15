@@ -2,7 +2,7 @@
 /*global YUI, Popper*/
 
 import createWidget from 'js/widget';
-import {initPositioning, getPosition, move} from "js/position";
+import {getPosition, align, move} from "js/position";
 
 /**
  * @class Overlay
@@ -64,60 +64,24 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 
 	/**
 	 * 
-	 * @param {HTMLElement} referenceElement
-	 * @param {string} placement
-	 * @param {string} [offset]
+	 * @param {HTMLElement} target
+	 * @param {Object} config
+	 * @param {String[]} [config.alignment]	default: this.node centered below target
+	 * @param {Number} [config.padding=0]
+	 * @param {Boolean} [config.shift=false]
 	 * @return {Overlay}
 	 * @see Popper
 	 */
-	align (referenceElement, placement, offset = null) {
-		if (this._popper) {
-			this._popper.reference = referenceElement;
-			this._popper.options.placement = placement;
-			
-			// update 'offset' modifier directly
-			for (let mod of this._popper.modifiers) {
-				if (mod.name === 'offset') {
-					mod.offset = offset;
-					break;
-				}
-			}
-			
-			this._popper.scheduleUpdate();
+	align (target, config) {
+		const doAlign = align.bind(null, this.node, target, config);
+		
+		if (this.get('rendered')) {
+			doAlign();
 		} else {
-			const initPopper = () => {
-				let modifiers = {
-					preventOverflow: {
-						boundariesElement: 'viewport',
-						padding: 16,
-					},
-				};
-				if (offset) {
-					modifiers.offset = {offset: offset};
-				}
-				
-				this._popper = new Popper(referenceElement, this.node, {placement, modifiers});
-				
-				// Popper.destroy() after this.destroy()
-				this.onceAfter('renderedChange', () => this._popper.destroy);
-			};
-			
-			// lazy-load Popper using YUI if necessary and possible
-			let pop = initPopper;
-			if (typeof Popper === 'undefined' && typeof YUI !== 'undefined') {
-				pop = () => {
-					YUI().use('popper', initPopper);
-				};
+			if (this._initPopSub) {				// align() called twice before render?
+				this._initPopSub.unsubscribe();		// cancel init with previous params
 			}
-			
-			if (this.get('rendered')) {
-				pop();
-			} else {
-				if (this._initPopSub) {				// align() called twice before render?
-					this._initPopSub.unsubscribe();		// cancel init with previous params
-				}
-				this._initPopSub = this.onceAfter('renderedChange', pop);
-			}
+			this._initPopSub = this.onceAfter('renderedChange', doAlign);
 		}
 		
 		return this;
@@ -149,7 +113,6 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 			document.removeEventListener('mouseup', stopDragging);
 		};
 		
-		initPositioning(this.node);
 		handle.style.cursor = 'move';
 		
 		// start dragging on mousedown
