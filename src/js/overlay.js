@@ -2,7 +2,7 @@
 /*global YUI, Popper*/
 
 import createWidget from 'js/widget';
-import {getPosition, align, move} from "js/position";
+import {getPosition, align, center, move} from "js/position";
 
 /**
  * @class Overlay
@@ -86,6 +86,11 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		
 		return this;
 	},
+	
+	center () {
+		center(this.node);
+		return this;
+	},
 
 	/**
 	 * 
@@ -130,6 +135,8 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 			
 			e.preventDefault();		// prevent text selection
 		});
+		
+		return this;
 	},
 }, function init (superInit, {draggable = false} = {}) {
 	superInit();

@@ -8,14 +8,16 @@
 
 /**
  * @typedef {Object} Box
- * @property {Number} x
- * @property {Number} y
+ * @property {Number} left
+ * @property {Number} right
+ * @property {Number} top
+ * @property {Number} bottom
  * @property {Number} width
  * @property {Number} height
  */
 
 
-
+// region utilities
 /**
  * 
  * @param {HTMLElement} el
@@ -29,8 +31,8 @@ function initPosition (el) {
 	
 	Object.assign(el.style, {
 		position:	'absolute',
-		left:		`${pos.x}px`,
-		top:		`${pos.y}px`
+		left:		pos.x + 'px',
+		top:		pos.y + 'px'
 	});
 }
 
@@ -41,17 +43,34 @@ function initPosition (el) {
  */
 function setPosition (el, pos) {
 	Object.assign(el.style, {
-		left:	`${pos.x}px`,
-		top:	`${pos.y}px`,
+		left:	pos.x + 'px',
+		top:	pos.y + 'px',
 	});
 	
 	// transform: translate gives weird artifacts in Firefox
 	// this.node.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
 }
 
+/**
+ * 
+ * @param {Box|Position} pos
+ * @return {Box|Position}
+ */
 function normalize (pos) {
-	pos.x += window.pageXOffset;
-	pos.y += window.pageYOffset;
+	if (pos instanceof window.DOMRect) {
+		pos = {
+			left:	pos.left,
+			right:	pos.right,
+			top:	pos.top,
+			bottom:	pos.bottom,
+			width:	pos.width,
+			height:	pos.height
+		};
+	}
+	
+	const [xAisPropertyName, yAisPropertyName] = ('left' in pos) ? ['left', 'top'] : ['x', 'y'];
+	pos[xAisPropertyName] += window.pageXOffset;
+	pos[yAisPropertyName] += window.pageYOffset;
 	
 	return pos;
 }
@@ -84,9 +103,7 @@ export function getPosition (e) {
  * @return {Box}
  */
 export function getBox (el) {
-	const {left: x, top: y, width, height} = el.getBoundingClientRect();
-	
-	return normalize({x, y, width, height});
+	return normalize(el.getBoundingClientRect());
 }
 
 /**
@@ -95,40 +112,35 @@ export function getBox (el) {
  */
 export function getWindowBox () {
 	return {
-		x:		window.pageXOffset,		// IE doesn't support window.scrollX
-		y:		window.pageYOffset,		// ... or window.scrollY
+		left:	window.pageXOffset,		// IE doesn't support window.scrollX
+		right:	window.pageXOffset + window.innerWidth,
+		top:	window.pageYOffset,		// ... or window.scrollY
+		bottom:	window.pageYOffset + window.innerHeight,
 		width:	window.innerWidth,
 		height:	window.innerHeight
 	};
 }
+// endregion
 
+// region constrain calculation
 /**
  * 
  * @param {Box} box
  * @param {Position} destination
  * @param {Box} container
- * @param {Number} [padding=0]
+ * @param {Number} padding
  * @return {Position}
  */
-function constrain (box, destination, container, padding = 0) {
+function constrain (box, destination, container, padding) {
 	return {
-		x: Math.max(container.x + padding, Math.min(destination.x, container.x + container.width  - padding - box.width)),
-		y: Math.max(container.y + padding, Math.min(destination.y, container.y + container.height - padding - box.height))
+		x: Math.max(container.left + padding, Math.min(destination.x, container.right  - padding - box.width)),
+		y: Math.max(container.top + padding,  Math.min(destination.y, container.bottom - padding - box.height))
 	};
 }
 
-
-
-const moves = new Map();
 const initialied = new Map();
 
-/**
- * 
- * @param {HTMLElement} el
- * @param {Position} pos
- * @param {{container: HTMLElement, [padding]: Number}}
- */
-export function move (el, pos, {container, padding = 0} = {}) {
+function constrainPosition (el, pos, container, padding) {
 	if (!initialied.has(el)) {
 		initPosition(el);
 		initialied.set(el, true);
@@ -141,6 +153,12 @@ export function move (el, pos, {container, padding = 0} = {}) {
 	}
 	pos = constrain(elBox, pos, getWindowBox(), padding);
 	
+	return pos;
+}
+
+const moves = new Map();
+
+function scheduleMove (el, pos) {
 	// schedule move (if position changed)
 	const curPos = getBox(el);
 	if (curPos.x !== pos.x || curPos.y !== pos.y) {		// position changed
@@ -155,8 +173,7 @@ export function move (el, pos, {container, padding = 0} = {}) {
 		moves.set(el, pos);									// store _latest_ position
 	}
 }
-
-
+// endregion
 
 // region alignment calculation
 const ALIGN_LEFT	= 'l';
@@ -181,15 +198,15 @@ function calcAlignPos (box, align, padding = 0) {
 	
 	switch (alignY) {
 		case ALIGN_TOP:
-			pos.y = box.y - padding;
+			pos.y = box.top - padding;
 			break;
 			
 		case ALIGN_MIDDLE:
-			pos.y = box.y + (box.height / 2);
+			pos.y = box.top + (box.height / 2);
 			break;
 			
 		case ALIGN_BOTTOM:
-			pos.y = box.y + box.height + padding;
+			pos.y = box.bottom + padding;
 			break;
 			
 		default:
@@ -198,15 +215,15 @@ function calcAlignPos (box, align, padding = 0) {
 	
 	switch (alignX) {
 		case ALIGN_LEFT:
-			pos.x = box.x - padding;
+			pos.x = box.left - padding;
 			break;
 		
 		case ALIGN_CENTER:
-			pos.x = box.x + (box.width / 2);
+			pos.x = box.left + (box.width / 2);
 			break;
 			
 		case ALIGN_RIGHT:
-			pos.x = box.x + box.width + padding;
+			pos.x = box.right + padding;
 			break;
 			
 		default:
@@ -215,8 +232,74 @@ function calcAlignPos (box, align, padding = 0) {
 	
 	return pos;
 }
+
+/**
+ * 
+ * @param {Box} elBox
+ * @param {Position} destination
+ * @param {Box} targetBox
+ * @param {String} targetAlign
+ * @param {Number} padding
+ * @return {Position}
+ */
+function flipAlignment (elBox, destination, targetBox, targetAlign, padding) {
+	const [verticalAlign, horizontalAlign] = targetAlign;
+	
+	const destinationBox = Object.assign({}, elBox, destination, {
+		right: destination.x + elBox.width,
+		bottom: destination.y + elBox.height
+	});
+	
+	// flip left/right
+	if (
+		horizontalAlign === ALIGN_LEFT &&
+		destinationBox.right > targetBox.left
+	) {
+		destination.x = targetBox.right + padding;
+	} else if (
+		horizontalAlign === ALIGN_RIGHT &&
+		destinationBox.left < targetBox.right
+	) {
+		destination.x = targetBox.left - destinationBox.width - padding;
+	}
+	
+	// flip up/down
+	else if (
+		verticalAlign === ALIGN_TOP &&
+		destinationBox.bottom > targetBox.top
+	) {
+		destination.y = targetBox.bottom + padding;
+	} else if (
+		horizontalAlign === ALIGN_BOTTOM &&
+		destinationBox.top < targetBox.bottom
+	) {
+		destination.y = targetBox.top - destinationBox.height - padding;
+	}
+	
+	return destination;
+}
 // endregion
 
+// region exported functions
+/**
+ * 
+ * @param {HTMLElement} el
+ * @param {Position} pos
+ * @param {{container: HTMLElement, [padding]: Number}}
+ */
+export function move (el, pos, {container, padding = 0} = {}) {
+	scheduleMove(el, constrainPosition(el, pos, container, padding));
+}
+
+/**
+ * 
+ * @param {HTMLElement} el
+ * @param {HTMLElement|Window} target
+ * @param {String[]} alignment
+ * @param {HTMLElement} [container]
+ * @param {Number} [padding=0]
+ * @param {Boolean] [flip=false]
+ */
 export function align (
 	el,
 	target,
@@ -224,26 +307,36 @@ export function align (
 		alignment	= [ALIGN_TOP + ALIGN_CENTER, ALIGN_BOTTOM + ALIGN_CENTER],
 		container	= null,
 		padding		= 0,
-		shift		= false,
+		flip		= false,
 	} = {} 
 ) {
 	const [elAlign, targetAlign] = alignment;
 	
 	const elBox		= getBox(el);
-	const targetBox = getBox(target);
+	const targetBox = target === window ? getWindowBox() : getBox(target);
 	
+	// perform alignment calculations
 	const elAlignPos		= calcAlignPos(elBox, elAlign, padding);
 	const targetAlignPos	= calcAlignPos(targetBox, targetAlign, padding);
 	
-	const destination = {
+	let destination = {
 		// new: current + (align position offset)
-		x: elBox.x + (targetAlignPos.x - elAlignPos.x),
-		y: elBox.y + (targetAlignPos.y - elAlignPos.y),
+		x: elBox.left + (targetAlignPos.x - elAlignPos.x),
+		y: elBox.top + (targetAlignPos.y - elAlignPos.y),
 	};
 	
-	if (shift) {
-		
+	// constrain destination position
+	destination = constrainPosition(el, destination, container, padding);
+	
+	// flip alignment if el (partially or completely) overlaps target
+	if (flip) {
+		destination = flipAlignment(elBox, destination, targetBox, targetAlign, padding);
 	}
 	
-	move(el, destination, {container, padding});
+	scheduleMove(el, destination);
 }
+
+export function center (el) {
+	align(el, window, {alignment: ['mc', 'mc']});
+}
+// endregion
