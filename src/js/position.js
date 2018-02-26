@@ -191,17 +191,17 @@ const ALIGN_BOTTOM	= 'b';
  * 
  * @param {Box} box
  * @param {String} align
- * @param {Number} padding
+ * @param {Number[]} shift, x, y shift
  * @return {Position}
  */
-function calcAlignPos (box, align, padding = 0) {
+function calcAlignPos (box, align, [shiftX, shiftY] = [0, 0]) {
 	const [alignY, alignX] = Array.from(align);
 	
 	const pos = {x: 0, y: 0};
 	
 	switch (alignY) {
 		case ALIGN_TOP:
-			pos.y = box.top - padding;
+			pos.y = box.top;
 			break;
 			
 		case ALIGN_MIDDLE:
@@ -209,7 +209,7 @@ function calcAlignPos (box, align, padding = 0) {
 			break;
 			
 		case ALIGN_BOTTOM:
-			pos.y = box.bottom + padding;
+			pos.y = box.bottom;
 			break;
 			
 		default:
@@ -218,7 +218,7 @@ function calcAlignPos (box, align, padding = 0) {
 	
 	switch (alignX) {
 		case ALIGN_LEFT:
-			pos.x = box.left - padding;
+			pos.x = box.left;
 			break;
 		
 		case ALIGN_CENTER:
@@ -226,7 +226,7 @@ function calcAlignPos (box, align, padding = 0) {
 			break;
 			
 		case ALIGN_RIGHT:
-			pos.x = box.right + padding;
+			pos.x = box.right;
 			break;
 			
 		default:
@@ -241,42 +241,56 @@ function calcAlignPos (box, align, padding = 0) {
  * @param {Box} elBox
  * @param {Position} destination
  * @param {Box} targetBox
+ * @param {String} elAlign
  * @param {String} targetAlign
- * @param {Number} padding
+ * @param {Number[]} shift
  * @return {Position}
  */
-function flipAlignment (elBox, destination, targetBox, targetAlign, padding) {
-	const [verticalAlign, horizontalAlign] = Array.from(targetAlign);
+function flipAlignment (elBox, destination, targetBox, elAlign, targetAlign, [shiftX, shiftY]) {
+	const [elVertAlign, elHorzAlign] = Array.from(elAlign);
+	const [tgVertAlign, tgHorzAlign] = Array.from(targetAlign);
 	
-	const destinationBox = Object.assign({}, elBox, destination, {
-		right: destination.x + elBox.width,
-		bottom: destination.y + elBox.height
-	});
+	const destinationBox = {
+		left:	destination.x,
+		right:	destination.x + elBox.width,
+		top:	destination.y,
+		bottom:	destination.y + elBox.height,
+		width:	elBox.width,
+		height: elBox.height,
+	};
 	
 	// flip left/right
-	if (
-		horizontalAlign === ALIGN_LEFT &&
-		destinationBox.right > targetBox.left
-	) {
-		destination.x = targetBox.right + padding;
-	} else if (
-		horizontalAlign === ALIGN_RIGHT &&
-		destinationBox.left < targetBox.right
-	) {
-		destination.x = targetBox.left - destinationBox.width - padding;
+	if (elHorzAlign !== tgHorzAlign) {	// don't flip if we want to line up same edge (e.g. left-to-left)
+		if (
+			tgHorzAlign === ALIGN_LEFT &&
+			destinationBox.right > targetBox.left
+		) {
+			destination.x = targetBox.right + shiftX;
+			return destination;
+		} else if (
+			tgHorzAlign === ALIGN_RIGHT &&
+			destinationBox.left < targetBox.right
+		) {
+			destination.x = targetBox.left - destinationBox.width - shiftX;
+			return destination;
+		}
 	}
 	
 	// flip up/down
-	else if (
-		verticalAlign === ALIGN_TOP &&
-		destinationBox.bottom > targetBox.top
-	) {
-		destination.y = targetBox.bottom + padding;
-	} else if (
-		horizontalAlign === ALIGN_BOTTOM &&
-		destinationBox.top < targetBox.bottom
-	) {
-		destination.y = targetBox.top - destinationBox.height - padding;
+	if (elVertAlign !== tgVertAlign) {
+		if (
+			tgVertAlign === ALIGN_TOP &&
+			destinationBox.bottom > targetBox.top
+		) {
+			destination.y = targetBox.bottom + shiftY;
+			return destination;
+		} else if (
+			tgVertAlign === ALIGN_BOTTOM &&
+			destinationBox.top < targetBox.bottom
+		) {
+			destination.y = targetBox.top - destinationBox.height - shiftY;
+			return destination;
+		}
 	}
 	
 	return destination;
@@ -310,22 +324,24 @@ export function align (
 		alignment	= [ALIGN_TOP + ALIGN_CENTER, ALIGN_BOTTOM + ALIGN_CENTER],
 		container	= null,
 		padding		= 0,
+		shift		= [0, 0],
 		flip		= false,
 	} = {} 
 ) {
 	const [elAlign, targetAlign] = alignment;
+	const [shiftX, shiftY] = shift;
 	
 	const elBox		= getBox(el);
 	const targetBox = target === window ? getWindowBox() : getBox(target);
 	
 	// perform alignment calculations
-	const elAlignPos		= calcAlignPos(elBox, elAlign, padding);
-	const targetAlignPos	= calcAlignPos(targetBox, targetAlign, padding);
+	const elAlignPos		= calcAlignPos(elBox, elAlign);
+	const targetAlignPos	= calcAlignPos(targetBox, targetAlign);
 	
 	let destination = {
-		// new: current + (align position offset)
-		x: elBox.left + (targetAlignPos.x - elAlignPos.x),
-		y: elBox.top + (targetAlignPos.y - elAlignPos.y),
+		// new: current + (align position offset) + shift
+		x: elBox.left + (targetAlignPos.x - elAlignPos.x) + shiftX,
+		y: elBox.top  + (targetAlignPos.y - elAlignPos.y) + shiftY,
 	};
 	
 	// constrain destination position
@@ -333,7 +349,7 @@ export function align (
 	
 	// flip alignment if el (partially or completely) overlaps target
 	if (flip) {
-		destination = flipAlignment(elBox, destination, targetBox, targetAlign, padding);
+		destination = flipAlignment(elBox, destination, targetBox, elAlign, targetAlign, shift);
 	}
 	
 	scheduleMove(el, destination);

@@ -1,5 +1,4 @@
 /*jshint esnext:true*/
-/*global YUI, Popper*/
 
 import createWidget from 'js/widget';
 import {getPosition, align, center, move} from "js/position";
