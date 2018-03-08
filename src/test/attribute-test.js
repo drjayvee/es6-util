@@ -145,7 +145,6 @@ QUnit.test('cannot change attr values through references', function (assert) {
 	assert.deepEqual(at.get('k'), [], 'get returns copy of array');
 });
 
-
 QUnit.test('readOnly attributes', function (assert) {
 	let at = createAttribute();
 	
@@ -323,6 +322,35 @@ QUnit.test('attribute change events', function (assert) {
 	
 	assert.equal(afterChangeEvent, null);
 	assert.equal(ao.get('t'), 8008);
+});
+
+QUnit.test('attribute onceAttrVal subs', function (assert) {
+	let ao = createAttributeObservable(),
+		args = null;
+	
+	ao.addAttribute('k', {value: 'no'});
+	
+	// sub before value is set
+	ao.onceAttrVal('k', 'yes', (...a) => args = a, 13, 37);
+	assert.notOk(args);
+	
+	ao.set('k', 'yeah');	// not target value
+	assert.notOk(args);
+	
+	ao.set('k', 'yes');
+	assert.ok(args);
+	assert.deepEqual(args, [13, 37]);
+	
+	args = null;
+	ao.set('k', 'again');
+	assert.notOk(args);
+	ao.set('k', 'yes');
+	assert.notOk(args);
+	
+	// sub when value is already set
+	ao.addAttribute('k2', {value: 'yes'});
+	ao.onceAttrVal('k2', 'yes', () => args = arguments);
+	assert.ok(args);
 });
 
 QUnit.test('readOnly attribute change events', function (assert) {

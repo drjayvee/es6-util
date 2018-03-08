@@ -226,6 +226,28 @@ export const createAttributeObservable = createAttribute.extend(/** @lends Attri
 		}
 		
 		return success;
+	},
+	
+	onceAttrVal (name, value, cb, ...args) {
+		let afterSub = null;
+		
+		const check = () => {
+			if (this.get(name) === value) {
+				cb.call(this, ...args);
+				if (afterSub) {
+					afterSub.unsubscribe();
+				}
+				
+				return true;
+			}
+			return false;
+		};
+		
+		if (!check()) {
+			afterSub = this.after(name + 'Change', check);
+		}
+		
+		return this;
 	}
 }, function (superInit) {
 	createEventTarget.init.apply(this, arguments);

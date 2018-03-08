@@ -190,8 +190,10 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 	addEventListener (eventType, cb, context = this) {
 		cb = cb.bind(context);
 		
-		this.node.addEventListener(eventType, cb);
-		this._nodeListeners.push({eventType, cb});
+		this.onceAttrVal('rendered', true, () => {
+			this.node.addEventListener(eventType, cb);
+			this._nodeListeners.push({eventType, cb});
+		});
 	},
 	
 	_registerSubscriptions (...subs) {

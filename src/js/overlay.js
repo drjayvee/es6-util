@@ -72,7 +72,9 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	 * @see Popper
 	 */
 	align (target, config) {
-		const doAlign = align.bind(null, this.node, target, config);
+		const doAlign = () => {
+			align(this.node, target, config);
+		};
 		
 		if (this.get('rendered')) {
 			doAlign();
@@ -87,7 +89,10 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	},
 	
 	center () {
-		center(this.node);
+		this.onceAttrVal('rendered', true, () => {
+			center(this.node);
+		});
+		
 		return this;
 	},
 
@@ -141,11 +146,7 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	superInit();
 	
 	if (draggable) {
-		if (this.get('rendered')) {
-			this.enableDragging(draggable.cageNode, draggable.padding);
-		} else {
-			this.onceAfter('renderedChange', this.enableDragging.bind(this, draggable.cageNode, draggable.padding));
-		}
+		this.onceAttrVal('rendered', true, this.enableDragging, draggable.cageNode, draggable.padding);
 	}
 });
 
