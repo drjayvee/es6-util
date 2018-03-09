@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 
 import createWidget from 'js/widget';
-import {getPosition, align, center, move} from "js/position";
+import {getBox, getPosition, align, center, move} from "js/position";
 
 /**
  * @class Overlay
@@ -120,6 +120,11 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		const stopDragging = () => {
 			document.removeEventListener('mousemove', updatePosition);
 			document.removeEventListener('mouseup', stopDragging);
+			
+			Object.assign(this.node.style, {
+				width:	'',
+				height:	'',
+			});
 		};
 		
 		handle.style.cursor = 'move';
@@ -127,11 +132,17 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		// start dragging on mousedown
 		handle.addEventListener('mousedown', e => {
 			const eventPos = getPosition(e);
-			const position = getPosition(this.node);
+			const box = getBox(this.node);
+			
+			// temporarily fix dimensions while dragging to prevent reflow when box is moved to window's edge
+			Object.assign(this.node.style, {
+				width:	box.width	+ 'px',
+				height:	box.height	+ 'px',
+			});
 			
 			cursorOffset = {
-				x: eventPos.x - position.x,
-				y: eventPos.y - position.y
+				x: eventPos.x - box.left,
+				y: eventPos.y - box.top
 			};
 			
 			document.addEventListener('mousemove', updatePosition);

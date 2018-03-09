@@ -23,7 +23,7 @@
  * @param {HTMLElement} el
  */
 function initPosition (el) {
-	const pos = getPosition(el);
+	const box = getBox(el);
 	
 	if (el.parentNode.nodeName !== "BODY") {			// if not already child of <body>
 		document.querySelector('body').appendChild(el);		// move it there to make position: absolute actually 'absolute'
@@ -31,8 +31,10 @@ function initPosition (el) {
 	
 	Object.assign(el.style, {
 		position:	'absolute',
-		left:		pos.x + 'px',
-		top:		pos.y + 'px'
+		left:		box.left	+ 'px',
+		top:		box.top		+ 'px',
+		
+		boxSizing:	'border-box',		// to temporarily fix dimensions while dragging
 	});
 }
 
