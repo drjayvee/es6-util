@@ -40,6 +40,7 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	NODE_TEMPLATE: `<div>
 		<div class="yui3-widget-hd" hidden></div>
 		<div class="yui3-widget-bd"></div>
+		<div class="yui3-widget-ft" hidden></div>
 	</div>`,
 	
 	_render () {
@@ -58,7 +59,7 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		this.node.firstElementChild.hidden = !Boolean(headerContent);
 		this.node.firstElementChild.innerHTML = headerContent;
 		
-		this.node.lastElementChild.innerHTML = this.get('bodyContent');
+		this.node.firstElementChild.nextElementSibling.innerHTML = this.get('bodyContent');
 	},
 
 	/**
@@ -98,11 +99,14 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 
 	/**
 	 * 
-	 * @param {HTMLElement} [container]
+	 * @param {HTMLElement|String} [handle=this.node]
+	 * @param {HTMLElement} [container=null]
 	 * @param {Number} [padding=0]
 	 */
-	enableDragging (container, padding = 0) {
-		const handle = this.node.querySelector('.drag-handle') || this.node;
+	enableDragging (handle, container = null, padding = 0) {
+		if (typeof handle === 'string') {
+			handle = this.node.querySelector(handle);
+		}
 		
 		let cursorOffset;
 		
@@ -157,7 +161,7 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	superInit();
 	
 	if (draggable) {
-		this.onceAttrVal('rendered', true, this.enableDragging, draggable.cageNode, draggable.padding);
+		this.onceAttrVal('rendered', true, this.enableDragging, draggable.handle, draggable.cageNode, draggable.padding);
 	}
 });
 
