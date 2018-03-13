@@ -13,6 +13,8 @@ import createWidget from 'js/widget';
  * @typedef {Object} ButtonConfig
  * @property {boolean} [disabled=false]
  * @property {string} [label='']
+ * @property {string} [value='']
+ * @property {string|string[]} [classNames='']
  * @see WidgetConfig
  */
 
@@ -56,6 +58,11 @@ export const createButton = createWidget.extend(/** @lends Button.prototype */ {
 		this._setValue();
 	},
 	
+	_getClasses () {
+		return createWidget.prototype._getClasses.apply(this, arguments)
+			.concat(this._classNames);
+	},
+	
 	_bindUI () {
 		this._registerSubscriptions(
 			this.after('disabledChange', this._setDisabled),
@@ -75,6 +82,18 @@ export const createButton = createWidget.extend(/** @lends Button.prototype */ {
 	_setValue () {
 		this.node.value = this.get('value');
 	},
+}, function init (superInit, {action = null, classNames = []} = {}) {
+	superInit();
+	
+	if (action) {
+		this.action = action;
+		this.addEventListener('click', action);
+	}
+	
+	if (typeof classNames === 'string') {
+		classNames = [classNames];
+	}
+	this._classNames = classNames;
 });
 // endregion
 

@@ -56,6 +56,34 @@ QUnit.test('basic Button', function (assert) {
 	b.set('value', 'on');
 	assert.equal('on', b.get('value'));
 	assert.equal('on', b.node.value);
+	
+	// className
+	const c = createButton({
+		classNames: ['pwn', 'w00t']
+	});
+	
+	buttons.push(c);
+	c.render();
+	
+	assert.ok(c.node.classList.contains('pwn'), c.node.classList.contains('w00t'));
+	
+	// action
+	let actionCbCalled = false;
+	const ab = createButton({
+		action: () => actionCbCalled = true
+	});
+	
+	buttons.push(ab);
+	ab.render();
+	
+	assert.ok(typeof ab.action === 'function');
+	
+	ab.node.dispatchEvent(new Event('click'));
+	assert.ok(actionCbCalled);
+	
+	actionCbCalled = false;
+	ab.action();
+	assert.ok(actionCbCalled);
 });
 
 QUnit.test('basic ToggleButton', function (assert) {
