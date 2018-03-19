@@ -5,6 +5,7 @@ import createOverlay from 'js/overlay';
 
 const CLOSE_ICON = '<span class="icon icon-close hasrole"></span>';
 
+const MODAL_CLASS = 'yui3-widget-modal';
 const MODAL_MASK = '<div class="yui3-widget-mask"></div>';
 
 let modalMask = null;
@@ -27,8 +28,9 @@ function modality (enable = true) {
  * @typedef {Object} PanelConfig
  * @property {Button[]} [buttons=[]]
  * @property {Boolean} [closeButton=true]
- * @property {Boolean} [closeOnEsc=true]
- * @property {Boolean} [closeOnClickOutside=true]
+ * @property {Boolean} [hideOnEsc=true]
+ * @property {Boolean} [hideOnClickOutside=true]
+ * @property {Boolean} [destroyOnHide=true]
  * @property {Boolean} [modal=false]
  * @see WidgetConfig
  */
@@ -55,7 +57,7 @@ const createPanel  = createOverlay.extend(/** @lends Panel.prototype */{
 		
 		// close button
 		if (this._closeButton) {
-			this.node.firstElementChild.classList.add('drag-handle');
+			this.node.firstElementChild.hidden = false;	// if no headerContent is set, overlay._setHeaderContent will hide
 			this.node.firstElementChild.insertAdjacentHTML('beforeend', CLOSE_ICON);
 			this.node.firstElementChild.lastElementChild.addEventListener('click', () => this.hide());
 		}
@@ -71,9 +73,9 @@ const createPanel  = createOverlay.extend(/** @lends Panel.prototype */{
 		this.node.lastElementChild.hidden = false;
 	},
 	
-	_setContent () {
+	_setHeaderContent () {
 		if (!this._closeButton || !this.get('rendered')) {		// don't bother on initial render
-			createOverlay.prototype._setContent.apply(this, arguments);
+			createOverlay.prototype._setHeaderContent.apply(this, arguments);
 			return;
 		}
 		
@@ -81,7 +83,7 @@ const createPanel  = createOverlay.extend(/** @lends Panel.prototype */{
 		const closeButton = headerNode.lastElementChild;
 		
 		headerNode.removeChild(closeButton);
-		createOverlay.prototype._setContent.apply(this, arguments);
+		createOverlay.prototype._setHeaderContent.apply(this, arguments);
 		headerNode.appendChild(closeButton);
 	},
 	
@@ -89,34 +91,93 @@ const createPanel  = createOverlay.extend(/** @lends Panel.prototype */{
 		return createOverlay.prototype.enableDragging.call(this, handle || '.yui3-widget-hd', container, padding);
 	}
 	
-}, function init (superInit, {closeButton = true, closeOnEsc = true, closeOnClickOutside = true, modal = false} = {}) {
+}, function init (superInit, {
+	closeButton = true,
+	hideOnEsc = true,
+	hideOnClickOutside = true,
+	destroyOnHide = true,
+	modal = false
+	// TODO draggable = true (overriding overlay's init)
+} = {}) {
 	superInit();
 	
 	this._closeButton = closeButton;
 	
 	this.onceAttrVal('rendered', true, () => {
-		if (closeOnEsc) {
-			document.addEventListener('keydown', e => {
-				if (e.keyCode === 27 && this.get('visible')) {
+		if (hideOnEsc) {
+			const ekl = e => {
+				if (this.get('visible') && e.keyCode === 27) {
 					this.hide();
 				}
+			};
+			
+			document.addEventListener('keydown', ekl);
+			
+			this.onceAttrVal('rendered', false, () => {
+				document.removeEventListener('click', ekl);
 			});
 		}
 		
-		if (closeOnClickOutside) {
-			// TODO: use util.js onClickOutside
+		if (hideOnClickOutside) {
+			/*
+			 * This feature is tricky to implement.
+			 * 
+			 * The simplest way would be to immediately set up the document clickOutside listener:
+			 * if (this.get('rendered') && this.get('visible')) { this.hide(); }
+			 * 
+			 * First of all though, if we document.addEventListener('click') right now, that listener
+			 * will be called _immediately_ if a click caused render() (i.e. icon.onClick = panel.render).
+			 * Therefore, we setTimeout to add this listener a bit later.
+			 * 
+			 * Furthermore, if we have a createPanel({destroyOnHide: false}) and simply toggle visibility
+			 * when some (external) node is clicked, then then this listener will be called when we
+			 * click that node the 2nd time, which will immediately hide();
+			 * 
+			 * Therefore, we have to add and remove the clickOutside listener.
+			 */
+			
 			const col = e => {
-				if (e.keyCode === 27 && this.get('visible')) {
+				if (this.node && !this.node.contains(e.target)) {
 					this.hide();
-					document.removeEventListener('click', col);
 				}
 			};
-			document.addEventListener('click', col);
+			const addCol = () => {
+				setTimeout(() => document.addEventListener('click', col), 1);
+			};
+			
+			if (this.get('visible')) {
+				addCol();
+			}
+			
+			this.after('visibleChange', e => {
+				if (e.newVal) {		// now visible
+					addCol();
+				} else {
+					document.removeEventListener('click', col);
+				}
+			});
+			
+			this.onceAttrVal('rendered', false, () => {
+				document.removeEventListener('click', col);
+			});
 		}
 	});
 	
+	if (destroyOnHide) {
+		this.after('visibleChange', e => {
+			if (!e.newVal) {
+				this.destroy();
+			}
+		});
+	}
+	
 	if (modal) {
-		this.after('renderedChange', e => modality(e.newVal));
+		this.after('renderedChange', e => {
+			if (e.newVal) {
+				this.node.classList.add(MODAL_CLASS);
+			}
+			modality(e.newVal);
+		});
 	}
 });
 

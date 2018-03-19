@@ -86,8 +86,16 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 		}
 		
 		this._registerSubscriptions(
-			this.after('hiddenChange',	e => this.node.hidden = e.newVal),
-			this.after('visibleChange',	e => this.node.style.visibility = e.newVal ? '' : 'hidden')
+			this.after('hiddenChange',	e => {
+				if (this.node) {
+					this.node.hidden = e.newVal;
+				}
+			}),
+			this.after('visibleChange',	e => {
+				if (this.node) {
+					this.node.style.visibility = e.newVal ? '' : 'hidden';
+				}
+			})
 		);
 		this._bindUI();
 		

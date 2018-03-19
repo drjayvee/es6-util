@@ -31,6 +31,7 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		},
 		
 		bodyContent: {
+			value: null,
 			validator: newVal => typeof newVal === 'string'
 		},
 	},
@@ -44,21 +45,32 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	</div>`,
 	
 	_render () {
-		this._setContent();
+		const style = this.node.firstElementChild.nextElementSibling.style;
+		if (this._maxHeight) {
+			style.maxHeight = this._maxHeight + 'px';
+		}
+		if (this._maxWidth) {
+			style.maxWidth = this._maxWidth + 'px';
+		}
+		
+		this._setHeaderContent();
+		this._setBodyContent();
 	},
 	
 	_bindUI () {
 		this._registerSubscriptions(
-			this.after('headerContentChange', this._setContent),
-			this.after('bodyContentChange', this._setContent)
+			this.after('headerContentChange', this._setHeaderContent),
+			this.after('bodyContentChange', this._setBodyContent)
 		);
 	},
 	
-	_setContent () {
+	_setHeaderContent () {
 		const headerContent = this.get('headerContent');
 		this.node.firstElementChild.hidden = !Boolean(headerContent);
 		this.node.firstElementChild.innerHTML = headerContent;
-		
+	},
+	
+	_setBodyContent () {
 		this.node.firstElementChild.nextElementSibling.innerHTML = this.get('bodyContent');
 	},
 
@@ -92,6 +104,14 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	center () {
 		this.onceAttrVal('rendered', true, () => {
 			center(this.node);
+		});
+		
+		return this;
+	},
+	
+	move (x, y) {
+		this.onceAttrVal('rendered', true, () => {
+			move(this.node, {x, y});
 		});
 		
 		return this;
@@ -157,8 +177,11 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		
 		return this;
 	},
-}, function init (superInit, {draggable = false} = {}) {
+}, function init (superInit, {draggable = false, maxWidth = null, maxHeight = null} = {}) {
 	superInit();
+	
+	this._maxWidth = maxWidth;
+	this._maxHeight = maxHeight;
 	
 	if (draggable) {
 		this.onceAttrVal('rendered', true, this.enableDragging, draggable.handle, draggable.cageNode, draggable.padding);
