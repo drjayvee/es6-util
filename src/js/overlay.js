@@ -58,10 +58,8 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	},
 	
 	_bindUI () {
-		this._registerSubscriptions(
-			this.after('headerContentChange', this._setHeaderContent),
-			this.after('bodyContentChange', this._setBodyContent)
-		);
+		this.after('headerContentChange', this._setHeaderContent);
+		this.after('bodyContentChange', this._setBodyContent);
 	},
 	
 	_setHeaderContent () {

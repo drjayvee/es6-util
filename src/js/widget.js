@@ -85,18 +85,16 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 			this._enhance();
 		}
 		
-		this._registerSubscriptions(
-			this.after('hiddenChange',	e => {
-				if (this.node) {
-					this.node.hidden = e.newVal;
-				}
-			}),
-			this.after('visibleChange',	e => {
-				if (this.node) {
-					this.node.style.visibility = e.newVal ? '' : 'hidden';
-				}
-			})
-		);
+		this.after('hiddenChange',	e => {
+			if (this.node) {
+				this.node.hidden = e.newVal;
+			}
+		});
+		this.after('visibleChange',	e => {
+			if (this.node) {
+				this.node.style.visibility = e.newVal ? '' : 'hidden';
+			}
+		});
 		this._bindUI();
 		
 		if (parentNode) {
@@ -185,6 +183,16 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 		}
 		
 		this._set('rendered', false, true);
+	},
+
+	/**
+	 * @override
+	 * @see EventTarget._on
+	 */
+	_on: function () {
+		const sub = createAttributeObservable.prototype._on.call(this, ...arguments);
+		this._registerSubscriptions(sub);
+		return sub;
 	},
 	
 	/**

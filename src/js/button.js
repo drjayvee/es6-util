@@ -64,11 +64,9 @@ export const createButton = createWidget.extend(/** @lends Button.prototype */ {
 	},
 	
 	_bindUI () {
-		this._registerSubscriptions(
-			this.after('disabledChange', this._setDisabled),
-			this.after('labelChange', this._setLabel),
-			this.after('valueChange', this._setValue)
-		);
+		this.after('disabledChange', this._setDisabled);
+		this.after('labelChange', this._setLabel);
+		this.after('valueChange', this._setValue);
 	},
 	
 	_setDisabled () {
@@ -148,9 +146,7 @@ export const createToggleButton = createButton.extend(/** @lends ToggleButton.pr
 	_bindUI () {
 		createButton.prototype._bindUI.apply(this, arguments);
 		
-		this._registerSubscriptions(
-			this.after('pressedChange', this._setPressed)
-		);
+		this.after('pressedChange', this._setPressed);
 		
 		this.addEventListener('click', () => {this.toggle();});	// anonymous function so toggle doesn't get event argument
 	},
