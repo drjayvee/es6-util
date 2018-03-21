@@ -161,28 +161,33 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 	 * event subscriptions
 	 */
 	destroy () {
-		if (this.node) {
-			if (this.node.parentNode) {		// node may not have been appended to DOM: widget.render(document.createElement('div')))
-				this.node.parentNode.removeChild(this.node);
+		const node = this.node;
+		
+		// unset node
+		map.delete(node);
+		this.node = null;
+		
+		// set rendered attr, fire renderedChange event
+		this._set('rendered', false, true);
+		
+		// clean up DOM
+		if (node) {
+			if (node.parentNode) {		// node may not have been appended to DOM: widget.render(document.createElement('div')))
+				node.parentNode.removeChild(node);
 			}
 			
 			// clear event listeners and subscriptions
 			for (let {eventType, cb} of this._nodeListeners) {
-				this.node.removeEventListener(eventType, cb);
+				node.removeEventListener(eventType, cb);
 			}
 			this._nodeListeners = [];
-			
-			for (let sub of this._subscriptions) {
-				sub.unsubscribe();
-			}
-			this._subscriptions = [];
-			
-			// unset node
-			map.delete(this.node);
-			this.node = null;
 		}
 		
-		this._set('rendered', false, true);
+		// unsub
+		for (let sub of this._subscriptions) {
+			sub.unsubscribe();
+		}
+		this._subscriptions = [];
 	},
 
 	/**
