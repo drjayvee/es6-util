@@ -176,7 +176,15 @@ const createPanel  = createOverlay.extend(/** @lends Panel.prototype */{
 			if (e.newVal) {
 				this.node.classList.add(MODAL_CLASS);
 			}
-			modality(e.newVal);
+			if (this.get('visible')) {
+				modality(e.newVal);		// only add modal screen if visible
+			}
+		});
+		
+		this.after('visibleChange', e => {
+			if (this.get('rendered') || !e.newVal) {	// never show modal screen if we're not rendered
+				modality(e.newVal);
+			}
 		});
 	}
 });
