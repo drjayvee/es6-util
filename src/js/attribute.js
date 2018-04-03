@@ -111,11 +111,11 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 		
 		// call validator / setter
 		if (okToSet && attrConfig.validator) {
-			okToSet = attrConfig.validator(value, name, this) !== false;
+			okToSet = attrConfig.validator.call(this, value, name) !== false;
 		}
 		
 		if (okToSet && attrConfig.setter) {
-			value = attrConfig.setter(value, name);
+			value = attrConfig.setter.call(this, value, name);
 			if (value === this.INVALID) {
 				okToSet = false;
 			}

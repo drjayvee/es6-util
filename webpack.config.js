@@ -8,6 +8,7 @@ module.exports = {
 		NuCore: 'nucore.js',
 		test: 'test.js',
 		widgets: 'widgets.js',
+		maquettehst: 'maquettehst.js'
 	},
 	output: {
 		filename: '[name].js',
@@ -33,7 +34,7 @@ module.exports = {
 	],
 	resolve: {
 		alias: {
-			Popper$: path.resolve(__dirname, 'node_modules/popper.js/dist/esm/popper.js'),
+			maquette$: path.resolve(__dirname, 'node_modules/maquette/dist/maquette.umd.js'),
 		},
 		modules: [
 			path.resolve(__dirname, 'src'),
