@@ -80,12 +80,11 @@ export function createFactory (prototype, init = null) {
 			mix(prototype, ...mixins);
 			return factory;
 		}},
-		extend:		{value: (prototype, init = null) => {
-			return extendFactory(factory, prototype, init);
-		}},
-		created:	{value: (object) => {
-			return createdBy(object, factory);
-		}}
+		extend:		{value: (prototype, init = null) => extendFactory(factory, prototype, init)},
+	});
+	
+	Object.defineProperties(prototype, {
+		factory:	{value: factory},
 	});
 	
 	initMap.set(factory, init ? factory : null);
@@ -113,21 +112,4 @@ export function extendFactory (base, prototype, init = null) {
 	initMap.set(factory, findFactoryWithNextInit(factory));
 	
 	return factory;
-}
-
-/**
- * @param {Object} object
- * @param {Function} factory
- * @return {boolean}
- */
-export function createdBy (object, factory) {
-	if (typeof object !== 'object' || object === null) {
-		throw 'Not an object';
-	}
-	
-	if (typeof factory !== 'function' || !factory.hasOwnProperty('prototype') || !factory.hasOwnProperty('init')) {
-		throw 'Not a factory';
-	}
-	
-	return factory.prototype.isPrototypeOf(object);
 }

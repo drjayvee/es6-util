@@ -46,7 +46,7 @@ const createPanel  = createOverlay.extend(/** @lends Panel.prototype */{
 	ATTRS: {
 		buttons: {
 			value: [],
-			validator: buttons => Array.isArray(buttons) && buttons.every(button => createButton.created(button))
+			validator: buttons => Array.isArray(buttons) && buttons.every(button => button instanceof createButton)
 		}
 	},
 	

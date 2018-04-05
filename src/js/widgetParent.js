@@ -25,7 +25,7 @@ const createWidgetParent = createWidget.extend(/** @lends WidgetParent.prototype
 	CHILD_TYPE: createWidget,
 	
 	_testChildType (child) {
-		if (!this.CHILD_TYPE.created(child)) {
+		if (!(child instanceof this.CHILD_TYPE)) {
 			throw 'Child is not a widget or wrong subtype';
 		}
 	},

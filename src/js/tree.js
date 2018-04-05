@@ -15,7 +15,7 @@ function encodeDnDItem (e) {
 	
 	e.dataTransfer.setData('text/plain', JSON.stringify([
 		map.get(item.getRoot()),						// root's DOMElement id
-		createLeaf.created(item) ? 'leaf' : 'node',		// item type
+		item instanceof createLeaf ? 'leaf' : 'node',	// item type
 		item.get('id')									// item id
 	]));
 }
@@ -44,11 +44,11 @@ function isValidDropTarget (e) {
 	const dropItem = dropTarget.bind || dropTarget.parentNode.bind;
 	
 	return !(
-		dropTarget.classList.contains('leaf')						||	// target is leaf item
-		dragItem === dropItem										||	// target is self
-		dragItem.parent === dropItem								||	// current parent
-		createNode.created(dragItem) && dragItem.contains(dropItem)	||	// target is descendant
-		dragItem.getRoot() !== dropItem.getRoot()						// target is in other tree
+		dropTarget.classList.contains('leaf')							||	// target is leaf item
+		dragItem === dropItem											||	// target is self
+		dragItem.parent === dropItem									||	// current parent
+		(dragItem instanceof createNode && dragItem.contains(dropItem))	||	// target is descendant
+		dragItem.getRoot() !== dropItem.getRoot()							// target is in other tree
 	);
 }
 
@@ -130,10 +130,12 @@ const createItem = createAttributeObservable.extend(/** @lends Item.prototype */
 	},
 	
 	toString () {	// for sort()ing
-		return (createLeaf.created(this) ? '1' : '0') + this.get('label');
+		return (this instanceof createLeaf ? '1' : '0') + this.get('label');
 	},
 	
 });
+
+
 
 /**
  * @class Leaf
@@ -189,7 +191,7 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 			value: [],
 			setter: function (children) {
 				return children.map(child => {
-					if (!createItem.created(child)) {
+					if (!(child instanceof createItem)) {
 						child = child.type === 'node' ? createNode(child): createLeaf(child);
 						child.parent = this;
 						child.addBubbleTarget(this);
@@ -246,7 +248,7 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 	 */
 	getItem (id, factory) {
 		for (let child of this.get('children')) {
-			if (factory.created(child) && child.get('id') === id) {
+			if (child instanceof factory && child.get('id') === id) {
 				return child;
 			}
 			
@@ -263,10 +265,7 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 	 * @return bool
 	 */
 	contains (item) {
-		return this.getItem(
-			item.get('id'),
-			createLeaf.created(item) ? createLeaf : createNode
-		);
+		return this.getItem(item.get('id'), item.factory);
 	},
 	
 	toggle (expanded = !this.get('expanded')) {
@@ -358,7 +357,7 @@ const createTree = createNode.extend({
 		}
 		const item = ie.bind;
 		
-		if (createNode.created(item)) {
+		if (item instanceof createNode) {
 			item.toggle();
 		}
 	});
