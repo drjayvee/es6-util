@@ -93,8 +93,6 @@ window.treeDnD_drop = e => {
  * @property {string} label
  */
 
-
-
 /**
  * @function
  * @param {ItemConfig} config
@@ -181,6 +179,8 @@ const createLeaf = createItem.extend({
  * @return {Node}
  */
 const createNode = createItem.extend(/** @lends Node.prototype */{
+	
+	LIST_CLASS: null,
 	
 	ATTRS: {
 		expanded: {
@@ -295,29 +295,40 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 		);
 	},
 	
-	_renderList (className) {
+	_renderList () {
 		const expanded = this.get('expanded');
 		const children = this.get('children');
 		
-		if (!expanded || !children.length) {
+		if (
+			(!this._listRendered && !expanded) ||	// if list _is_ rendered but collapsed, hide it instead of removing DOM nodes
+			!children.length
+		) {
 			return [];
 		}
 		
+		this._listRendered = true;
+		
 		return h(
 			'ul',
-			className ? {class: className} : {},
+			Object.assign({hidden: !expanded}, this.LIST_CLASS ? {class: this.LIST_CLASS} : null),
 			this.get('children').sort().map(item => item._render())
 		);
-	}
+	},
+	
 });
 
 /**
  * @function
- * @argument {Array.<ItemConfig|Item>} items
- * @see createNode
+ * @param {NodeConfig} config
+ * @return {Node}
  */
-const createTree = createNode.extend({
+const createRootNode = createNode.extend({
 
+	LIST_CLASS: 'root',
+
+	/**
+	 * @override
+	 */
 	getRoot () {
 		return this;
 	},
@@ -326,28 +337,38 @@ const createTree = createNode.extend({
 	 * @override
 	 */
 	_render () {
-		return this._renderList('root');
+		return this._renderList();
 	},
 	
-}, function init (superInit, items, parentNode) {
-	superInit();
+});
+
+
+
+/**
+ * @function
+ * @argument {Array.<ItemConfig|Item>} items
+ * @return {Node}
+ * @see createNode
+ */
+const createTree = function (items, parentNode) {
+	const tree = createRootNode({
+		expanded: true,
+		children: items,
+	});
 	
 	if (!parentNode.id) {
 		parentNode.id = 'tree' + map.size;
 	}
-	map.set(this, parentNode.id);
-	
-	this.set('expanded', true);
-	this.set('children', items);
+	map.set(tree, parentNode.id);
 	
 	// render now
-	projector.append(parentNode, () => this._render());
+	projector.append(parentNode, () => tree._render());
 	
 	// rerender if data changes
 	const render = () => projector.scheduleRender();
-	this.after('labelChange', render);
-	this.after('expandedChange', render);
-	this.after('childrenChange', render);
+	tree.after('labelChange', render);
+	tree.after('expandedChange', render);
+	tree.after('childrenChange', render);
 	
 	// attach event listeners
 	parentNode.addEventListener('click', e => {
@@ -361,6 +382,8 @@ const createTree = createNode.extend({
 			item.toggle();
 		}
 	});
-});
+	
+	return tree;
+};
 
 export default createTree;
