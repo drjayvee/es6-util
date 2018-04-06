@@ -80,7 +80,7 @@ window.treeDnD_drop = e => {
 // endregion
 
 
-
+// region tree
 /**
  * @class Item
  * @augments AttributeObservable
@@ -91,6 +91,7 @@ window.treeDnD_drop = e => {
  * @typedef {Object} ItemConfig
  * @property {string|number} id
  * @property {string} label
+ * @property {Item} parent
  */
 
 /**
@@ -107,7 +108,7 @@ const createItem = createAttributeObservable.extend(/** @lends Item.prototype */
 
 	/**
 	 * 
-	 * @return {Node}
+	 * @return {RootNode}
 	 */
 	getRoot () {
 		return this.parent.getRoot();
@@ -131,6 +132,10 @@ const createItem = createAttributeObservable.extend(/** @lends Item.prototype */
 		return (this instanceof createLeaf ? '1' : '0') + this.get('label');
 	},
 	
+}, function init (superInit, {parent}) {
+	this.parent = parent;
+	
+	superInit();
 });
 
 
@@ -154,9 +159,11 @@ const createLeaf = createItem.extend({
 			
 			draggable: 'true',
 			ondragstart: 'treeDnD_start(event)',
-		}, [
-			this.get('label')
-		]);
+		}, this._renderContent());
+	},
+	
+	_renderContent () {
+		return [this.get('label')];
 	}
 });
 
@@ -190,10 +197,12 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 		children: {
 			value: [],
 			setter: function (children) {
+				const root = this.getRoot();
+				
 				return children.map(child => {
 					if (!(child instanceof createItem)) {
-						child = child.type === 'node' ? createNode(child): createLeaf(child);
 						child.parent = this;
+						child = child.children ? root.NODE_FACTORY(child): root.LEAF_FACTORY(child);
 						child.addBubbleTarget(this);
 					}
 					return child;
@@ -317,14 +326,24 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 	
 });
 
+
+
+/**
+ * @class RootNode
+ * @augments Node
+ */
+
 /**
  * @function
  * @param {NodeConfig} config
- * @return {Node}
+ * @return {RootNode}
  */
-const createRootNode = createNode.extend({
+const createRootNode = createNode.extend(/** @lends RootNode.prototype */{
 
 	LIST_CLASS: 'root',
+	
+	LEAF_FACTORY: createLeaf,
+	NODE_FACTORY: createNode,
 
 	/**
 	 * @override
@@ -341,19 +360,74 @@ const createRootNode = createNode.extend({
 	},
 	
 });
+// endregion
 
 
+
+// region select tree
+const createSelectLeaf = createLeaf.extend({
+
+	/**
+	 * @override
+	 */
+	_renderContent () {
+		return [
+			h('label', [
+				h('input', {type: 'radio', name: 'leaf', value: this.get('id')}),
+				' ',
+				this.get('label')
+			])
+		];
+	}
+	
+});
+
+/**
+ * @class SelectRootNode
+ * @augments RootNode
+ */
 
 /**
  * @function
- * @argument {Array.<ItemConfig|Item>} items
- * @return {Node}
- * @see createNode
+ * @param {NodeConfig} config
+ * @return {SelectRootNode}
  */
-const createTree = function (items, parentNode) {
-	const tree = createRootNode({
-		expanded: true,
+const createSelectRootNode = createRootNode.extend(/** @lends SelectRootNode.prototype */{
+	
+	LEAF_FACTORY: createSelectLeaf,
+	NODE_FACTORY: createNode,
+	
+	getSelectedLeaf () {
+		return this._selectedLeaf;
+	}
+	
+}, function init (superInit) {
+	superInit();
+	
+	this._selectedLeaf = null;
+	
+	this.publish('leafClicked', {
+		cancelable: false,
+		defaultFn: e => this._selectedLeaf = e.leaf
+	});
+});
+// endregion
+
+
+
+// region rendering
+/**
+ * 
+ * @param {Function} rootNodeFactory
+ * @param {ItemConfig[]} items
+ * @param {HTMLElement} parentNode
+ * @return {RootNode}
+ */
+function renderTree (rootNodeFactory, items, parentNode) {
+	const tree = rootNodeFactory({
 		children: items,
+		expanded: true,
+		root: null
 	});
 	
 	if (!parentNode.id) {
@@ -373,17 +447,55 @@ const createTree = function (items, parentNode) {
 	// attach event listeners
 	parentNode.addEventListener('click', e => {
 		let ie = e.target;
-		if (!ie.classList.contains('leaf')) {
-			ie = ie.parentNode;
-		}
-		const item = ie.bind;
 		
-		if (item instanceof createNode) {
-			item.toggle();
+		if (ie.classList.contains('label')) {	// clicked li.node .label: toggle
+			/** @type {Node} */
+			const node = ie.parentNode.bind;
+			node.toggle();
+		} else {								// clicked li.leaf: fire leafClicked event
+			/** @type {Leaf} */
+			let leaf;
+			if (ie.classList.contains('leaf')) {	// regular Leaf	<li.leaf>$label</li>
+				leaf = ie.bind;
+			} else {								// SelectLeaf	<li.leaf><label><input> $label</li>
+				// When anything other than the input is clicked, a _second_ click event is triggered for the input!
+				// Therefore we only listen for the input click event to prevent handling the event twice.
+				if (ie.nodeName === 'LABEL') {
+					return;
+				}
+				leaf = ie.parentNode.parentNode.bind;
+			}
+			
+			tree.fire('leafClicked', {
+				label:	leaf.get('label'),
+				id:		leaf.get('id'),
+				leaf:	leaf,
+			});
 		}
 	});
 	
 	return tree;
+}
+
+/**
+ * @function
+ * @argument {Array.<ItemConfig|Item>} items
+ * @argument {HTMLElement}
+ * @return {RootNode}
+ * @see createNode
+ */
+export const createTree = function (items, parentNode) {
+	return renderTree(createRootNode, items, parentNode);
 };
 
-export default createTree;
+/**
+ * @function
+ * @argument {Array.<ItemConfig|Item>} items
+ * @argument {HTMLElement}
+ * @return {SelectRootNode}
+ * @see renderTree
+ */
+export const createSelectTree = function (items, parentNode) {
+	return renderTree(createSelectRootNode, items, parentNode);
+};
+// endregion
