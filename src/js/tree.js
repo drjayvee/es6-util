@@ -5,7 +5,7 @@ import {createAttributeObservable} from 'js/attribute';
 const h = maquette.h;
 const projector = maquette.createProjector();
 
-const map = new Map();
+const trees = [];
 
 
 
@@ -14,26 +14,15 @@ function encodeDnDItem (e) {
 	const item = e.target.bind;
 	
 	e.dataTransfer.setData('text/plain', JSON.stringify([
-		map.get(item.getRoot()),						// root's DOMElement id
+		trees.indexOf(item.getRoot()),					// root's DOMElement index
 		item instanceof createLeaf ? 'leaf' : 'node',	// item type
 		item.get('id')									// item id
 	]));
 }
 
 function decodeDnDItem (e) {
-	const [rootElementId, itemType, itemId] = JSON.parse(e.dataTransfer.getData('text/plain'));
-	
-	let tree;
-	for (let [t, el] of map.entries()) {
-		if (el === rootElementId) {
-			tree = t;
-			break;
-		}
-	}
-	
-	if (!tree) {
-		return null;
-	}
+	const [rootElementIndex, itemType, itemId] = JSON.parse(e.dataTransfer.getData('text/plain'));
+	const tree = trees[rootElementIndex];
 	
 	return tree.getItem(itemId, itemType === 'leaf' ? createLeaf : createNode);
 }
@@ -152,6 +141,12 @@ const createItem = createAttributeObservable.extend(/** @lends Item.prototype */
  */
 const createLeaf = createItem.extend({
 	
+	ATTRS: {
+		icon: {
+			value: null
+		}
+	},
+	
 	_render () {
 		return h('li.leaf', {
 			bind: this,
@@ -163,7 +158,11 @@ const createLeaf = createItem.extend({
 	},
 	
 	_renderContent () {
-		return [this.get('label')];
+		return [
+			h('span.icon.icon-' + (this.get('icon') || 'file')),
+			' ',
+			this.get('label'),
+		];
 	}
 });
 
@@ -289,8 +288,8 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 				'data-node-id': String(this.get('id')),
 				
 				classes: {
-					expanded:	this.get('expanded'),
-					empty:		!this.get('children').length
+					'node-empty':		!this.get('children').length,
+					'node-expanded':	this.get('expanded'),
 				},
 				
 				draggable: 'true',
@@ -356,7 +355,7 @@ const createRootNode = createNode.extend(/** @lends RootNode.prototype */{
 	 * @override
 	 */
 	_render () {
-		return this._renderList();
+		return h('div.tree', [this._renderList()]);
 	},
 	
 });
@@ -375,7 +374,9 @@ const createSelectLeaf = createLeaf.extend({
 			h('label', [
 				h('input', {type: 'radio', name: 'leaf', value: this.get('id')}),
 				' ',
-				this.get('label')
+				h('span.icon.icon-' + (this.get('icon') || 'file')),
+				' ',
+				this.get('label'),
 			])
 		];
 	}
@@ -430,16 +431,14 @@ function renderTree (rootNodeFactory, items, parentNode) {
 		root: null
 	});
 	
-	if (!parentNode.id) {
-		parentNode.id = 'tree' + map.size;
-	}
-	map.set(tree, parentNode.id);
+	trees.push(tree);
 	
 	// render now
 	projector.append(parentNode, () => tree._render());
 	
 	// rerender if data changes
 	const render = () => projector.scheduleRender();
+	tree.after('iconChange', render);
 	tree.after('labelChange', render);
 	tree.after('expandedChange', render);
 	tree.after('childrenChange', render);
@@ -464,6 +463,10 @@ function renderTree (rootNodeFactory, items, parentNode) {
 					return;
 				}
 				leaf = ie.parentNode.parentNode.bind;
+			}
+			
+			if (!leaf) {		// clicked just outside .tree, or between nodes or something
+				return;
 			}
 			
 			tree.fire('leafClicked', {
