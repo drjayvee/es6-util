@@ -69,6 +69,7 @@ window.treeDnD_drop = e => {
 // endregion
 
 
+
 // region tree
 /**
  * @class Item
@@ -144,25 +145,33 @@ const createLeaf = createItem.extend({
 	ATTRS: {
 		icon: {
 			value: null
-		}
+		},
+		previewExt: {
+			value: null
+		},
 	},
 	
 	_render () {
-		return h('li.leaf', {
-			bind: this,
-			'data-leaf-id': String(this.get('id')),
-			
-			draggable: 'true',
-			ondragstart: 'treeDnD_start(event)',
-		}, this._renderContent());
+		return h(
+			'li.leaf',
+			Object.assign({
+				bind: this,
+			}, (this.getRoot()._enableDragnDrop ? {
+				draggable:		'true',
+				ondragstart:	'treeDnD_start(event)',
+			} : null)),
+			this._renderContent()
+		);
 	},
 	
 	_renderContent () {
-		return [
-			h('span.icon.icon-' + (this.get('icon') || 'file')),
-			' ',
-			this.get('label'),
-		];
+		return [].concat(
+			this.get('icon') ?
+				[h('img', {src: 'layout/pix/' + this.get('icon')}), ' '] :
+				null
+		).concat(
+			this.get('label')
+		);
 	}
 });
 
@@ -283,20 +292,20 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 	_render () {
 		return h(
 			'li.node',
-			{
+			Object.assign({
 				bind: this,
-				'data-node-id': String(this.get('id')),
 				
 				classes: {
 					'node-empty':		!this.get('children').length,
 					'node-expanded':	this.get('expanded'),
 				},
 				
-				draggable: 'true',
+			}, (this.getRoot()._enableDragnDrop ? {
+				draggable:	'true',
 				ondragstart:'treeDnD_start(event)',
 				ondragover:	'treeDnD_over(event)',
 				ondrop:		'treeDnD_drop(event)'
-			},
+			} : null)),
 			[
 				h('span.label', [this.get('label')])
 			].concat(this._renderList())
@@ -358,6 +367,11 @@ const createRootNode = createNode.extend(/** @lends RootNode.prototype */{
 		return h('div.tree', [this._renderList()]);
 	},
 	
+}, function init (superInit, {parentNode, enableDragnDrop = false}) {
+	superInit();
+	
+	this._parentNode = parentNode;
+	this._enableDragnDrop = enableDragnDrop;
 });
 // endregion
 
@@ -371,13 +385,25 @@ const createSelectLeaf = createLeaf.extend({
 	 */
 	_renderContent () {
 		return [
-			h('label', [
-				h('input', {type: 'radio', name: 'leaf', value: this.get('id')}),
-				' ',
-				h('span.icon.icon-' + (this.get('icon') || 'file')),
-				' ',
-				this.get('label'),
-			])
+			h(
+				'label',
+				[
+					h('input', {
+						type:		'radio',
+						name:		'leaf',
+						value:		String(this.get('id')),
+						checked:	this.getRoot().getSelectedLeaf() === this
+					}),
+					' ',
+				].concat(
+					this.get('icon') ?
+						[h('img', {src: 'layout/pix/' + this.get('icon')}), ' '] :
+						null
+				).concat(
+					' ',
+					this.get('label')
+				)
+			)
 		];
 	}
 	
@@ -398,9 +424,25 @@ const createSelectRootNode = createRootNode.extend(/** @lends SelectRootNode.pro
 	LEAF_FACTORY: createSelectLeaf,
 	NODE_FACTORY: createNode,
 	
+	/**
+	 * 
+	 * @return {Leaf|null}
+	 */
 	getSelectedLeaf () {
 		return this._selectedLeaf;
-	}
+	},
+	
+	clearSelection () {
+		this._selectedLeaf = null;
+		
+		// setting h('input', {checked}) and re-rendering the tree will not uncheck radios
+		// because the current VNode is not checked either (rendered unchecked, user checks, clear(), render unchecked)
+		// therefore, uncheck the DOM node directly
+		const si = this._parentNode.querySelector('input:checked');
+		if (si) {
+			si.checked = false;
+		}
+	},
 	
 }, function init (superInit) {
 	superInit();
@@ -422,14 +464,17 @@ const createSelectRootNode = createRootNode.extend(/** @lends SelectRootNode.pro
  * @param {Function} rootNodeFactory
  * @param {ItemConfig[]} items
  * @param {HTMLElement} parentNode
+ * @param {Object} [config]
  * @return {RootNode}
  */
-function renderTree (rootNodeFactory, items, parentNode) {
-	const tree = rootNodeFactory({
-		children: items,
-		expanded: true,
-		root: null
-	});
+function renderTree (rootNodeFactory, items, parentNode, config = null) {
+	const tree = rootNodeFactory(
+		Object.assign({
+			parentNode,
+			expanded: true,
+			children: items,
+		}, config)
+	);
 	
 	trees.push(tree);
 	
@@ -471,7 +516,7 @@ function renderTree (rootNodeFactory, items, parentNode) {
 			
 			tree.fire('leafClicked', {
 				label:	leaf.get('label'),
-				id:		leaf.get('id'),
+				leafId:	leaf.get('id'),
 				leaf:	leaf,
 			});
 		}
@@ -482,19 +527,20 @@ function renderTree (rootNodeFactory, items, parentNode) {
 
 /**
  * @function
- * @argument {Array.<ItemConfig|Item>} items
- * @argument {HTMLElement}
+ * @param {Array.<ItemConfig|Item>} items
+ * @param {HTMLElement} parentNode
+ * @param {Boolean} [enableDragnDrop=false]
  * @return {RootNode}
  * @see createNode
  */
-export const createTree = function (items, parentNode) {
-	return renderTree(createRootNode, items, parentNode);
+export const createTree = function (items, parentNode, enableDragnDrop = false) {
+	return renderTree(createRootNode, items, parentNode, {enableDragnDrop});
 };
 
 /**
  * @function
- * @argument {Array.<ItemConfig|Item>} items
- * @argument {HTMLElement}
+ * @param {Array.<ItemConfig|Item>} items
+ * @param {HTMLElement} parentNode
  * @return {SelectRootNode}
  * @see renderTree
  */

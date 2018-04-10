@@ -8,7 +8,6 @@ module.exports = {
 		NuCore: 'nucore.js',
 		test: 'test.js',
 		widgets: 'widgets.js',
-		maquettehst: 'maquettehst.js'
 	},
 	output: {
 		filename: '[name].js',
