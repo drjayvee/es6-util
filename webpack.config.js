@@ -34,7 +34,7 @@ module.exports = {
 	],
 	resolve: {
 		alias: {
-			maquette$: path.resolve(__dirname, 'node_modules/maquette/dist/maquette.umd.js'),
+			maquette$: path.resolve(__dirname, 'node_modules/maquette/dist/index.js'),
 		},
 		modules: [
 			path.resolve(__dirname, 'src'),

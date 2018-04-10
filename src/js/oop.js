@@ -99,9 +99,7 @@ export function createFactory (prototype, init = null) {
  * @returns {Function}
  */
 export function extendFactory (base, prototype, init = null) {
-	const proto = Object.create(base.prototype);
-	
-	mix(proto, prototype);
+	const proto = Object.assign(Object.create(base.prototype), prototype);
 	
 	const factory = createFactory(proto, init);
 	

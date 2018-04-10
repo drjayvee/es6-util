@@ -8,5 +8,6 @@ export {createFactory, extendFactory} from "js/oop";
 export {default as createOverlay} from "js/overlay";
 export {default as createPanel} from "js/panel";
 export {default as createTabView} from 'js/tabView';
+export {createTree, createSelectTree} from 'js/tree';
 export {default as createWidget} from "js/widget";
 export {default as createWidgetParent} from 'js/widgetParent';

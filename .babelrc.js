@@ -2,7 +2,7 @@
 
 module.exports = {
 	"presets": [
-		["env", {
+		["@babel/env", {
 			"debug": true,
 			"modules": false,
 			"targets": {

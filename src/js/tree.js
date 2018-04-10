@@ -2,8 +2,8 @@
 /*global maquette*/
 
 import {createAttributeObservable} from 'js/attribute';
-const h = maquette.h;
-const projector = maquette.createProjector();
+import {h, createProjector} from 'maquette';
+const projector = createProjector();
 
 const trees = [];
 
