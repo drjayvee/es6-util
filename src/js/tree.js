@@ -11,7 +11,7 @@ const trees = [];
 
 // region drag & drop
 function encodeDnDItem (e) {
-	const item = e.target.bind;
+	const item = e.target.bind || e.target.parentNode.bind;
 	
 	e.dataTransfer.setData('text/plain', JSON.stringify([
 		trees.indexOf(item.getRoot()),					// root's DOMElement index
@@ -118,6 +118,10 @@ const createItem = createAttributeObservable.extend(/** @lends Item.prototype */
 		this.parent = newParent;
 	},
 	
+	remove () {
+		this.parent.removeItem(this);
+	},
+	
 	toString () {	// for sort()ing
 		return (this instanceof createLeaf ? '1' : '0') + this.get('label');
 	},
@@ -140,7 +144,7 @@ const createItem = createAttributeObservable.extend(/** @lends Item.prototype */
  * @param {ItemConfig] config
  * @return {Leaf}
  */
-const createLeaf = createItem.extend({
+export const createLeaf = createItem.extend({
 	
 	ATTRS: {
 		icon: {
@@ -165,13 +169,12 @@ const createLeaf = createItem.extend({
 	},
 	
 	_renderContent () {
-		return [].concat(
+		return [
 			this.get('icon') ?
 				[h('img', {src: 'layout/pix/' + this.get('icon')}), ' '] :
-				null
-		).concat(
+				null,
 			this.get('label')
-		);
+		];
 	}
 });
 
@@ -193,7 +196,7 @@ const createLeaf = createItem.extend({
  * @param {NodeConfig} config
  * @return {Node}
  */
-const createNode = createItem.extend(/** @lends Node.prototype */{
+export const createNode = createItem.extend(/** @lends Node.prototype */{
 	
 	LIST_CLASS: null,
 	
@@ -288,6 +291,14 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 	toggle (expanded = !this.get('expanded')) {
 		this.set('expanded', expanded);
 	},
+
+	expandToRoot () {
+		this.toggle(true);
+		
+		if (this.parent) {
+			this.parent.expandToRoot();
+		}
+	},
 	
 	_render () {
 		return h(
@@ -307,9 +318,14 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 				ondrop:		'treeDnD_drop(event)'
 			} : null)),
 			[
-				h('span.label', [this.get('label')])
-			].concat(this._renderList())
+				this._renderLabel(),
+				this._renderList()
+			]
 		);
+	},
+	
+	_renderLabel () {
+		return h('span.label', [this.get('label')]);
 	},
 	
 	_renderList () {
@@ -320,7 +336,7 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
 			(!this._listRendered && !expanded) ||	// if list _is_ rendered but collapsed, hide it instead of removing DOM nodes
 			!children.length
 		) {
-			return [];
+			return null;
 		}
 		
 		this._listRendered = true;
@@ -346,7 +362,7 @@ const createNode = createItem.extend(/** @lends Node.prototype */{
  * @param {NodeConfig} config
  * @return {RootNode}
  */
-const createRootNode = createNode.extend(/** @lends RootNode.prototype */{
+export const createRootNode = createNode.extend(/** @lends RootNode.prototype */{
 
 	LIST_CLASS: 'root',
 	
@@ -467,7 +483,7 @@ const createSelectRootNode = createRootNode.extend(/** @lends SelectRootNode.pro
  * @param {Object} [config]
  * @return {RootNode}
  */
-function renderTree (rootNodeFactory, items, parentNode, config = null) {
+export function renderTree (rootNodeFactory, items, parentNode, config = null) {
 	const tree = rootNodeFactory(
 		Object.assign({
 			parentNode,

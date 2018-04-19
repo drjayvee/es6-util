@@ -158,6 +158,18 @@ QUnit.test('readOnly attributes', function (assert) {
 	
 	at._set('k', false, true);
 	assert.notOk(at.get('k'));
+	
+	// can we set on init?
+	let cro = createAttribute.extend({
+		ATTRS: {
+			ro: {
+				readOnly: true
+			}
+		}
+	});
+	
+	let ro = cro({ro: true});
+	assert.ok(ro.get('ro'));
 });
 
 QUnit.test('initialize attributes via constructor', function (assert) {

@@ -61,6 +61,7 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 	 * @param {Function} [config.validator]
 	 * @param {Function} [config.getter]
 	 * @param {Function} [config.setter]
+	 * @param {Boolean} [config.readOnly]
 	 */
 	addAttribute: function (name, {value, validator, getter, setter, readOnly} = {}) {
 		if (this.hasAttribute(name)) {
@@ -171,7 +172,7 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 		this.addAttribute(name, config);
 		
 		if (values.hasOwnProperty(name)) {
-			this.set(name, values[name]);
+			this._set(name, values[name], true);
 		}
 	}
 });
