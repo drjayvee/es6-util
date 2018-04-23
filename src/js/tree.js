@@ -50,21 +50,38 @@ window.treeDnD_start = e => {
 window.treeDnD_over = e => {
 	e.preventDefault();
 	
-	e.dataTransfer.dropEffect = isValidDropTarget(e) ? 'move' : 'none';
+	if (e.dataTransfer.getData('text/plain')) {
+		e.dataTransfer.dropEffect = isValidDropTarget(e) ? 'move' : 'none';
+	} else {	// dragging from outside browser
+		const dragTarget = (e.target.classList.contains('node') ? e.target : e.target.parentNode).bind;
+		if (dragTarget instanceof createNode) {
+			e.dataTransfer.dropEffect = 'copy';
+		}
+	}
 };
 
 window.treeDnD_drop = e => {
 	e.preventDefault();
 	e.stopPropagation();	// don't bubble up to parent nodes
 	
-	if (!isValidDropTarget(e)) {
-		return;
-	}
-	
-	const draggedItem = decodeDnDItem(e);
 	const dragTarget = (e.target.classList.contains('node') ? e.target : e.target.parentNode).bind;
 	
-	draggedItem.moveTo(dragTarget);
+	if (e.dataTransfer.getData('text/plain')) {
+		if (!isValidDropTarget(e)) {
+			return;
+		}
+		
+		const draggedItem = decodeDnDItem(e);
+		draggedItem.moveTo(dragTarget);
+	} else {	// drop from outside browser
+		if (dragTarget instanceof createNode) {
+			dragTarget.fire('fileDrop', {
+				item:	dragTarget,
+				files:	e.dataTransfer.files
+			});
+		}
+	}
+	
 };
 // endregion
 
