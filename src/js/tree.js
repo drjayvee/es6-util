@@ -176,13 +176,18 @@ export const createLeaf = createItem.extend({
 		return h(
 			'li.leaf',
 			Object.assign({
-				bind: this,
+				bind:			this,
+				classes:		this._getClasses(),
 			}, (this.getRoot()._enableDragnDrop ? {
 				draggable:		'true',
 				ondragstart:	'treeDnD_start(event)',
 			} : null)),
 			this._renderContent()
 		);
+	},
+	
+	_getClasses () {
+		return {};
 	},
 	
 	_renderContent () {
@@ -405,6 +410,24 @@ export const createRootNode = createNode.extend(/** @lends RootNode.prototype */
 	
 	this._parentNode = parentNode;
 	this._enableDragnDrop = enableDragnDrop;
+	
+	// configure itemClicked and leafClicked, a filtered version of the former
+	this.publish('leafClicked', {
+		cancelable:	false,
+	});
+	
+	this.publish('itemClicked', {
+		cancelable:	false,
+		defaultFn:	e => {
+			if (e.item instanceof createLeaf) {
+				this.fire('leafClicked', {
+					leaf:	e.item,
+					leafId:	e.itemId,
+					label:	e.label
+				});
+			}
+		}
+	});
 });
 // endregion
 
@@ -413,6 +436,12 @@ export const createRootNode = createNode.extend(/** @lends RootNode.prototype */
 // region select tree
 const createSelectLeaf = createLeaf.extend({
 
+	_getClasses () {
+		return {
+			selected: this.getRoot().getSelectedItem() === this,
+		};
+	},
+	
 	/**
 	 * @override
 	 */
@@ -421,21 +450,8 @@ const createSelectLeaf = createLeaf.extend({
 			h(
 				'label',
 				[
-					h('input', {
-						type:		'radio',
-						name:		'leaf',
-						value:		String(this.get('id')),
-						checked:	this.getRoot().getSelectedLeaf() === this
-					}),
-					' ',
-				].concat(
-					this.get('icon') ?
-						[h('img', {src: 'layout/pix/' + this.get('icon')}), ' '] :
-						null
-				).concat(
-					' ',
-					this.get('label')
-				)
+					createLeaf.prototype._renderContent.apply(this)
+				]
 			)
 		];
 	}
@@ -459,32 +475,29 @@ const createSelectRootNode = createRootNode.extend(/** @lends SelectRootNode.pro
 	
 	/**
 	 * 
-	 * @return {Leaf|null}
+	 * @return {Item|null}
 	 */
-	getSelectedLeaf () {
-		return this._selectedLeaf;
+	getSelectedItem () {
+		return this._selectedItem;
 	},
 	
 	clearSelection () {
-		this._selectedLeaf = null;
-		
-		// setting h('input', {checked}) and re-rendering the tree will not uncheck radios
-		// because the current VNode is not checked either (rendered unchecked, user checks, clear(), render unchecked)
-		// therefore, uncheck the DOM node directly
-		const si = this._parentNode.querySelector('input:checked');
-		if (si) {
-			si.checked = false;
-		}
+		this.fire('itemSelected', {
+			previous:	this._selectedItem,
+			item:		null,
+			itemId:		null,
+			label:		null,
+		});
 	},
 	
 }, function init (superInit) {
 	superInit();
 	
-	this._selectedLeaf = null;
+	this._selectedItem = null;
 	
-	this.publish('leafClicked', {
-		cancelable: false,
-		defaultFn: e => this._selectedLeaf = e.leaf
+	// on item selection, set selection and render
+	this.publish('itemSelected', {
+		defaultFn: e => this._selectedItem = e.item
 	});
 });
 // endregion
@@ -515,44 +528,31 @@ export function renderTree (rootNodeFactory, items, parentNode, config = null) {
 	projector.append(parentNode, () => tree._render());
 	
 	// rerender if data changes
-	const render = () => projector.scheduleRender();
-	tree.after('iconChange', render);
-	tree.after('labelChange', render);
-	tree.after('expandedChange', render);
-	tree.after('childrenChange', render);
+	tree.render = () => projector.scheduleRender();
+	tree.after('iconChange', tree.render);
+	tree.after('labelChange', tree.render);
+	tree.after('expandedChange', tree.render);
+	tree.after('childrenChange', tree.render);
 	
 	// attach event listeners
 	parentNode.addEventListener('click', e => {
-		let ie = e.target;
+		let ie = e.target,
+			item;
 		
-		if (ie.classList.contains('label')) {	// clicked li.node .label: toggle
-			/** @type {Node} */
-			const node = ie.parentNode.bind;
-			node.toggle();
-		} else {								// clicked li.leaf: fire leafClicked event
-			/** @type {Leaf} */
-			let leaf;
-			if (ie.classList.contains('leaf')) {	// regular Leaf	<li.leaf>$label</li>
-				leaf = ie.bind;
-			} else {								// SelectLeaf	<li.leaf><label><input> $label</li>
-				// When anything other than the input is clicked, a _second_ click event is triggered for the input!
-				// Therefore we only listen for the input click event to prevent handling the event twice.
-				if (ie.nodeName === 'LABEL') {
-					return;
-				}
-				leaf = ie.parentNode.parentNode.bind;
-			}
-			
-			if (!leaf) {		// clicked just outside .tree, or between nodes or something
-				return;
-			}
-			
-			tree.fire('leafClicked', {
-				label:	leaf.get('label'),
-				leafId:	leaf.get('id'),
-				leaf:	leaf,
-			});
+		item = ie.bind || ie.parentNode.bind;	// li.(leaf|node) || li > label
+		if (!item) {
+			return;
 		}
+		
+		if (item instanceof createNode) {
+			item.toggle();
+		}
+		
+		tree.fire('itemClicked', {
+			item,
+			itemId:	item.get('id'),
+			label:	item.get('label'),
+		});
 	});
 	
 	return tree;
@@ -574,10 +574,30 @@ export const createTree = function (items, parentNode, enableDragnDrop = false) 
  * @function
  * @param {Array.<ItemConfig|Item>} items
  * @param {HTMLElement} parentNode
+ * @param {Boolean} [selectableNodes]
  * @return {SelectRootNode}
  * @see renderTree
  */
-export const createSelectTree = function (items, parentNode) {
-	return renderTree(createSelectRootNode, items, parentNode);
+export const createSelectTree = function (items, parentNode, selectableNodes = false) {
+	const tree = renderTree(createSelectRootNode, items, parentNode, selectableNodes);
+	
+	// refine itemClicked event to itemSelected
+	tree.after('itemClicked', e => {
+		if (
+			e.item !== tree._selectedItem &&
+			(e.item instanceof createLeaf || selectableNodes)
+		) {
+			tree.fire('itemSelected', {
+				previous:	tree._selectedItem,
+				item:		e.item,
+				itemId:		e.itemId,
+				label:		e.label,
+			});
+		}
+	});
+	
+	tree.after('itemSelected', tree.render);
+	
+	return tree;
 };
 // endregion
