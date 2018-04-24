@@ -54,9 +54,7 @@ window.treeDnD_over = e => {
 		e.dataTransfer.dropEffect = isValidDropTarget(e) ? 'move' : 'none';
 	} else {	// dragging from outside browser
 		const dragTarget = (e.target.classList.contains('node') ? e.target : e.target.parentNode).bind;
-		if (dragTarget instanceof createNode) {
-			e.dataTransfer.dropEffect = 'copy';
-		}
+		e.dataTransfer.dropEffect = dragTarget instanceof createNode ? 'copy' : 'none';
 	}
 };
 
@@ -312,6 +310,8 @@ export const createNode = createItem.extend(/** @lends Node.prototype */{
 	
 	toggle (expanded = !this.get('expanded')) {
 		this.set('expanded', expanded);
+		
+		return this;
 	},
 
 	expandToRoot () {
@@ -320,19 +320,16 @@ export const createNode = createItem.extend(/** @lends Node.prototype */{
 		if (this.parent) {
 			this.parent.expandToRoot();
 		}
+		
+		return this;
 	},
 	
 	_render () {
 		return h(
 			'li.node',
 			Object.assign({
-				bind: this,
-				
-				classes: {
-					'node-empty':		!this.get('children').length,
-					'node-expanded':	this.get('expanded'),
-				},
-				
+				bind:		this,
+				classes:	this._getClasses(),
 			}, (this.getRoot()._enableDragnDrop ? {
 				draggable:	'true',
 				ondragstart:'treeDnD_start(event)',
@@ -344,6 +341,13 @@ export const createNode = createItem.extend(/** @lends Node.prototype */{
 				this._renderList()
 			]
 		);
+	},
+	
+	_getClasses () {
+		return {
+			'node-empty':		!this.get('children').length,
+			'node-expanded':	this.get('expanded'),
+		};
 	},
 	
 	_renderLabel () {
@@ -364,8 +368,8 @@ export const createNode = createItem.extend(/** @lends Node.prototype */{
 		this._listRendered = true;
 		
 		return h(
-			'ul',
-			Object.assign({hidden: !expanded}, this.LIST_CLASS ? {class: this.LIST_CLASS} : null),
+			'ul' + (this.LIST_CLASS ? '.' + this.LIST_CLASS : ''),
+			{hidden: !expanded},
 			this.get('children').sort().map(item => item._render())
 		);
 	},
@@ -454,7 +458,24 @@ const createSelectLeaf = createLeaf.extend({
 				]
 			)
 		];
-	}
+	},
+	
+	select () {
+		this.getRoot().selectItem(this);
+	},
+});
+
+const createSelectNode = createNode.extend({
+	
+	_getClasses () {
+		return Object.assign(createNode.prototype._getClasses.apply(this), {
+			selected: this.getRoot().getSelectedItem() === this
+		});
+	},
+	
+	select () {
+		this.getRoot().selectItem(this);
+	},
 	
 });
 
@@ -470,8 +491,19 @@ const createSelectLeaf = createLeaf.extend({
  */
 const createSelectRootNode = createRootNode.extend(/** @lends SelectRootNode.prototype */{
 	
+	LIST_CLASS: 'root.selectable',
+	
 	LEAF_FACTORY: createSelectLeaf,
-	NODE_FACTORY: createNode,
+	NODE_FACTORY: createSelectNode,
+	
+	selectItem (item) {
+		this.fire('itemSelected', {
+			previous:	this._selectedItem,
+			item:		item,
+			itemId:		item.get('id'),
+			label:		item.get('label'),
+		});
+	},
 	
 	/**
 	 * 
@@ -490,10 +522,20 @@ const createSelectRootNode = createRootNode.extend(/** @lends SelectRootNode.pro
 		});
 	},
 	
-}, function init (superInit) {
+}, function init (superInit, {selectableNodes = false}) {
 	superInit();
 	
 	this._selectedItem = null;
+	
+	// refine itemClicked event to itemSelected
+	this.after('itemClicked', e => {
+		if (
+			e.item !== this._selectedItem &&
+			(e.item instanceof createLeaf || selectableNodes)
+		) {
+			this.selectItem(e.item);
+		}
+	});
 	
 	// on item selection, set selection and render
 	this.publish('itemSelected', {
@@ -579,22 +621,7 @@ export const createTree = function (items, parentNode, enableDragnDrop = false) 
  * @see renderTree
  */
 export const createSelectTree = function (items, parentNode, selectableNodes = false) {
-	const tree = renderTree(createSelectRootNode, items, parentNode, selectableNodes);
-	
-	// refine itemClicked event to itemSelected
-	tree.after('itemClicked', e => {
-		if (
-			e.item !== tree._selectedItem &&
-			(e.item instanceof createLeaf || selectableNodes)
-		) {
-			tree.fire('itemSelected', {
-				previous:	tree._selectedItem,
-				item:		e.item,
-				itemId:		e.itemId,
-				label:		e.label,
-			});
-		}
-	});
+	const tree = renderTree(createSelectRootNode, items, parentNode, {selectableNodes});
 	
 	tree.after('itemSelected', tree.render);
 	
