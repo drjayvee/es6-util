@@ -10,67 +10,57 @@ const trees = [];
 
 
 // region drag & drop
-function encodeDnDItem (e) {
-	const item = e.target.bind || e.target.parentNode.bind;
+// Reference: https://mereskin.github.io/dnd/
+window.treeDnD_start = e => {
+	e.dataTransfer.effectAllowed = 'move';
 	
-	e.dataTransfer.setData('text/plain', JSON.stringify([
+	// encode dragged item
+	const item = e.target.bind || e.target.parentNode.bind;
+	e.dataTransfer.setData('text', JSON.stringify([
 		trees.indexOf(item.getRoot()),					// root's DOMElement index
 		item instanceof createLeaf ? 'leaf' : 'node',	// item type
 		item.get('id')									// item id
 	]));
-}
-
-function decodeDnDItem (e) {
-	const [rootElementIndex, itemType, itemId] = JSON.parse(e.dataTransfer.getData('text/plain'));
-	const tree = trees[rootElementIndex];
-	
-	return tree.getItem(itemId, itemType === 'leaf' ? createLeaf : createNode);
-}
-
-function isValidDropTarget (e) {
-	const dragItem = decodeDnDItem(e);
-	const dropTarget = e.target;
-	const dropItem = dropTarget.bind || dropTarget.parentNode.bind;
-	
-	return !(
-		dropTarget.classList.contains('leaf')							||	// target is leaf item
-		dragItem === dropItem											||	// target is self
-		dragItem.parent === dropItem									||	// current parent
-		(dragItem instanceof createNode && dragItem.contains(dropItem))	||	// target is descendant
-		dragItem.getRoot() !== dropItem.getRoot()							// target is in other tree
-	);
-}
-
-window.treeDnD_start = e => {
-	e.dataTransfer.effectAllowed = 'move';
-	
-	encodeDnDItem(e);
 };
 
+window.treeDnD_dragenter = e => {
+	window.treeDnD_over(e);
+};
+
+window.treeDnD_dragleave = e => {};
+
 window.treeDnD_over = e => {
-	e.preventDefault();
-	
-	if (e.dataTransfer.getData('text/plain')) {
-		e.dataTransfer.dropEffect = isValidDropTarget(e) ? 'move' : 'none';
-	} else {	// dragging from outside browser
-		const dragTarget = (e.target.classList.contains('node') ? e.target : e.target.parentNode).bind;
-		e.dataTransfer.dropEffect = dragTarget instanceof createNode ? 'copy' : 'none';
+	if (e.target.nodeType === Node.ELEMENT_NODE) {
+		e.dataTransfer.dropEffect = e.dataTransfer.effectAllowed === 'move' ? 'move' : 'copy';
+		e.preventDefault();
+		e.stopPropagation();
 	}
 };
 
 window.treeDnD_drop = e => {
 	e.preventDefault();
-	e.stopPropagation();	// don't bubble up to parent nodes
 	
 	const dragTarget = (e.target.classList.contains('node') ? e.target : e.target.parentNode).bind;
 	
-	if (e.dataTransfer.getData('text/plain')) {
-		if (!isValidDropTarget(e)) {
-			return;
-		}
+	if (e.dataTransfer.getData('text')) {
+		// decode dragged item
+		const [rootElementIndex, itemType, itemId] = JSON.parse(e.dataTransfer.getData('text'));
+		const tree = trees[rootElementIndex];
+		const draggedItem = tree.getItem(itemId, itemType === 'leaf' ? createLeaf : createNode);
 		
-		const draggedItem = decodeDnDItem(e);
-		draggedItem.moveTo(dragTarget);
+		const dropTarget = e.target;
+		const dropItem = dropTarget.bind || dropTarget.parentNode.bind;
+		
+		// move if target is valid drop item
+		if (!(
+			dropTarget.classList.contains('leaf')									||	// target is leaf item
+			draggedItem === dropItem												||	// target is self
+			draggedItem.parent === dropItem											||	// current parent
+			(draggedItem instanceof createNode && draggedItem.contains(dropItem))	||	// target is descendant
+			draggedItem.getRoot() !== dropItem.getRoot()								// target is in other tree
+		)) {
+			draggedItem.moveTo(dragTarget);
+		}
 	} else {	// drop from outside browser
 		if (dragTarget instanceof createNode) {
 			dragTarget.fire('fileDrop', {
@@ -333,6 +323,8 @@ export const createNode = createItem.extend(/** @lends Node.prototype */{
 			}, (this.getRoot()._enableDragnDrop ? {
 				draggable:	'true',
 				ondragstart:'treeDnD_start(event)',
+				ondragenter:'treeDnD_dragenter(event)',
+				ondragleave:'treeDnD_dragleave(event)',
 				ondragover:	'treeDnD_over(event)',
 				ondrop:		'treeDnD_drop(event)'
 			} : null)),
