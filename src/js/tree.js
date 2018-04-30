@@ -401,19 +401,15 @@ export const createRootNode = createNode.extend(/** @lends RootNode.prototype */
 		return h('div.tree', [this._renderList()]);
 	},
 	
-}, function init (superInit, {parentNode, enableDragnDrop = false}) {
+}, function init (superInit, {enableDragnDrop = false}) {
 	superInit();
 	
-	this._parentNode = parentNode;
 	this._enableDragnDrop = enableDragnDrop;
 	
 	// configure itemClicked and leafClicked, a filtered version of the former
-	this.publish('leafClicked', {
-		cancelable:	false,
-	});
+	this.publish('leafClicked');
 	
 	this.publish('itemClicked', {
-		cancelable:	false,
 		defaultFn:	e => {
 			if (e.item instanceof createLeaf) {
 				this.fire('leafClicked', {
@@ -421,6 +417,8 @@ export const createRootNode = createNode.extend(/** @lends RootNode.prototype */
 					leafId:	e.itemId,
 					label:	e.label
 				});
+			} else {
+				e.item.toggle();
 			}
 		}
 	});
@@ -550,7 +548,6 @@ const createSelectRootNode = createRootNode.extend(/** @lends SelectRootNode.pro
 export function renderTree (rootNodeFactory, items, parentNode, config = null) {
 	const tree = rootNodeFactory(
 		Object.assign({
-			parentNode,
 			expanded: true,
 			children: items,
 		}, config)
@@ -576,10 +573,6 @@ export function renderTree (rootNodeFactory, items, parentNode, config = null) {
 		item = ie.bind || ie.parentNode.bind;	// li.(leaf|node) || li > label
 		if (!item) {
 			return;
-		}
-		
-		if (item instanceof createNode) {
-			item.toggle();
 		}
 		
 		tree.fire('itemClicked', {

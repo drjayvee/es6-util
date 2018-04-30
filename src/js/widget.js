@@ -131,7 +131,8 @@ const createWidget = createAttributeObservable.extend(/** @lends Widget.prototyp
 	},
 	
 	_addClassesToNode () {
-		this.node.classList.add(...this._getClasses());
+		// this.node.classList.add(...this._getClasses());		// IE11 doesn't support classList.add(...)
+		this._getClasses().forEach(c => this.node.classList.add(c));
 	},
 	
 	/**
