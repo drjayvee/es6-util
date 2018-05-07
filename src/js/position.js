@@ -54,6 +54,7 @@ function setPosition (el, pos) {
 }
 
 /**
+ * Translate from window space to page space.
  * 
  * @param {Box|Position} pos
  * @return {Box|Position}
@@ -73,9 +74,15 @@ function normalize (pos) {
 		};
 	}
 	
-	const [xAisPropertyName, yAisPropertyName] = ('left' in pos) ? ['left', 'top'] : ['x', 'y'];
-	pos[xAisPropertyName] += window.pageXOffset;
-	pos[yAisPropertyName] += window.pageYOffset;
+	if ('left' in pos) {
+		pos.left	+= window.pageXOffset;
+		pos.right	+= window.pageXOffset;
+		pos.top		+= window.pageYOffset;
+		pos.bottom	+= window.pageYOffset;
+	} else {
+		pos.x		+= window.pageXOffset;
+		pos.y		+= window.pageYOffset;
+	}
 	
 	return pos;
 }
