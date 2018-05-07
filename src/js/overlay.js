@@ -11,7 +11,7 @@ import {getBox, getPosition, align, center, move} from "js/position";
 
 /**
  * @typedef {Object} OverlayConfig
- * @property {string} bodyContent	 		html
+ * @property {string|HTMLElement} bodyContent	 html or element
  * @property {string} [headerContent=null]	html
  * @property {boolean|Object} [draggable=false]
  * @see WidgetConfig
@@ -32,7 +32,7 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		
 		bodyContent: {
 			value: null,
-			validator: newVal => typeof newVal === 'string'
+			validator: newVal => typeof newVal === 'string' || newVal instanceof HTMLElement
 		},
 	},
 	
@@ -69,7 +69,14 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	},
 	
 	_setBodyContent () {
-		this.node.firstElementChild.nextElementSibling.innerHTML = this.get('bodyContent');
+		const content = this.get('bodyContent'),
+			cel = this.node.firstElementChild.nextElementSibling;
+		
+		if (content instanceof HTMLElement) {
+			cel.appendChild(content);
+		} else {
+			cel.innerHTML = content;
+		}
 	},
 
 	/**
