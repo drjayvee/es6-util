@@ -156,7 +156,7 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 	_copy: function (value) {
 		if (Array.isArray(value)) {
 			value = value.slice(0);
-		} else if (value && Object.getPrototypeOf(value) === Object.prototype) {	// simple object
+		} else if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {	// simple object
 			value = Object.assign({}, value);
 		}
 		

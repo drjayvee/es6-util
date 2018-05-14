@@ -137,7 +137,7 @@ const createPanel  = createOverlay.extend(/** @lends Panel.prototype */{
 			 */
 			
 			const col = e => {
-				if (this.node && !this.node.contains(e.target)) {
+				if (this.node && document.contains(e.target) && !this.node.contains(e.target)) {	// why document.contains? highcharts has a "reset zoom" button which is removed when clicked, and before this handler is called. Therefore, !panel.contains(thatButton)
 					this.hide();
 				}
 			};
