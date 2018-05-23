@@ -24,14 +24,31 @@ window.treeDnD_start = e => {
 };
 
 window.treeDnD_dragenter = e => {
-	window.treeDnD_over(e);
+	if (e.target.nodeType === Node.ELEMENT_NODE) {
+		e.preventDefault();
+		e.stopPropagation();
+	}
 };
-
-window.treeDnD_dragleave = e => {};
 
 window.treeDnD_over = e => {
 	if (e.target.nodeType === Node.ELEMENT_NODE) {
-		e.dataTransfer.dropEffect = e.dataTransfer.effectAllowed === 'move' ? 'move' : 'copy';
+		// find item
+		let node = e.target;
+		while (!node.bind) {
+			if (!node.parentNode || !node.parentNode.matches) {
+				break;
+			}
+			node = node.parentNode;
+		}
+		const item = node && node.bind;
+		
+		// set drop effect depending on item type
+		if (item instanceof createLeaf) {
+			e.dataTransfer.dropEffect = 'none';
+		} else {
+			e.dataTransfer.dropEffect = e.dataTransfer.effectAllowed === 'move' ? 'move' : 'copy';	// dragging within window or from outside?
+		}
+		
 		e.preventDefault();
 		e.stopPropagation();
 	}
@@ -53,7 +70,7 @@ window.treeDnD_drop = e => {
 		
 		// move if target is valid drop item
 		if (!(
-			dropTarget.classList.contains('leaf')									||	// target is leaf item
+			dropItem instanceof createLeaf											||	// target is leaf item
 			draggedItem === dropItem												||	// target is self
 			draggedItem.parent === dropItem											||	// current parent
 			(draggedItem instanceof createNode && draggedItem.contains(dropItem))	||	// target is descendant
@@ -324,7 +341,6 @@ export const createNode = createItem.extend(/** @lends Node.prototype */{
 				draggable:	'true',
 				ondragstart:'treeDnD_start(event)',
 				ondragenter:'treeDnD_dragenter(event)',
-				ondragleave:'treeDnD_dragleave(event)',
 				ondragover:	'treeDnD_over(event)',
 				ondrop:		'treeDnD_drop(event)'
 			} : null)),
