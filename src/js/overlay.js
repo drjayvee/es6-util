@@ -60,6 +60,15 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	_bindUI () {
 		this.after('headerContentChange', this._setHeaderContent);
 		this.after('bodyContentChange', this._setBodyContent);
+
+		if (this._autoFixWidth) {
+			this.onceAttrVal('rendered', true, () => {	// _bindUI is called _just_ before this.node is attached to the main DOM
+				this.fixWidth();
+
+				this.after('headerContentChange', this.fixWidth);
+				this.after('bodyContentChange', this.fixWidth);
+			});
+		}
 	},
 	
 	_setHeaderContent () {
@@ -75,7 +84,7 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		if (content instanceof HTMLElement) {
 			cel.appendChild(content);
 		} else {
-			cel.innerHTML = content;
+			cel.innerHTML = content || '';	// IE / Edge render "null" if content === null
 		}
 	},
 
@@ -121,6 +130,30 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		
 		return this;
 	},
+	
+	/*
+	 * This is required for absolutely positioned nodes after scrolling
+	 * CSS width: max-content (https://caniuse.com/#feat=intrinsic-width) is preferable
+	 * but not supported by every browser (IE, Edge)
+	 */
+	fixWidth () {
+		const {left, top} = getBox(this.node);
+		
+		// move to position 0, 0 and remove dimensions to let content flow "naturally"
+		Object.assign(this.node.style, {
+			width:	'',
+			left:	0,
+			top:	0,
+		});
+		
+		const {width} = getBox(this.node);
+		
+		Object.assign(this.node.style, {
+			width:	Math.ceil(width)	+ 'px',	// new width
+			left,								// original
+			top,								// position
+		});
+	},
 
 	/**
 	 * 
@@ -149,11 +182,6 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		const stopDragging = () => {
 			document.removeEventListener('mousemove', updatePosition);
 			document.removeEventListener('mouseup', stopDragging);
-			
-			Object.assign(this.node.style, {
-				width:	'',
-				height:	'',
-			});
 		};
 		
 		handle.style.cursor = 'move';
@@ -162,12 +190,6 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		handle.addEventListener('mousedown', e => {
 			const eventPos = getPosition(e);
 			const box = getBox(this.node);
-			
-			// temporarily fix dimensions while dragging to prevent reflow when box is moved to window's edge
-			Object.assign(this.node.style, {
-				width:	box.width	+ 'px',
-				height:	box.height	+ 'px',
-			});
 			
 			cursorOffset = {
 				x: eventPos.x - box.left,
@@ -182,11 +204,12 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		
 		return this;
 	},
-}, function init (superInit, {draggable = false, maxWidth = null, maxHeight = null} = {}) {
+}, function init (superInit, {draggable = false, maxWidth = null, maxHeight = null, autoFixWidth = true} = {}) {
 	superInit();
 	
 	this._maxWidth = maxWidth;
 	this._maxHeight = maxHeight;
+	this._autoFixWidth = autoFixWidth;
 	
 	if (draggable) {
 		this.onceAttrVal('rendered', true, this.enableDragging, draggable.handle, draggable.cageNode, draggable.padding);
