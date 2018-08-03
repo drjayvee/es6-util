@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 
 import createWidget from 'js/widget';
-import {getBox, getPosition, align, center, move} from "js/position";
+import {getBox, align, center, move, enableDragging} from "js/position";
 
 /**
  * @class Overlay
@@ -96,25 +96,40 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	 * @param {Number} [config.padding=0]
 	 * @param {Boolean} [config.shift=false]
 	 * @return {Overlay}
-	 * @see Popper
 	 */
 	align (target, config) {
-		const doAlign = () => {
+		this._align = () => {
 			align(this.node, target, config);
 		};
 		
 		if (this.get('rendered')) {
-			doAlign();
+			this._align();
 		} else {
 			if (this._initPopSub) {				// align() called twice before render?
 				this._initPopSub.unsubscribe();		// cancel init with previous params
 			}
-			this._initPopSub = this.onceAfter('renderedChange', doAlign);
+			this._initPopSub = this.onceAfter('renderedChange', this._align);
 		}
 		
 		return this;
 	},
 	
+	/**
+	 * 
+	 * @return {Overlay}
+	 */
+	realign () {
+		if (this._align) {
+			this._align();
+		}
+		
+		return this;
+	},
+
+	/**
+	 * 
+	 * @return {Overlay}
+	 */
 	center () {
 		this.onceAttrVal('rendered', true, () => {
 			center(this.node);
@@ -123,6 +138,12 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		return this;
 	},
 	
+	/**
+	 * 
+	 * @param {Number} x
+	 * @param {Number} y
+	 * @return {Overlay}
+	 */
 	move (x, y) {
 		this.onceAttrVal('rendered', true, () => {
 			move(this.node, {x, y});
@@ -149,10 +170,12 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 		const {width} = getBox(this.node);
 		
 		Object.assign(this.node.style, {
-			width:	Math.ceil(width)	+ 'px',	// new width
-			left,								// original
-			top,								// position
+			width:	Math.ceil(width) + 'px',	// new width
+			left:	left + 'px',				// original
+			top:	top + 'px',					// position
 		});
+		
+		return this;
 	},
 
 	/**
@@ -160,47 +183,10 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	 * @param {HTMLElement|String} [handle=this.node]
 	 * @param {HTMLElement} [container=null]
 	 * @param {Number} [padding=0]
+	 * @return {Overlay}
 	 */
 	enableDragging (handle, container = null, padding = 0) {
-		if (typeof handle === 'string') {
-			handle = this.node.querySelector(handle);
-		}
-		
-		let cursorOffset;
-		
-		const updatePosition = e => {
-			const eventPos = getPosition(e);
-			
-			const newPos = {
-				x: eventPos.x - cursorOffset.x,
-				y: eventPos.y - cursorOffset.y
-			};
-			
-			move(this.node, newPos, {container, padding});
-		};
-		
-		const stopDragging = () => {
-			document.removeEventListener('mousemove', updatePosition);
-			document.removeEventListener('mouseup', stopDragging);
-		};
-		
-		handle.style.cursor = 'move';
-		
-		// start dragging on mousedown
-		handle.addEventListener('mousedown', e => {
-			const eventPos = getPosition(e);
-			const box = getBox(this.node);
-			
-			cursorOffset = {
-				x: eventPos.x - box.left,
-				y: eventPos.y - box.top
-			};
-			
-			document.addEventListener('mousemove', updatePosition);
-			document.addEventListener('mouseup', stopDragging);
-			
-			e.preventDefault();		// prevent text selection
-		});
+		enableDragging(this.node, handle, container, padding);
 		
 		return this;
 	},

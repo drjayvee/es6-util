@@ -317,6 +317,63 @@ export function move (el, pos, {container, padding = 0} = {}) {
 	scheduleMove(el, constrainPosition(el, pos, container, padding));
 }
 
+export function enableDragging (el, handle, container, padding, dragCB, endCB) {
+	if (!handle) {
+		handle = el;
+	} else if (typeof handle === 'string') {
+		handle = el.querySelector(handle);
+	}
+	handle.style.cursor = 'move';
+	
+	let cursorOffset, moveEventPos;
+	
+	const updatePosition = e => {
+		const eventPos = getPosition(e);
+		
+		const newPos = {
+			x: eventPos.x - cursorOffset.x,
+			y: eventPos.y - cursorOffset.y
+		};
+		
+		move(el, newPos, {container, padding});
+		
+		if (dragCB) {
+			dragCB(e, {
+				x: eventPos.x - moveEventPos.x,
+				y: eventPos.y - moveEventPos.y,
+			});
+		}
+		moveEventPos = eventPos;	// if we don't reset moveEventPos, moveCB() will get cumulative offset
+	};
+	
+	const stopDragging = (e) => {
+		document.removeEventListener('mousemove', updatePosition);
+		document.removeEventListener('mouseup', stopDragging);
+		
+		if (endCB) {
+			window.requestAnimationFrame(() => {	// wait until _after_ last setPosition call
+				endCB(e, getPosition(el));
+			});
+		}
+	};
+	
+	// start dragging on mousedown
+	handle.addEventListener('mousedown', e => {
+		moveEventPos = getPosition(e);
+		const box = getBox(el);
+		
+		cursorOffset = {
+			x: moveEventPos.x - box.left,
+			y: moveEventPos.y - box.top
+		};
+		
+		document.addEventListener('mousemove', updatePosition);
+		document.addEventListener('mouseup', stopDragging);
+		
+		e.preventDefault();		// prevent text selection
+	});
+}
+
 /**
  * 
  * @param {HTMLElement} el
