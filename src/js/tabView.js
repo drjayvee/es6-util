@@ -168,12 +168,6 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 		this.node.appendChild(this._tabPanelContainer);
 	},
 	
-	_bindUI () {
-		this._registerSubscriptions(
-			this._labelsGroup.after('selectionChange', this._setSelectedTab, this)
-		);
-	},
-	
 	_setSelectedTab () {
 		const tabIndex = this._labelsGroup.getIndex(
 			this._labelsGroup.getPressedButtons()[0]
@@ -200,6 +194,10 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 	this._tabs = [];
 	
 	superInit();
+	
+	this.publish('selectionChange', {
+		defaultFn: this._setSelectedTab
+	});
 	
 	if (enhance) {
 		for (let [index, labelButton] of this._labelsGroup.children.entries()) {
