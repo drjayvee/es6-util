@@ -186,6 +186,13 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 	 * @return {Overlay}
 	 */
 	enableDragging (handle, container = null, padding = 0) {
+		if (!handle) {
+			handle = this.node;
+		} else if (typeof handle === 'string') {
+			handle = this.node.querySelector(handle);
+		}
+		handle.style.cursor = 'move';
+		
 		enableDragging(this.node, handle, container, padding);
 		
 		return this;

@@ -152,7 +152,7 @@ function constrain (box, destination, container, padding) {
 
 const initialied = new Map();
 
-function constrainPosition (el, pos, container, padding) {
+function constrainPosition (el, pos, container, padding, constrainToWindow = true) {
 	if (!initialied.has(el)) {
 		initPosition(el);
 		initialied.set(el, true);
@@ -163,7 +163,12 @@ function constrainPosition (el, pos, container, padding) {
 	if (container) {
 		pos = constrain(elBox, pos, getBox(container), padding);
 	}
-	pos = constrain(elBox, pos, getWindowBox(), padding);
+	if (constrainToWindow) {
+		pos = constrain(elBox, pos, getWindowBox(), padding);
+	}
+	
+	pos.x = Math.max(0, pos.x);
+	pos.y = Math.max(0, pos.y);
 	
 	return pos;
 }
@@ -259,6 +264,8 @@ function flipAlignment (elBox, destination, targetBox, elAlign, targetAlign, [sh
 	const [elVertAlign, elHorzAlign] = Array.from(elAlign);
 	const [tgVertAlign, tgHorzAlign] = Array.from(targetAlign);
 	
+	destination = Object.assign({}, destination);
+	
 	const destinationBox = {
 		left:	destination.x,
 		right:	destination.x + elBox.width,
@@ -317,33 +324,25 @@ export function move (el, pos, {container, padding = 0} = {}) {
 	scheduleMove(el, constrainPosition(el, pos, container, padding));
 }
 
-export function enableDragging (el, handle, container, padding, dragCB, endCB) {
-	if (!handle) {
-		handle = el;
-	} else if (typeof handle === 'string') {
-		handle = el.querySelector(handle);
-	}
-	handle.style.cursor = 'move';
+export function doWhileDragging (el, handle, dragCB, endCB) {
+	handle = handle || el;
 	
-	let cursorOffset, moveEventPos;
+	let dragStartEvent, cursorOffset, moveEventPos;
 	
 	const updatePosition = e => {
 		const eventPos = getPosition(e);
 		
 		const newPos = {
 			x: eventPos.x - cursorOffset.x,
-			y: eventPos.y - cursorOffset.y
+			y: eventPos.y - cursorOffset.y,
 		};
-		
-		move(el, newPos, {container, padding});
-		
-		if (dragCB) {
-			dragCB(e, {
-				x: eventPos.x - moveEventPos.x,
-				y: eventPos.y - moveEventPos.y,
-			});
-		}
+		const offset = {
+			x: eventPos.x - moveEventPos.x,
+			y: eventPos.y - moveEventPos.y,
+		};
 		moveEventPos = eventPos;	// if we don't reset moveEventPos, moveCB() will get cumulative offset
+		
+		dragCB(e, newPos, offset, dragStartEvent);
 	};
 	
 	const stopDragging = (e) => {
@@ -352,13 +351,16 @@ export function enableDragging (el, handle, container, padding, dragCB, endCB) {
 		
 		if (endCB) {
 			window.requestAnimationFrame(() => {	// wait until _after_ last setPosition call
-				endCB(e, getPosition(el));
+				endCB(e, getPosition(el), dragStartEvent);
 			});
 		}
+		
+		dragStartEvent = null;
 	};
 	
 	// start dragging on mousedown
 	handle.addEventListener('mousedown', e => {
+		dragStartEvent = e;
 		moveEventPos = getPosition(e);
 		const box = getBox(el);
 		
@@ -377,6 +379,25 @@ export function enableDragging (el, handle, container, padding, dragCB, endCB) {
 /**
  * 
  * @param {HTMLElement} el
+ * @param {HTMLElement} [handle=el]
+ * @param {HTMLElement} [container]
+ * @param {Number} [padding]
+ * @param {Function} [dragCB]
+ * @param {Function} [endCB]
+ */
+export function enableDragging (el, handle, container, padding, dragCB, endCB) {
+	doWhileDragging(el, handle, (e, newPos, offset) => {
+		move(el, newPos, {container, padding});
+		
+		if (dragCB) {
+			dragCB(e, newPos, offset);
+		}
+	}, endCB);
+}
+
+/**
+ * 
+ * @param {HTMLElement} el
  * @param {HTMLElement|Window} target
  * @param {String[]} alignment
  * @param {HTMLElement} [container]
@@ -389,6 +410,7 @@ export function align (
 	{
 		alignment	= [ALIGN_TOP + ALIGN_CENTER, ALIGN_BOTTOM + ALIGN_CENTER],
 		container	= null,
+		constrainToWindow = true,
 		padding		= 0,
 		shift		= [0, 0],
 		flip		= false,
@@ -411,7 +433,7 @@ export function align (
 	};
 	
 	// constrain destination position
-	destination = constrainPosition(el, destination, container, padding);
+	destination = constrainPosition(el, destination, container, padding, constrainToWindow);
 	
 	// flip alignment if el (partially or completely) overlaps target
 	if (flip) {
