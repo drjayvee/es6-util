@@ -23,19 +23,18 @@
  * @param {HTMLElement} el
  */
 function initPosition (el) {
-	const box = getBox(el);
-	
-	if (el.parentNode.nodeName !== "BODY") {			// if not already child of <body>
-		document.querySelector('body').appendChild(el);		// move it there to make position: absolute actually 'absolute'
-	}
+	const box = getPosition(el);		// _absolute_ position
+	const offsetRect = el.offsetParent.getBoundingClientRect();
 	
 	Object.assign(el.style, {
 		position:	'absolute',
-		left:		box.left	+ 'px',
-		top:		box.top		+ 'px',
+		left:		(box.left - offsetRect.left) + 'px',
+		top:		(box.top  - offsetRect.top)  + 'px',
 		
 		boxSizing:	'border-box',		// to temporarily fix dimensions while dragging
 	});
+	
+	setPosition(el, box);
 }
 
 /**
@@ -43,10 +42,14 @@ function initPosition (el) {
  * @param {HTMLElement} el
  * @param {Position} pos
  */
-function setPosition (el, pos) {
+export function setPosition (el, pos) {
+	const offsetRect = el.offsetParent === document.body ?
+		{left: 0, top: 0} :			// when .toolbar etc are position: fixed, document.body.getBoundingClientRect().top > 0
+		normalize(el.offsetParent.getBoundingClientRect());
+	
 	Object.assign(el.style, {
-		left:	pos.x + 'px',
-		top:	pos.y + 'px',
+		left:	pos.x - offsetRect.left - 1 + 'px',		// for some obscure reason, getBoundintClientRect and style are off by 1px
+		top:	pos.y - offsetRect.top - 1  + 'px',
 	});
 	
 	// transform: translate gives weird artifacts in Firefox

@@ -1,7 +1,7 @@
 /*jshint esnext:true*/
 
 import createWidget from 'js/widget';
-import {getBox, align, center, move, enableDragging} from "js/position";
+import {getBox, align, center, move, setPosition, enableDragging} from "js/position";
 
 /**
  * @class Overlay
@@ -167,13 +167,8 @@ const createOverlay = createWidget.extend(/** @lends Overlay.prototype */{
 			top:	0,
 		});
 		
-		const {width} = getBox(this.node);
-		
-		Object.assign(this.node.style, {
-			width:	Math.ceil(width) + 'px',	// new width
-			left:	left + 'px',				// original
-			top:	top + 'px',					// position
-		});
+		this.node.style.width = getBox(this.node).width + 'px';	// new width
+		setPosition(this.node, {x: left, y: top});				// original position
 		
 		return this;
 	},
