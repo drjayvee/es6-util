@@ -169,6 +169,10 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 	},
 	
 	_setSelectedTab () {
+		if (!this.get('rendered')) {
+			return;
+		}
+		
 		const tabIndex = this._labelsGroup.getIndex(
 			this._labelsGroup.getPressedButtons()[0]
 		);
