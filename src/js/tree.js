@@ -80,6 +80,8 @@ window.treeDnD_drop = e => {
 		}
 	} else {	// drop from outside browser
 		if (dragTarget instanceof createNode) {
+			e.stopPropagation();
+			
 			dragTarget.fire('fileDrop', {
 				item:	dragTarget,
 				files:	e.dataTransfer.files
