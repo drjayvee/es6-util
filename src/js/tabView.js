@@ -169,10 +169,6 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 	},
 	
 	_setSelectedTab () {
-		if (!this.get('rendered')) {
-			return;
-		}
-		
 		const tabIndex = this._labelsGroup.getIndex(
 			this._labelsGroup.getPressedButtons()[0]
 		);
@@ -200,7 +196,11 @@ const createTabView = createWidget.extend(/** @lends TabView.prototype */ {
 	superInit();
 	
 	this.publish('selectionChange', {
-		defaultFn: this._setSelectedTab
+		defaultFn: () => {
+			if (this.get('rendered')) {
+				this._setSelectedTab();
+			}
+		}
 	});
 	
 	if (enhance) {

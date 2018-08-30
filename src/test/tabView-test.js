@@ -92,10 +92,12 @@ QUnit.test('enhance TabView', function (assert) {
 	let tab = tv.getSelectedTab();
 	assert.equal(tab.label.get('label'), 'Ay');
 	assert.equal(tab.panel.innerHTML, 'captain');
+	assert.notOk(tab.panel.hidden, 'active tab should not be hidden');
 	
 	tab = tv.getTab(1);
 	assert.equal(tab.label.get('label'), 'Be');
 	assert.equal(tab.panel.innerHTML, 'nice');
+	assert.ok(tab.panel.hidden, 'inactive tab should be hidden');
 });
 
 QUnit.test('remove Tab', function (assert) {
