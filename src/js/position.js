@@ -323,8 +323,8 @@ function flipAlignment (elBox, destination, targetBox, elAlign, targetAlign, [sh
  * @param {Position} pos
  * @param {{container: HTMLElement, [padding]: Number}}
  */
-export function move (el, pos, {container, padding = 0} = {}) {
-	scheduleMove(el, constrainPosition(el, pos, container, padding));
+export function move (el, pos, {container, padding = 0, constrainToWindow = true} = {}) {
+	scheduleMove(el, constrainPosition(el, pos, container, padding, constrainToWindow));
 }
 
 export function doWhileDragging (el, handle, dragCB, endCB) {
