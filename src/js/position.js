@@ -43,7 +43,7 @@ function initPosition (el) {
  * @param {Position} pos
  */
 export function setPosition (el, pos) {
-	const offsetRect = el.offsetParent === document.body ?
+	const offsetRect = (el.offsetParent === document.body || !el.offsetParent) ?
 		{left: 0, top: 0} :			// when .toolbar etc are position: fixed, document.body.getBoundingClientRect().top > 0
 		normalize(el.offsetParent.getBoundingClientRect());
 	
