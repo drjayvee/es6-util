@@ -168,9 +168,11 @@ export const createAttribute = createFactory(/** @lends Attribute.prototype */ {
 
 	const attrConfigs = mergeAttrConfigs(this);
 	
-	for (let [name, config] of attrConfigs) {
+	for (const [name, config] of attrConfigs) {
 		this.addAttribute(name, config);
-		
+	}
+	
+	for (const [name] of attrConfigs) {
 		if (values.hasOwnProperty(name)) {
 			this._set(name, values[name], true);
 		}

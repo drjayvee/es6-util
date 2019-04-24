@@ -209,6 +209,22 @@ QUnit.test('initialize attributes via constructor', function (assert) {
 	});
 	
 	assert.equal(at.get('k1'), 1337);
+	
+	// set one attr in another's setter
+	const createRacingAttribute = createAttribute.extend({
+		ATTRS: {
+			k1: {
+				setter: function (value) {this.set('k2', value);}
+			},
+			k2: {}
+		}
+	});
+	
+	at = createRacingAttribute({
+		k1: 'pwn'
+	});
+	
+	assert.equal(at.get('k2'), 'pwn');
 });
 
 QUnit.test('attribute change events', function (assert) {
