@@ -56,6 +56,7 @@ window.treeDnD_over = e => {
 
 window.treeDnD_drop = e => {
 	e.preventDefault();
+	e.stopPropagation();
 	
 	const dragTarget = (e.target.classList.contains('node') ? e.target : e.target.parentNode).bind;
 	
@@ -80,8 +81,6 @@ window.treeDnD_drop = e => {
 		}
 	} else {	// drop from outside browser
 		if (dragTarget instanceof createNode) {
-			e.stopPropagation();
-			
 			dragTarget.fire('fileDrop', {
 				item:	dragTarget,
 				files:	e.dataTransfer.files
