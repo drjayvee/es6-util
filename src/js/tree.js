@@ -11,11 +11,28 @@ const trees = [];
 
 // region drag & drop
 // Reference: https://mereskin.github.io/dnd/
+
+/**
+ * 
+ * @param {HTMLElement} node
+ * @return {Item|null}
+ */
+function findItemAncestor (node) {
+	while (!node.bind) {
+		if (!node.parentNode || !node.parentNode.matches) {
+			return null;
+		}
+		node = node.parentNode;
+	}
+	
+	return node.bind;	// TODO: node && node.bind ???
+}
+
 window.treeDnD_start = e => {
 	e.dataTransfer.effectAllowed = 'move';
 	
 	// encode dragged item
-	const item = e.target.bind || e.target.parentNode.bind;
+	const item = findItemAncestor(e.target);
 	e.dataTransfer.setData('text', JSON.stringify([
 		trees.indexOf(item.getRoot()),					// root's DOMElement index
 		item instanceof createLeaf ? 'leaf' : 'node',	// item type
@@ -33,14 +50,7 @@ window.treeDnD_dragenter = e => {
 window.treeDnD_over = e => {
 	if (e.target.nodeType === Node.ELEMENT_NODE) {
 		// find item
-		let node = e.target;
-		while (!node.bind) {
-			if (!node.parentNode || !node.parentNode.matches) {
-				break;
-			}
-			node = node.parentNode;
-		}
-		const item = node && node.bind;
+		const item = findItemAncestor(e.target);
 		
 		// set drop effect depending on item type
 		if (item instanceof createLeaf) {
@@ -58,7 +68,7 @@ window.treeDnD_drop = e => {
 	e.preventDefault();
 	e.stopPropagation();
 	
-	const dragTarget = (e.target.classList.contains('node') ? e.target : e.target.parentNode).bind;
+	const dragTarget = findItemAncestor(e.target);
 	
 	if (e.dataTransfer.getData('text')) {
 		// decode dragged item
@@ -66,16 +76,13 @@ window.treeDnD_drop = e => {
 		const tree = trees[rootElementIndex];
 		const draggedItem = tree.getItem(itemId, itemType === 'leaf' ? createLeaf : createNode);
 		
-		const dropTarget = e.target;
-		const dropItem = dropTarget.bind || dropTarget.parentNode.bind;
-		
 		// move if target is valid drop item
 		if (!(
-			dropItem instanceof createLeaf											||	// target is leaf item
-			draggedItem === dropItem												||	// target is self
-			draggedItem.parent === dropItem											||	// current parent
-			(draggedItem instanceof createNode && draggedItem.contains(dropItem))	||	// target is descendant
-			draggedItem.getRoot() !== dropItem.getRoot()								// target is in other tree
+			dragTarget instanceof createLeaf										||	// target is leaf item
+			draggedItem === dragTarget												||	// target is self
+			draggedItem.parent === dragTarget										||	// current parent
+			(draggedItem instanceof createNode && draggedItem.contains(dragTarget))	||	// target is descendant
+			draggedItem.getRoot() !== dragTarget.getRoot()								// target is in other tree
 		)) {
 			draggedItem.moveTo(dragTarget);
 		}
