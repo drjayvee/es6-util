@@ -112,6 +112,7 @@ window.treeDnD_drop = e => {
  * @property {string|number} id
  * @property {string} label
  * @property {Item} parent
+ * @property {Boolean} [enableDragnDrop=false]
  */
 
 /**
@@ -156,8 +157,10 @@ const createItem = createAttributeObservable.extend(/** @lends Item.prototype */
 		return (this instanceof createLeaf ? '1' : '0') + this.get('label');
 	},
 	
-}, function init (superInit, {parent}) {
+}, function init (superInit, {parent, draggable = false, dropTarget = false}) {
 	this.parent = parent;
+	this._draggable = draggable;
+	this._dropTarget = dropTarget;
 	
 	superInit();
 });
@@ -188,13 +191,16 @@ export const createLeaf = createItem.extend({
 	_render () {
 		return h(
 			'li.leaf',
-			Object.assign({
-				bind:			this,
-				classes:		this._getClasses(),
-			}, (this.getRoot()._enableDragnDrop ? {
-				draggable:		'true',
-				ondragstart:	'treeDnD_start(event)',
-			} : null)),
+			Object.assign(
+				{
+					bind:			this,
+					classes:		this._getClasses(),
+				},
+				(this.getRoot()._enableDragnDrop && this._draggable) ? {
+					draggable:		'true',
+					ondragstart:	'treeDnD_start(event)',
+				} : null
+			),
 			this._renderContent()
 		);
 	},
@@ -342,16 +348,21 @@ export const createNode = createItem.extend(/** @lends Node.prototype */{
 	_render () {
 		return h(
 			'li.node',
-			Object.assign({
-				bind:		this,
-				classes:	this._getClasses(),
-			}, (this.getRoot()._enableDragnDrop ? {
-				draggable:	'true',
-				ondragstart:'treeDnD_start(event)',
-				ondragenter:'treeDnD_dragenter(event)',
-				ondragover:	'treeDnD_over(event)',
-				ondrop:		'treeDnD_drop(event)'
-			} : null)),
+			Object.assign(
+				{
+					bind:		this,
+					classes:	this._getClasses(),
+				},
+				(this.getRoot()._enableDragnDrop && this._draggable) ? {
+					draggable:	'true',
+					ondragstart:'treeDnD_start(event)',
+				} : null,
+				(this.getRoot()._enableDragnDrop && this._dropTarget) ? {
+					ondragenter:'treeDnD_dragenter(event)',
+					ondragover:	'treeDnD_over(event)',
+					ondrop:		'treeDnD_drop(event)'
+				} : null
+			),
 			[
 				this._renderLabel(),
 				this._renderList()
